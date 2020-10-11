@@ -31,7 +31,7 @@ public class Token {
     }
 
     public String toString(){
-        return attribute==null? name : "("+name+", \""+attribute+"\")";
+        return attribute == null ? "<" + name + ">" : "<" + name + ", \"" + attribute + "\">";
 
     }
 }

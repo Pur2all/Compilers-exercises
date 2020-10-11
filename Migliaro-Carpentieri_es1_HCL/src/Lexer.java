@@ -1,3 +1,4 @@
+import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 
@@ -37,60 +38,66 @@ public class Lexer
     public Token nextToken() throws Exception
     {
         String lexeme = "";
-        char c;
+        char character;
 
         state = 0;
 
         while(true)
         {
-            c = fileReader.readChar();
+            try
+            {
+                character = fileReader.getNextChar();
+            }
+            catch(EOFException eofException)
+            {
+                return null;
+            }
 
-            //id
+            // Transition diagram to match delimiters
             switch(state)
             {
-                case 9:
-                    if(Character.isLetter(c))
+                case 0:
+                    if(character == ' ' || character == '\t' || character == '\n')
+                        state = 1;
+                    else
+                        state = 3;
+                    break;
+                case 1:
+                    if(character != ' ' && character != '\t' && character != '\n')
                     {
-                        state = 10;
-                        lexeme += c;
-                        // Nel caso in cui il file � terminato ma ho letto qualcosa di valido
-                        // devo lanciare il token (altrimenti perderei l'ultimo token, troncato per l'EOF)
-                        if( // controlla se � finito il file){
-                        return installID(lexeme);
+                        state = 2;
+                        retract();
                     }
-                    state = 12;
-                break;
+                    break;
+                case 2:
+                    state = 3;
+                    break;
+            }
 
-                case 10:
-                    if(Character.isLetterOrDigit(c))
+            // Transition diagram to match identifiers
+            switch(state)
+            {
+                case 3:
+                    if(Character.isLetter(character))
                     {
-                        lessemq += c;
-                        if(// controlla se � finito il file)
-                        return installID(lexeme);
+                        state = 4;
+                        lexeme += character;
+                    }
+                    break;
+                case 4:
+                    if(Character.isLetterOrDigit(character))
+                    {
+                        lexeme += character;
                         break;
                     }
                     else
-                        {
-                        state = 11;
+                    {
                         retract();
+
                         return installID(lexeme);
                     }
-                default: break;
-                }//end switch
-
-
-            //unsigned numbers
-            switch(state)
-            {
-                case 12:
-                    if(Character.isDigit(c))
-                    {
-                        state = 13;
-                        lexeme += c;
-                        if(// controlla se � finito il file){
-                        return new Token("NUMBER", lexeme);
-                    }
-                break;
+                default:
+                    break;
             }
         }
     }
@@ -114,6 +121,6 @@ public class Lexer
 
     private void retract()
     {
-        fileReader.turnBack();
+        fileReader.retract();
     }
 }
