@@ -1,37 +1,43 @@
 
-public class Token {
-
-    private String name;     // questo è un identificativo di token: potrebbe anche essere un intero
+public class Token
+{
+    private String name;
     private String attribute;
 
-    public Token(String name, String attribute){
+    public Token(String name, String attribute)
+    {
         this.name = name;
         this.attribute = attribute;
     }
 
-    public Token(String name){
+    public Token(String name)
+    {
         this.name = name;
         this.attribute = null;
     }
 
-    public String getName() {
+    public String getName()
+    {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(String name)
+    {
         this.name = name;
     }
 
-    public String getAttribute() {
+    public String getAttribute()
+    {
         return attribute;
     }
 
-    public void setAttribute(String attribute) {
+    public void setAttribute(String attribute)
+    {
         this.attribute = attribute;
     }
 
-    public String toString(){
+    public String toString()
+    {
         return attribute == null ? "<" + name + ">" : "<" + name + ", \"" + attribute + "\">";
-
     }
 }
