@@ -12,13 +12,13 @@ public class FileReaderByChar
         rf = new RandomAccessFile(fileName,"r");
     }
 
-    public char getNextChar() throws EOFException, IOException
+    public Character getNextChar() throws EOFException, IOException
     {
         prevCharFilePointer = rf.getFilePointer();
         if(rf.getFilePointer() < rf.length())
             return (char) rf.read();
         else
-            throw new EOFException();
+            return null;
     }
 
     public void retract(){

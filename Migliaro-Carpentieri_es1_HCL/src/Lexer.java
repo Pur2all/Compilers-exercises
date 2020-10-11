@@ -7,6 +7,8 @@ public class Lexer
     private FileReaderByChar fileReader;
     private static HashMap<String, Token> stringTable;
     private int state;
+    private String diagram = "";
+    Boolean eof = false;
 
     public Lexer()
     {
@@ -38,25 +40,31 @@ public class Lexer
     public Token nextToken() throws Exception
     {
         String lexeme = "";
-        char character;
-
+        Character character;
         state = 0;
+
 
         while(true)
         {
-            try
-            {
-                character = fileReader.getNextChar();
-            }
-            catch(EOFException eofException)
-            {
+
+
+            if(eof == true) {
                 return null;
             }
 
+            character = fileReader.getNextChar();
+
+            if(character == null){
+                eof=true;
+                return installID(lexeme);
+            }
             // Transition diagram to match delimiters
             switch(state)
             {
+
                 case 0:
+                    diagram = "delimiters";
+                    
                     if(character == ' ' || character == '\t' || character == '\n')
                         state = 1;
                     else
@@ -78,24 +86,27 @@ public class Lexer
             switch(state)
             {
                 case 3:
-                    if(Character.isLetter(character))
-                    {
-                        state = 4;
-                        lexeme += character;
+                    if(eof==false) {
+                        if (Character.isLetter(character)) {
+                            state = 4;
+                            lexeme += character;
+                        }
                     }
                     break;
                 case 4:
-                    if(Character.isLetterOrDigit(character))
-                    {
-                        lexeme += character;
-                        break;
-                    }
-                    else
-                    {
-                        retract();
 
-                        return installID(lexeme);
-                    }
+                        if (Character.isLetterOrDigit(character)) {
+                            lexeme += character;
+                            break;
+                        } else {
+                            retract();
+
+                            return installID(lexeme);
+                        }
+
+
+
+
                 default:
                     break;
             }
@@ -106,7 +117,8 @@ public class Lexer
     private Token installID(String lexeme)
     {
         Token token;
-
+        if(lexeme.equals(""))
+            return null;
         if(stringTable.containsKey(lexeme))
             return stringTable.get(lexeme);
         else
