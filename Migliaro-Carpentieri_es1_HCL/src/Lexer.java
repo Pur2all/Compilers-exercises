@@ -191,7 +191,7 @@ public class Lexer
 							state = 30;
 							break;
 						default:
-							state = -1; // Next diagram
+							state = 50; // Next diagram
 					}
 					break;
 				case 21:
@@ -233,7 +233,7 @@ public class Lexer
 					{
 						state = 29;
 						retract();
-						
+
 						return new Token("RELOP", "LT");
 					}
 				case 30:
@@ -246,6 +246,109 @@ public class Lexer
 					{
 						state = -1;
 						retract();
+					}
+					break;
+			}
+
+			// Transition diagram to match numeric literals
+			switch(state)
+			{
+				case 50:
+					if(Character.isDigit(character))
+					{
+						lexeme += character;
+						state = 51;
+					}
+					else
+						state = -1;
+					break;
+				case 51:
+					if(Character.isDigit(character))
+						lexeme += character;
+					else
+						if(character == '.')
+						{
+							state = 52;
+							lexeme += character;
+						}
+						else
+							if(character == 'E')
+							{
+								state = 54;
+								lexeme += character;
+							}
+							else
+							{
+								retract();
+								return new Token("NUM", lexeme);
+							}
+					break;
+				case 52:
+					if(Character.isDigit(character))
+					{
+						state = 53;
+						lexeme += character;
+					}
+					else
+					{
+						state = -1;
+						retract();
+					}
+					break;
+				case 53:
+					if(Character.isDigit(character))
+						lexeme += character;
+					else
+						if(character == 'E')
+						{
+							state = 54;
+							lexeme += character;
+						}
+						else
+						{
+							retract();
+							return new Token("NUM", lexeme);
+						}
+					break;
+				case 54:
+					if(Character.isDigit(character))
+					{
+						state = 56;
+						lexeme += character;
+					}
+					else
+						if(character == '+' || character == '-')
+						{
+							state = 55;
+							lexeme += character;
+						}
+						else
+						{
+							// Quando dopo la E ci sta qualcosa che non va bene devo dare errore su tutto il lessema oppure tolgo la E faccio due retract.
+							state = -1;
+							retract();
+						}
+					break;
+				case 55:
+					if(Character.isDigit(character))
+					{
+						state = 56;
+						lexeme += character;
+					}
+					else
+					{
+						state = -1;
+						retract();
+					}
+					break;
+				case 56:
+					if(Character.isDigit(character))
+						lexeme += character;
+					else
+					{
+						retract();
+
+						return new Token("NUM", lexeme);
 					}
 					break;
 			}
