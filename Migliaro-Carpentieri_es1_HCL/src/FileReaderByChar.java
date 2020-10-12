@@ -10,13 +10,13 @@ public class FileReaderByChar
 		rf = new RandomAccessFile(fileName, "r");
 	}
 
-	public Character getNextChar() throws EOFException, IOException
+	public char getNextChar() throws EOFException, IOException
 	{
 		prevCharFilePointer = rf.getFilePointer();
 		if(rf.getFilePointer() < rf.length())
 			return (char) rf.read();
 		else
-			return null;
+			return (char)-1;
 	}
 
 	public void retract()
@@ -30,4 +30,6 @@ public class FileReaderByChar
 			e.printStackTrace();
 		}
 	}
+
+
 }
