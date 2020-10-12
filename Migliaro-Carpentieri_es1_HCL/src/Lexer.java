@@ -1,4 +1,3 @@
-import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
@@ -8,7 +7,7 @@ public class Lexer
 	private FileReaderByChar fileReader;
 	private static HashMap<String, Token> stringTable;
 	private int state;
-	private Boolean eof = false;
+	private boolean eof;
 	private final static char EOF = (char) -1;
 
 	public Lexer()
@@ -29,6 +28,7 @@ public class Lexer
 		try
 		{
 			fileReader = new FileReaderByChar(filePath);
+			eof = false;
 		}
 		catch(FileNotFoundException fileNotFoundException)
 		{
@@ -42,6 +42,7 @@ public class Lexer
 	{
 		String lexeme = "";
 		char character;
+
 		state = 0;
 
 		while(true)
@@ -52,9 +53,7 @@ public class Lexer
 			character = fileReader.getNextChar();
 
 			if(character == EOF)
-			{
 				eof = true;
-			}
 
 			// Transition diagram to match delimiters
 			switch(state)
@@ -142,6 +141,7 @@ public class Lexer
 							state = 20;
 							break;
 					}
+
 					break;
 				case 6:
 					retract();
@@ -192,7 +192,6 @@ public class Lexer
 							break;
 						default:
 							state = -1; // Next diagram
-							break;
 					}
 					break;
 				case 21:
@@ -204,8 +203,8 @@ public class Lexer
 					}
 					else
 					{
-						state = 23;
-						retract();
+						state = -1;
+
 						retract();
 					}
 					break;
@@ -234,14 +233,13 @@ public class Lexer
 					{
 						state = 29;
 						retract();
-
+						
 						return new Token("RELOP", "LT");
 					}
 				case 30:
 					if(character == '=')
 					{
 						state = 31;
-
 						return new Token("RELOP", "EQ");
 					}
 					else
@@ -263,9 +261,6 @@ public class Lexer
 	private Token installID(String lexeme)
 	{
 		Token token;
-
-		if(lexeme.equals(""))
-			return null;
 
 		if(stringTable.containsKey(lexeme))
 			return stringTable.get(lexeme);

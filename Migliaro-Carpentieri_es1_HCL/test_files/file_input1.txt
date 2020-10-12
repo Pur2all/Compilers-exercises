@@ -1,2 +1,6 @@
-int a1 12
-float prova
+int main()
+{
+    int ciao = 3;
+
+    return 0;
+}gh!!
