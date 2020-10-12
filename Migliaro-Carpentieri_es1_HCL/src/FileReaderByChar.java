@@ -2,28 +2,23 @@ import java.io.*;
 
 public class FileReaderByChar
 {
-	private RandomAccessFile rf;
-	private long prevCharFilePointer;
+	private RandomAccessFile randomAccessFile;
 
-	public FileReaderByChar(String fileName) throws FileNotFoundException
+	public FileReaderByChar(String filePath) throws FileNotFoundException
 	{
-		rf = new RandomAccessFile(fileName, "r");
+		randomAccessFile = new RandomAccessFile(filePath, "r");
 	}
 
-	public Character getNextChar() throws EOFException, IOException
+	public char getNextChar() throws IOException
 	{
-		prevCharFilePointer = rf.getFilePointer();
-		if(rf.getFilePointer() < rf.length())
-			return (char) rf.read();
-		else
-			return null;
+		return (char) randomAccessFile.read();
 	}
 
 	public void retract()
 	{
 		try
 		{
-			rf.seek((rf.getFilePointer() - 1L));
+			randomAccessFile.seek(randomAccessFile.getFilePointer() - 1L);
 		}
 		catch(IOException e)
 		{

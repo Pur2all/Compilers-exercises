@@ -1,5 +1,6 @@
 import java.io.EOFException;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 
 public class Lexer
@@ -8,6 +9,7 @@ public class Lexer
 	private static HashMap<String, Token> stringTable;
 	private int state;
 	private Boolean eof = false;
+	private final static char EOF = (char) -1;
 
 	public Lexer()
 	{
@@ -36,22 +38,20 @@ public class Lexer
 		return true;
 	}
 
-	public Token nextToken() throws Exception
+	public Token nextToken() throws IOException
 	{
 		String lexeme = "";
-		Character character;
+		char character;
 		state = 0;
 
 		while(true)
 		{
 			if(eof)
-			{
 				return null;
-			}
 
 			character = fileReader.getNextChar();
 
-			if(character == null)
+			if(character == EOF)
 			{
 				eof = true;
 			}
@@ -60,13 +60,13 @@ public class Lexer
 			switch(state)
 			{
 				case 0:
-					if(character != null && (character == ' ' || character == '\t' || character == '\n' || character == '\r'))
+					if(character == ' ' || character == '\t' || character == '\n' || character == '\r')
 						state = 1;
 					else
 						state = 3;
 					break;
 				case 1:
-					if(character != null && character != ' ' && character != '\t' && character != '\n' && character != '\r')
+					if(character != ' ' && character != '\t' && character != '\n' && character != '\r')
 					{
 						state = 2;
 						retract();
@@ -81,16 +81,13 @@ public class Lexer
 			switch(state)
 			{
 				case 3:
-					if(character != null && Character.isLetter(character))
+					if(Character.isLetter(character))
 					{
 						state = 4;
 						lexeme += character;
 					}
-					//Se ci sono altri diagrammi vado al prossimo stato altrimenti c'è un simbolo che non è supportato dal linguaggio.
 					else
-					{
 						state = 5;
-					}
 					break;
 				case 4:
 					if(eof)
@@ -115,214 +112,147 @@ public class Lexer
 			switch(state)
 			{
 				case 5:
-					//If eof is false character is not null.
-					if(!eof)
+					switch(character)
 					{
-						switch(character)
-						{
-							case '(':
-								state = 6;
-								lexeme += character;
-								break;
-							case ')':
-								state = 7;
-								lexeme += character;
-								break;
-							case '{':
-								state = 8;
-								lexeme += character;
-								break;
-							case '}':
-								state = 9;
-								lexeme += character;
-								break;
-							case ',':
-								state = 10;
-								lexeme += character;
-								break;
-							case ';':
-								state = 11;
-								lexeme += character;
-								break;
-							default:
-								state = 20;
-								break;
-						}
+						case '(':
+							state = 6;
+							lexeme += character;
+							break;
+						case ')':
+							state = 7;
+							lexeme += character;
+							break;
+						case '{':
+							state = 8;
+							lexeme += character;
+							break;
+						case '}':
+							state = 9;
+							lexeme += character;
+							break;
+						case ',':
+							state = 10;
+							lexeme += character;
+							break;
+						case ';':
+							state = 11;
+							lexeme += character;
+							break;
+						default:
+							state = 20;
+							break;
 					}
 					break;
 				case 6:
 					retract();
 
-					return (new Token("LPAR"));
+					return new Token("LPAR");
 				case 7:
 					retract();
 
-					return (new Token("RPAR"));
+					return new Token("RPAR");
 				case 8:
 					retract();
 
-					return (new Token("LBRAC"));
+					return new Token("LBRAC");
 				case 9:
 					retract();
 
-					return (new Token("RBRAC"));
+					return new Token("RBRAC");
 				case 10:
 					retract();
 
-					return (new Token("COMMA"));
+					return new Token("COMMA");
 				case 11:
 					retract();
 
-					return (new Token("SEMICOLON"));
-				default:
-					break;
-
-			}
-			//Diagrams for seprators
-			switch(state)
-			{
-				case 5:
-					//If eof is false character is not null.
-					if(!eof)
-					{
-						switch(character)
-						{
-							case '(':
-								state = 6;
-								lexeme += character;
-								break;
-							case ')':
-								state = 7;
-								lexeme += character;
-								break;
-							case '{':
-								state = 8;
-								lexeme += character;
-								break;
-							case '}':
-								state = 9;
-								lexeme += character;
-								break;
-							case ',':
-								state = 10;
-								lexeme += character;
-								break;
-							case ';':
-								state = 11;
-								lexeme += character;
-								break;
-
-							default:
-								state = -1;
-								break;
-						}
-					}
-					break;
-				case 6:
-					retract();
-
-					return(new Token("LPAR"));
-				case 7:
-					retract();
-
-					return (new Token("RPAR"));
-				case 8:
-					retract();
-
-					return(new Token("LBRAC"));
-				case 9:
-					retract();
-
-					return (new Token("RBRAC"));
-				case 10:
-					retract();
-
-					return(new Token("COMMA"));
-				case 11:
-					retract();
-
-					return (new Token("SEMICOLON"));
-
+					return new Token("SEMICOLON");
 				default:
 					break;
 
 			}
 
 			// Transition diagram to match operators
-			if(character != null)
-				switch(state)
-				{
-					case 20:
-						switch(character)
-						{
-							case '!':
-								state = 21;
-								break;
-							case '>':
-								state = 24;
-								break;
-							case '<':
-								state = 27;
-								break;
-							case '=':
-								state = 30;
-								break;
-							default:
-								state = -1; // prossimo diagramma
-						}
-						break;
-					case 21:
-						if(character == '=')
-						{
-							state = 22;
-							return new Token("RELOP", "NOTEQ");
-						}
-						else
-						{
-							state = 23;
-							retract();
-							retract();
-						}
-						break;
-					case 24:
-						if(character == '=')
-						{
-							state = 25;
-							return new Token("RELOP", "GEQ");
-						}
-						else
-						{
-							state = 26;
-							retract();
-							return new Token("RELOP", "GT");
-						}
-					case 27:
-						if(character == '=')
-						{
-							state = 28;
-							return new Token("RELOP", "LEQ");
-						}
-						else
-						{
-							state = 29;
-							retract();
-							return new Token("RELOP", "LT");
-						}
-					case 30:
-						if(character == '=')
-						{
-							state = 31;
-							return new Token("RELOP", "EQ");
-						}
-						else
-						{
-							state = -1;
-							retract();
-						}
-						break;
-				}
+			switch(state)
+			{
+				case 20:
+					switch(character)
+					{
+						case '!':
+							state = 21;
+							break;
+						case '>':
+							state = 24;
+							break;
+						case '<':
+							state = 27;
+							break;
+						case '=':
+							state = 30;
+							break;
+						default:
+							state = -1; // Next diagram
+							break;
+					}
+					break;
+				case 21:
+					if(character == '=')
+					{
+						state = 22;
 
-			if(state == -1 && !eof)
+						return new Token("RELOP", "NOTEQ");
+					}
+					else
+					{
+						state = 23;
+						retract();
+						retract();
+					}
+					break;
+				case 24:
+					if(character == '=')
+					{
+						state = 25;
+
+						return new Token("RELOP", "GEQ");
+					}
+					else
+					{
+						state = 26;
+						retract();
+
+						return new Token("RELOP", "GT");
+					}
+				case 27:
+					if(character == '=')
+					{
+						state = 28;
+
+						return new Token("RELOP", "LEQ");
+					}
+					else
+					{
+						state = 29;
+						retract();
+
+						return new Token("RELOP", "LT");
+					}
+				case 30:
+					if(character == '=')
+					{
+						state = 31;
+
+						return new Token("RELOP", "EQ");
+					}
+					else
+					{
+						state = -1;
+						retract();
+					}
+					break;
+			}
+
+			if(state == -1)
 			{
 				return new Token("ERROR");
 			}
@@ -333,8 +263,10 @@ public class Lexer
 	private Token installID(String lexeme)
 	{
 		Token token;
+
 		if(lexeme.equals(""))
 			return null;
+
 		if(stringTable.containsKey(lexeme))
 			return stringTable.get(lexeme);
 		else
