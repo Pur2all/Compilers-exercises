@@ -92,7 +92,7 @@ public class Lexer
 					//Se ci sono altri diagrammi vado al prossimo stato altrimenti c'è un simbolo che non è supportato dal linguaggio.
 					else
 					{
-						state = -1;
+						state = 5;
 					}
 					break;
 				case 4:
@@ -114,6 +114,75 @@ public class Lexer
 
 				default:
 					break;
+			}
+			//Diagrams for seprators
+			switch(state)
+			{
+				case 5:
+					//If eof is false character is not null.
+					if(!eof)
+					{
+						switch(character)
+						{
+							case '(':
+								state = 6;
+								lexeme += character;
+								break;
+							case ')':
+								state = 7;
+								lexeme += character;
+								break;
+							case '{':
+								state = 8;
+								lexeme += character;
+								break;
+							case '}':
+								state = 9;
+								lexeme += character;
+								break;
+							case ',':
+								state = 10;
+								lexeme += character;
+								break;
+							case ';':
+								state = 11;
+								lexeme += character;
+								break;
+
+							default:
+								state = -1;
+								break;
+						}
+					}
+					break;
+				case 6:
+					retract();
+
+					return(new Token("LPAR"));
+				case 7:
+					retract();
+
+					return (new Token("RPAR"));
+				case 8:
+					retract();
+
+					return(new Token("LBRAC"));
+				case 9:
+					retract();
+
+					return (new Token("RBRAC"));
+				case 10:
+					retract();
+
+					return(new Token("COMMA"));
+				case 11:
+					retract();
+
+					return (new Token("SEMICOLON"));
+
+				default:
+					break;
+
 			}
 
 			if(state == -1 && eof == false)
