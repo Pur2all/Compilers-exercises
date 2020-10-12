@@ -1,1 +1,2 @@
-int a float prova
+int a
+float prova

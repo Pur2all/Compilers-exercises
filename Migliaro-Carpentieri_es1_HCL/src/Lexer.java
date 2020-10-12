@@ -63,13 +63,13 @@ public class Lexer
             switch(state)
             {
                 case 0:
-                    if(character != null && (character == ' ' || character == '\t' || character == '\n'))
+                    if(character != null && (character == ' ' || character == '\t' || character == '\n' || character == '\r'))
                         state = 1;
                     else
                         state = 3;
                     break;
                 case 1:
-                    if(character != null && character != ' ' && character != '\t' && character != '\n')
+                    if(character != null && character != ' ' && character != '\t' && character != '\n' && character != '\n')
                     {
                         state = 2;
                         retract();
@@ -84,7 +84,6 @@ public class Lexer
             switch(state)
             {
                 case 3:
-
                     if (character != null && Character.isLetter(character))
                     {
                         state = 4;
