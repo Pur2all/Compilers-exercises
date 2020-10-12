@@ -178,6 +178,75 @@ public class Lexer
 					break;
 
 			}
+			//Diagrams for seprators
+			switch(state)
+			{
+				case 5:
+					//If eof is false character is not null.
+					if(!eof)
+					{
+						switch(character)
+						{
+							case '(':
+								state = 6;
+								lexeme += character;
+								break;
+							case ')':
+								state = 7;
+								lexeme += character;
+								break;
+							case '{':
+								state = 8;
+								lexeme += character;
+								break;
+							case '}':
+								state = 9;
+								lexeme += character;
+								break;
+							case ',':
+								state = 10;
+								lexeme += character;
+								break;
+							case ';':
+								state = 11;
+								lexeme += character;
+								break;
+
+							default:
+								state = -1;
+								break;
+						}
+					}
+					break;
+				case 6:
+					retract();
+
+					return(new Token("LPAR"));
+				case 7:
+					retract();
+
+					return (new Token("RPAR"));
+				case 8:
+					retract();
+
+					return(new Token("LBRAC"));
+				case 9:
+					retract();
+
+					return (new Token("RBRAC"));
+				case 10:
+					retract();
+
+					return(new Token("COMMA"));
+				case 11:
+					retract();
+
+					return (new Token("SEMICOLON"));
+
+				default:
+					break;
+
+			}
 
 			// Transition diagram to match operators
 			if(character != null)
