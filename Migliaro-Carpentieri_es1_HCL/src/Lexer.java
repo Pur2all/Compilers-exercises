@@ -42,12 +42,9 @@ public class Lexer
 		Character character;
 		state = 0;
 
-
 		while(true)
 		{
-
-
-			if(eof == true)
+			if(eof)
 			{
 				return null;
 			}
@@ -92,11 +89,11 @@ public class Lexer
 					//Se ci sono altri diagrammi vado al prossimo stato altrimenti c'è un simbolo che non è supportato dal linguaggio.
 					else
 					{
-						state = -1;
+						state = 5;
 					}
 					break;
 				case 4:
-					if(eof == true)
+					if(eof)
 						return installID(lexeme);
 
 					if(Character.isLetterOrDigit(character))
@@ -110,18 +107,157 @@ public class Lexer
 
 						return installID(lexeme);
 					}
-
-
 				default:
 					break;
 			}
 
-			if(state == -1 && eof == false)
+			//Transition diagram to match separators
+			switch(state)
+			{
+				case 5:
+					//If eof is false character is not null.
+					if(!eof)
+					{
+						switch(character)
+						{
+							case '(':
+								state = 6;
+								lexeme += character;
+								break;
+							case ')':
+								state = 7;
+								lexeme += character;
+								break;
+							case '{':
+								state = 8;
+								lexeme += character;
+								break;
+							case '}':
+								state = 9;
+								lexeme += character;
+								break;
+							case ',':
+								state = 10;
+								lexeme += character;
+								break;
+							case ';':
+								state = 11;
+								lexeme += character;
+								break;
+							default:
+								state = 20;
+								break;
+						}
+					}
+					break;
+				case 6:
+					retract();
+
+					return (new Token("LPAR"));
+				case 7:
+					retract();
+
+					return (new Token("RPAR"));
+				case 8:
+					retract();
+
+					return (new Token("LBRAC"));
+				case 9:
+					retract();
+
+					return (new Token("RBRAC"));
+				case 10:
+					retract();
+
+					return (new Token("COMMA"));
+				case 11:
+					retract();
+
+					return (new Token("SEMICOLON"));
+				default:
+					break;
+
+			}
+
+			// Transition diagram to match operators
+			if(character != null)
+				switch(state)
+				{
+					case 20:
+						switch(character)
+						{
+							case '!':
+								state = 21;
+								break;
+							case '>':
+								state = 24;
+								break;
+							case '<':
+								state = 27;
+								break;
+							case '=':
+								state = 30;
+								break;
+							default:
+								state = -1; // prossimo diagramma
+						}
+						break;
+					case 21:
+						if(character == '=')
+						{
+							state = 22;
+							return new Token("RELOP", "NOTEQ");
+						}
+						else
+						{
+							state = 23;
+							retract();
+							retract();
+						}
+						break;
+					case 24:
+						if(character == '=')
+						{
+							state = 25;
+							return new Token("RELOP", "GEQ");
+						}
+						else
+						{
+							state = 26;
+							retract();
+							return new Token("RELOP", "GT");
+						}
+					case 27:
+						if(character == '=')
+						{
+							state = 28;
+							return new Token("RELOP", "LEQ");
+						}
+						else
+						{
+							state = 29;
+							retract();
+							return new Token("RELOP", "LT");
+						}
+					case 30:
+						if(character == '=')
+						{
+							state = 31;
+							return new Token("RELOP", "EQ");
+						}
+						else
+						{
+							state = -1;
+							retract();
+						}
+						break;
+				}
+
+			if(state == -1 && !eof)
 			{
 				return new Token("ERROR");
 			}
 		}
-
 	}
 
 
@@ -139,7 +275,6 @@ public class Lexer
 
 			return token;
 		}
-
 	}
 
 
