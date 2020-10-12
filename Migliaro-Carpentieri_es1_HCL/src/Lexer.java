@@ -7,8 +7,7 @@ public class Lexer
     private FileReaderByChar fileReader;
     private static HashMap<String, Token> stringTable;
     private int state;
-    private String diagram = "";
-    Boolean eof = false;
+    private Boolean eof = false;
 
     public Lexer()
     {
@@ -48,30 +47,29 @@ public class Lexer
         {
 
 
-            if(eof == true) {
+            if(eof == true)
+            {
                 return null;
             }
 
             character = fileReader.getNextChar();
 
-            if(character == null){
+            if(character == null)
+            {
                 eof=true;
-                return installID(lexeme);
             }
+
             // Transition diagram to match delimiters
             switch(state)
             {
-
                 case 0:
-                    diagram = "delimiters";
-                    
-                    if(character == ' ' || character == '\t' || character == '\n')
+                    if(character != null && (character == ' ' || character == '\t' || character == '\n'))
                         state = 1;
                     else
                         state = 3;
                     break;
                 case 1:
-                    if(character != ' ' && character != '\t' && character != '\n')
+                    if(character != null && character != ' ' && character != '\t' && character != '\n')
                     {
                         state = 2;
                         retract();
@@ -86,19 +84,29 @@ public class Lexer
             switch(state)
             {
                 case 3:
-                    if(eof==false) {
-                        if (Character.isLetter(character)) {
-                            state = 4;
-                            lexeme += character;
-                        }
+
+                    if (character != null && Character.isLetter(character))
+                    {
+                        state = 4;
+                        lexeme += character;
+                    }
+                    //Se ci sono altri diagrammi vado al prossimo stato altrimenti c'è un simbolo che non è supportato dal linguaggio.
+                    else
+                    {
+                        state = -1;
                     }
                     break;
                 case 4:
+                        if(eof==true)
+                            return installID(lexeme);
 
-                        if (Character.isLetterOrDigit(character)) {
+                        if (Character.isLetterOrDigit(character))
+                        {
                             lexeme += character;
                             break;
-                        } else {
+                        }
+                        else
+                        {
                             retract();
 
                             return installID(lexeme);
@@ -110,7 +118,13 @@ public class Lexer
                 default:
                     break;
             }
+
+            if(state == -1 && eof == false)
+            {
+                return new Token("ERROR");
+            }
         }
+
     }
 
 
@@ -128,6 +142,7 @@ public class Lexer
 
             return token;
         }
+
     }
 
 
