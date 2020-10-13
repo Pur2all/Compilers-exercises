@@ -4,12 +4,22 @@ import java.util.HashMap;
 
 public class Lexer
 {
+	// Utility object to read a file character by character
 	private FileReaderByChar fileReader;
+
+	// Data structure to saving and indexing lexemes
 	private static HashMap<String, Token> stringTable;
+
+	// Global state of transition diagram
 	private int state;
+
+	// Boolean variable to indicate if the file is ended
 	private boolean eof;
+
+	// Constant to indicate end of file
 	private final static char EOF = (char) -1;
 
+	// Constructor
 	public Lexer()
 	{
 		stringTable = new HashMap<>();
@@ -23,10 +33,12 @@ public class Lexer
 		state = 0;
 	}
 
+	// Method to initialize Lexer
 	public Boolean initialize(String filePath)
 	{
 		try
 		{
+			// Open the input file
 			fileReader = new FileReaderByChar(filePath);
 			eof = false;
 		}
@@ -38,20 +50,28 @@ public class Lexer
 		return true;
 	}
 
+	// Method to generate the next token
 	public Token nextToken() throws IOException
 	{
+		// Current reading lexeme
 		String lexeme = "";
+
+		// Current reading character
 		char character;
 
+		// Set initial state
 		state = 0;
 
 		while(true)
 		{
+			// If file is ended return null to indicate end of file
 			if(eof)
 				return null;
 
+			// Read next character
 			character = fileReader.getNextChar();
 
+			// Check if the file is ended
 			if(character == EOF)
 				eof = true;
 
@@ -59,20 +79,14 @@ public class Lexer
 			switch(state)
 			{
 				case 0:
-					if(character == ' ' || character == '\t' || character == '\n' || character == '\r')
+					if(Character.isWhitespace(character))
 						state = 1;
 					else
-						state = 3;
+						state = 3; // Set the state to the initial state of identifiers diagram
 					break;
 				case 1:
-					if(character != ' ' && character != '\t' && character != '\n' && character != '\r')
-					{
-						state = 2;
-						retract();
-					}
-					break;
-				case 2:
-					state = 3;
+					if(!Character.isWhitespace(character)) // Finished skipping white space
+						state = 3; // Set the state to the initial state of identifiers diagram
 					break;
 			}
 
@@ -86,12 +100,9 @@ public class Lexer
 						lexeme += character;
 					}
 					else
-						state = 5;
+						state = 5; // Set the state to the initial state of separators diagram
 					break;
 				case 4:
-					if(eof)
-						return installID(lexeme);
-
 					if(Character.isLetterOrDigit(character))
 					{
 						lexeme += character;
@@ -101,13 +112,13 @@ public class Lexer
 					{
 						retract();
 
-						return installID(lexeme);
+						return installID(lexeme); // Finished to read lexeme then return identifier token
 					}
 				default:
 					break;
 			}
 
-			//Transition diagram to match separators
+			// Transition diagram to match separators
 			switch(state)
 			{
 				case 5:
@@ -115,33 +126,26 @@ public class Lexer
 					{
 						case '(':
 							state = 6;
-							lexeme += character;
 							break;
 						case ')':
 							state = 7;
-							lexeme += character;
 							break;
 						case '{':
 							state = 8;
-							lexeme += character;
 							break;
 						case '}':
 							state = 9;
-							lexeme += character;
 							break;
 						case ',':
 							state = 10;
-							lexeme += character;
 							break;
 						case ';':
 							state = 11;
-							lexeme += character;
 							break;
 						default:
-							state = 20;
+							state = 20; // Set the state to the initial state of operators diagram
 							break;
 					}
-
 					break;
 				case 6:
 					retract();
@@ -169,7 +173,6 @@ public class Lexer
 					return new Token("SEMICOLON");
 				default:
 					break;
-
 			}
 
 			// Transition diagram to match operators
@@ -191,60 +194,61 @@ public class Lexer
 							state = 30;
 							break;
 						default:
-							state = 50; // Next diagram
+							state = 50; // Set the state to the initial state of numeric literals diagram
 					}
 					break;
 				case 21:
 					if(character == '=')
-					{
-						state = 22;
-
-						return new Token("RELOP", "NOTEQ");
-					}
+						return new Token("RELOP", "NEQ");
 					else
 					{
-						state = -1;
+						state = -1; // The lexeme ! is not allowed
 
 						retract();
 					}
 					break;
 				case 24:
 					if(character == '=')
-					{
-						state = 25;
-
 						return new Token("RELOP", "GEQ");
-					}
 					else
 					{
-						state = 26;
 						retract();
 
 						return new Token("RELOP", "GT");
 					}
 				case 27:
 					if(character == '=')
-					{
-						state = 28;
-
 						return new Token("RELOP", "LEQ");
-					}
 					else
 					{
-						state = 29;
+						if(character == '-')
+						{
+							state = 29;
+							break;
+						}
+						else
+						{
+							retract();
+
+							return new Token("RELOP", "LT");
+						}
+					}
+				case 29:
+					if(character == '-')
+						return new Token("ASSIGN");
+					else
+					{
+						retract();
 						retract();
 
 						return new Token("RELOP", "LT");
 					}
 				case 30:
 					if(character == '=')
-					{
-						state = 31;
 						return new Token("RELOP", "EQ");
-					}
 					else
 					{
-						state = -1;
+						state = -1; // The lexeme = is not allowed
 						retract();
 					}
 					break;
@@ -260,7 +264,8 @@ public class Lexer
 						state = 51;
 					}
 					else
-						state = -1;
+						if(character != EOF) // The symbol EOF must not be treated as an error
+							state = -1;
 					break;
 				case 51:
 					if(Character.isDigit(character))
@@ -291,8 +296,12 @@ public class Lexer
 					}
 					else
 					{
-						state = -1;
+						// When read . with invalid character after it return the previous correct number
+						lexeme = lexeme.substring(0, lexeme.length() - 1);
 						retract();
+						retract();
+
+						return new Token("NUM", lexeme);
 					}
 					break;
 				case 53:
@@ -324,9 +333,12 @@ public class Lexer
 						}
 						else
 						{
-							// Quando dopo la E ci sta qualcosa che non va bene devo dare errore su tutto il lessema oppure tolgo la E faccio due retract.
-							state = -1;
+							// When read E with invalid character after it return the previous correct number
+							lexeme = lexeme.substring(0, lexeme.length() - 1);
 							retract();
+							retract();
+
+							return new Token("NUM", lexeme);
 						}
 					break;
 				case 55:
@@ -337,8 +349,13 @@ public class Lexer
 					}
 					else
 					{
-						state = -1;
+						// When read E+ or E- with invalid character after it return the previous correct number
+						lexeme = lexeme.substring(0, lexeme.length() - 2);
 						retract();
+						retract();
+						retract();
+
+						return new Token("NUM", lexeme);
 					}
 					break;
 				case 56:
@@ -353,6 +370,7 @@ public class Lexer
 					break;
 			}
 
+			// If the string does not match any pattern return error token
 			if(state == -1)
 			{
 				return new Token("ERROR");
@@ -360,7 +378,7 @@ public class Lexer
 		}
 	}
 
-
+	// Method to install identifiers in string table
 	private Token installID(String lexeme)
 	{
 		Token token;
@@ -376,7 +394,7 @@ public class Lexer
 		}
 	}
 
-
+	// Method to set the file pointer to previous character
 	private void retract()
 	{
 		fileReader.retract();
