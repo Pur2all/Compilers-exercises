@@ -241,15 +241,8 @@ public class Lexer
 						retract();
 						retract();
 
-							return new Token("RELOP", "LT");
-						}
+						return new Token("RELOP", "LT");
 					}
-				case 29:
-					if(character == '-')
-						return new Token("ASSIGN");
-					else
-						state = -1;
-					break;
 				case 30:
 					if(character == '=')
 						return new Token("RELOP", "EQ");
