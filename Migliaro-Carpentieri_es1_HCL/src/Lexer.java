@@ -59,13 +59,13 @@ public class Lexer
 			switch(state)
 			{
 				case 0:
-					if(character == ' ' || character == '\t' || character == '\n' || character == '\r')
+					if(Character.isWhitespace(character))
 						state = 1;
 					else
 						state = 3;
 					break;
 				case 1:
-					if(character != ' ' && character != '\t' && character != '\n' && character != '\r')
+					if(!Character.isWhitespace(character))
 					{
 						state = 2;
 						retract();
@@ -107,7 +107,7 @@ public class Lexer
 					break;
 			}
 
-			//Transition diagram to match separators
+			// Transition diagram to match separators
 			switch(state)
 			{
 				case 5:
@@ -141,7 +141,6 @@ public class Lexer
 							state = 20;
 							break;
 					}
-
 					break;
 				case 6:
 					retract();
@@ -169,7 +168,6 @@ public class Lexer
 					return new Token("SEMICOLON");
 				default:
 					break;
-
 			}
 
 			// Transition diagram to match operators
@@ -199,7 +197,7 @@ public class Lexer
 					{
 						state = 22;
 
-						return new Token("RELOP", "NOTEQ");
+						return new Token("RELOP", "NEQ");
 					}
 					else
 					{
@@ -231,11 +229,24 @@ public class Lexer
 					}
 					else
 					{
-						state = 29;
-						retract();
+						if(character == '-')
+						{
+							state = 29;
+							break;
+						}
+						else
+						{
+							retract();
 
-						return new Token("RELOP", "LT");
+							return new Token("RELOP", "LT");
+						}
 					}
+				case 29:
+					if(character == '-')
+						return new Token("ASSIGN");
+					else
+						state = -1;
+					break;
 				case 30:
 					if(character == '=')
 					{

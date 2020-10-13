@@ -2,7 +2,7 @@ import java.io.*;
 
 public class FileReaderByChar
 {
-	private RandomAccessFile randomAccessFile;
+	private final RandomAccessFile randomAccessFile;
 
 	public FileReaderByChar(String filePath) throws FileNotFoundException
 	{
@@ -25,6 +25,4 @@ public class FileReaderByChar
 			e.printStackTrace();
 		}
 	}
-
-
 }
