@@ -314,8 +314,10 @@ public class Lexer
 						// When read . with invalid character after it return the previous correct number
 						lexeme = lexeme.substring(0, lexeme.length() - 1);
 						retract();
-						retract();
+						if(eof != true)
+							retract();
 
+						eof = false;
 						return new Token("NUM", lexeme);
 					}
 					break;
@@ -351,8 +353,10 @@ public class Lexer
 							// When read E with invalid character after it return the previous correct number
 							lexeme = lexeme.substring(0, lexeme.length() - 1);
 							retract();
-							retract();
+							if(character != EOF)
+								retract();
 
+							eof = false;
 							return new Token("NUM", lexeme);
 						}
 					break;
@@ -368,7 +372,9 @@ public class Lexer
 						lexeme = lexeme.substring(0, lexeme.length() - 2);
 						retract();
 						retract();
-						retract();
+						if(character != EOF)
+							retract();
+						eof = false;
 
 						return new Token("NUM", lexeme);
 					}
@@ -388,7 +394,7 @@ public class Lexer
 			// If the string does not match any pattern return error token
 			if(state == ERROR_STATE)
 			{
-				return new Token("ERROR");
+				return new Token("ERROR", character + "");
 			}
 		}
 	}
