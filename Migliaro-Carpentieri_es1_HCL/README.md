@@ -43,7 +43,7 @@ Nella tokenizzazione dei numeri si é adottata la stessa strategia di **JFLEX**,
 flussi di caratteri del tipo:  
 00069 diventa <NUM, "0">, <NUM, "0">, <NUM, "0">, <NUM, "69">;  
 52a diventa <NUM, "52">, <ID, "a">;  
-52.f diventa <NUM, "52">, <ERROR>, <ID, "f">  
+52.f diventa <NUM, "52">, \<ERROR>, <ID, "f">  
 34E diventa <NUM, "34">, <ID, "E">
 
 
