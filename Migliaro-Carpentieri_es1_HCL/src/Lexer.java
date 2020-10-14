@@ -205,7 +205,7 @@ public class Lexer
 						return new Token("RELOP", "NEQ");
 					else
 					{
-						state = ERROR_STATE; // The lexeme ! is not allowed
+						state = ERROR_STATE; // The string "!" is not allowed
 
 						retract();
 					}
@@ -240,7 +240,10 @@ public class Lexer
 					else
 					{
 						retract();
-						retract();
+						if(character != EOF) // When the file pointer is on EOF must do only one retract
+							retract();
+						if(eof) // When file is ended set eof to false to match the last character
+							eof = false;
 
 						return new Token("RELOP", "LT");
 					}
@@ -249,7 +252,7 @@ public class Lexer
 						return new Token("RELOP", "EQ");
 					else
 					{
-						state = ERROR_STATE; // The lexeme = is not allowed
+						state = ERROR_STATE; // The string "=" is not allowed
 						retract();
 					}
 					break;
@@ -262,16 +265,16 @@ public class Lexer
 					if(Character.isDigit(character))
 					{
 						lexeme += character;
-						state = character == '0' ? 50 : 18;
+						state = character == '0' ? 18 : 19;
 					}
 					else
 						if(character != EOF) // The symbol EOF must not be treated as an error
 							state = ERROR_STATE;
 					break;
-				case 50:
+				case 18:
 					if(character == '.')
 					{
-						state = 19;
+						state = 20;
 						lexeme += character;
 					}
 					else
@@ -281,19 +284,19 @@ public class Lexer
 						return new Token("NUM", lexeme);
 					}
 					break;
-				case 18:
+				case 19:
 					if(Character.isDigit(character))
 						lexeme += character;
 					else
 						if(character == '.')
 						{
-							state = 19;
+							state = 20;
 							lexeme += character;
 						}
 						else
 							if(character == 'E')
 							{
-								state = 21;
+								state = 22;
 								lexeme += character;
 							}
 							else
@@ -303,10 +306,10 @@ public class Lexer
 								return new Token("NUM", lexeme);
 							}
 					break;
-				case 19:
+				case 20:
 					if(Character.isDigit(character))
 					{
-						state = 20;
+						state = 21;
 						lexeme += character;
 					}
 					else
@@ -314,38 +317,40 @@ public class Lexer
 						// When read . with invalid character after it return the previous correct number
 						lexeme = lexeme.substring(0, lexeme.length() - 1);
 						retract();
-						if(eof != true)
+						if(character != EOF) // When the file pointer is on EOF must do only one retract
 							retract();
+						if(eof) // When file is ended set eof to false to match the last character
+							eof = false;
 
-						eof = false;
 						return new Token("NUM", lexeme);
 					}
 					break;
-				case 20:
+				case 21:
 					if(Character.isDigit(character))
 						lexeme += character;
 					else
 						if(character == 'E')
 						{
-							state = 21;
+							state = 22;
 							lexeme += character;
 						}
 						else
 						{
 							retract();
+
 							return new Token("NUM", lexeme);
 						}
 					break;
-				case 21:
+				case 22:
 					if(Character.isDigit(character))
 					{
-						state = 23;
+						state = 24;
 						lexeme += character;
 					}
 					else
 						if(character == '+' || character == '-')
 						{
-							state = 22;
+							state = 23;
 							lexeme += character;
 						}
 						else
@@ -353,17 +358,18 @@ public class Lexer
 							// When read E with invalid character after it return the previous correct number
 							lexeme = lexeme.substring(0, lexeme.length() - 1);
 							retract();
-							if(character != EOF)
+							if(character != EOF) // When the file pointer is on EOF must do only one retract
 								retract();
+							if(eof) // When file is ended set eof to false to match the last character
+								eof = false;
 
-							eof = false;
 							return new Token("NUM", lexeme);
 						}
 					break;
-				case 22:
+				case 23:
 					if(Character.isDigit(character))
 					{
-						state = 23;
+						state = 24;
 						lexeme += character;
 					}
 					else
@@ -372,14 +378,15 @@ public class Lexer
 						lexeme = lexeme.substring(0, lexeme.length() - 2);
 						retract();
 						retract();
-						if(character != EOF)
+						if(character != EOF) // When the file pointer is on EOF must do only two retract
 							retract();
-						eof = false;
+						if(eof) // When file is ended set eof to false to match the last character
+							eof = false;
 
 						return new Token("NUM", lexeme);
 					}
 					break;
-				case 23:
+				case 24:
 					if(Character.isDigit(character))
 						lexeme += character;
 					else
