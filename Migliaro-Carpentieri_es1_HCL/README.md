@@ -1,42 +1,42 @@
 # Migliaro-Carpentieri_es1_HCL
 
 ## Specifica lessicale
-|              Lessema             |   Token   |     Attributo    |
-|:--------------------------------:|:---------:|:----------------:|
-|         **Delimitatori**         |           |                  |
-|        _Qualsiasi spazio_        |     -     |                  |
-|           **Letterali**          |           |                  |
-|             _Numeri_             |    NUM    | numero letterale |
-|        **Identificatori**        |           |                  |
-|               _id_               |     ID    |   id letterale   |
-|           **Keywords**           |           |                  |
-|                if                |     IF    |         -        |
-|               then               |    THEN   |         -        |
-|               else               |    ELSE   |         -        |
-|               while              |   WHILE   |         -        |
-|                for               |    FOR    |         -        |
-|                int               |    INT    |         -        |
-|               float              |   FLOAT   |         -        |
-|              return              |   RETURN  |         -        |
-|           **Operatori**          |           |                  |
-|                 <                |   RELOP   |        LT        |
-|                <=                |   RELOP   |        LEQ       |
-|                 >                |   RELOP   |        GT        |
-|                >=                |   RELOP   |        GEQ       |
-|                ==                |   RELOP   |        EQ        |
-|                !=                |   RELOP   |        NEQ       |
-|                <--               |   ASSIGN  |         -        |
-|          **Separatori**          |           |                  |
-|                 (                |    LPAR   |         -        |
-|                 )                |    RPAR   |         -        |
-|                 {                |   LBRAC   |         -        |
-|                 }                |   RBRAC   |         -        |
-|                 ;                | SEMICOLON |         -        |
-|                 ,                |   COMMA   |         -        |
-|           **Commenti**           |           |                  |
-| Qualsiasi cosa preceduta da "//" |     -     |                  |
-|            **Errori**            |           |                  |
-|     _Nessuno dei precedenti_     |   ERROR   |         -        |
+|   <font size=4> Lessema </font>  | <font size=4> Token </font> | <font size=4> Attributo </font> |
+|:--------------------------------:|:---------------------------:|:-------------------------------:|
+|         **Delimitatori**         |                             |                                 |
+|        _Qualsiasi spazio_        |              -              |                                 |
+|           **Letterali**          |                             |                                 |
+|             _Numeri_             |             NUM             |         numero letterale        |
+|        **Identificatori**        |                             |                                 |
+|               _id_               |              ID             |           id letterale          |
+|           **Keywords**           |                             |                                 |
+|                if                |              IF             |                -                |
+|               then               |             THEN            |                -                |
+|               else               |             ELSE            |                -                |
+|               while              |            WHILE            |                -                |
+|                for               |             FOR             |                -                |
+|                int               |             INT             |                -                |
+|               float              |            FLOAT            |                -                |
+|              return              |            RETURN           |                -                |
+|           **Operatori**          |                             |                                 |
+|                 <                |            RELOP            |                LT               |
+|                <=                |            RELOP            |               LEQ               |
+|                 >                |            RELOP            |                GT               |
+|                >=                |            RELOP            |               GEQ               |
+|                ==                |            RELOP            |                EQ               |
+|                !=                |            RELOP            |               NEQ               |
+|                <--               |            ASSIGN           |                -                |
+|          **Separatori**          |                             |                                 |
+|                 (                |             LPAR            |                -                |
+|                 )                |             RPAR            |                -                |
+|                 {                |            LBRAC            |                -                |
+|                 }                |            RBRAC            |                -                |
+|                 ;                |          SEMICOLON          |                -                |
+|                 ,                |            COMMA            |                -                |
+|           **Commenti**           |                             |                                 |
+| Qualsiasi cosa preceduta da "//" |              -              |                                 |
+|            **Errori**            |                             |                                 |
+|     _Nessuno dei precedenti_     |            ERROR            |                -                |
 
 ## Gestione errori
 Nella tokenizzazione dei numeri si é adottata la stessa strategia di **JFLEX**, ovvero
