@@ -10,6 +10,7 @@ public class Lexer
 	public static final int INITIAL_STATE_SEPARATORS = 4;
 	public static final int INITIAL_STATE_OPERATORS = 11;
 	public static final int INITIAL_STATE_NUM_LITERALS = 17;
+	private static final int INITIAL_STATE_COMMENTS = 25;
 
 	// Utility object to read a file character by character
 	private FileReaderByChar fileReader;
@@ -34,6 +35,8 @@ public class Lexer
 		stringTable.put("while", new Token("WHILE"));
 		stringTable.put("int", new Token("INT"));
 		stringTable.put("float", new Token("FLOAT"));
+		stringTable.put("return", new Token("RETURN"));
+		stringTable.put("for", new Token("FOR"));
 	}
 
 	// Method to initialize Lexer
@@ -206,7 +209,6 @@ public class Lexer
 					else
 					{
 						state = ERROR_STATE; // The string "!" is not allowed
-
 						retract();
 					}
 					break;
@@ -268,8 +270,7 @@ public class Lexer
 						state = character == '0' ? 18 : 19;
 					}
 					else
-						if(character != EOF) // The symbol EOF must not be treated as an error
-							state = ERROR_STATE;
+						state = INITIAL_STATE_COMMENTS;
 					break;
 				case 18:
 					if(character == '.')
@@ -398,10 +399,37 @@ public class Lexer
 					break;
 			}
 
+			switch(state)
+			{
+				case INITIAL_STATE_COMMENTS:
+					if(character == '/')
+						state = 26;
+					else
+						if(character != EOF) // The symbol EOF must not be treated as an error
+							state = ERROR_STATE;
+					break;
+				case 26:
+					if(character == '/')
+						state = 27;
+					else
+					{
+						retract();
+						state = ERROR_STATE;
+					}
+					break;
+				case 27:
+					if(character == '\r' || character == '\n')
+						state = 0;
+					break;
+				default:
+					break;
+
+			}
+
 			// If the string does not match any pattern return error token
 			if(state == ERROR_STATE)
 			{
-				return new Token("ERROR", character + "");
+				return new Token("ERROR");
 			}
 		}
 	}
