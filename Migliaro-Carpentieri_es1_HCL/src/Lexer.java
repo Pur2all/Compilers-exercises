@@ -444,6 +444,15 @@ public class Lexer
 				case 28:
 					if(character == '*')
 						state = 29;
+					else
+						if(character == EOF)
+						{
+							for(int i = 0; i < skippedCharacters + 1; i++)
+								retract(); // Must do skippedCharacters + 1 to turn back on "/" and read "*" in the next iteration
+							errorCharacter = '/'; // When the end block comment pattern is not matched, then the "/" in the init block comment pattern is an error
+							state = ERROR_STATE;
+							eof = false; // Setting eof to false because it must restart reading from new position in the file after do retracts
+						}
 					skippedCharacters++; // Increase the skipped character number even if a "*" is read because it may be part of the block comment
 					break;
 				case 29:
