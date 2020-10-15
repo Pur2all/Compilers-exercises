@@ -4,12 +4,12 @@ import java.util.HashMap;
 
 public class Lexer
 {
-	public static final int ERROR_STATE = -1;
-	public static final int INITIAL_STATE_DELIMITERS = 0;
-	public static final int INITIAL_STATE_IDENTIFIERS = 2;
-	public static final int INITIAL_STATE_SEPARATORS = 4;
-	public static final int INITIAL_STATE_OPERATORS = 11;
-	public static final int INITIAL_STATE_NUM_LITERALS = 17;
+	private static final int ERROR_STATE = -1;
+	private static final int INITIAL_STATE_DELIMITERS = 0;
+	private static final int INITIAL_STATE_IDENTIFIERS = 2;
+	private static final int INITIAL_STATE_SEPARATORS = 4;
+	private static final int INITIAL_STATE_OPERATORS = 11;
+	private static final int INITIAL_STATE_NUM_LITERALS = 17;
 	private static final int INITIAL_STATE_COMMENTS = 25;
 
 	// Utility object to read a file character by character
@@ -62,8 +62,14 @@ public class Lexer
 		// Current reading lexeme
 		String lexeme = "";
 
+		// Indicate the error character
+		char errorCharacter = 0;
+
 		// Current reading character
 		char character;
+
+		// Skipped character in block comments
+		int skippedCharacters = 0;
 
 		// Global state of transition diagram
 		int state = INITIAL_STATE_DELIMITERS;
@@ -208,6 +214,7 @@ public class Lexer
 						return new Token("RELOP", "NEQ");
 					else
 					{
+						errorCharacter = '!'; // After read a character not equal to "=" definitely the error is on the character "!" because "!" is not a lexeme recognize by a pattern's token
 						state = ERROR_STATE; // The string "!" is not allowed
 						retract();
 					}
@@ -254,6 +261,7 @@ public class Lexer
 						return new Token("RELOP", "EQ");
 					else
 					{
+						errorCharacter = '='; // After read a character not equal to "=" definitely the error is on the character "=" because "=" is not a lexeme recognize by a pattern's token
 						state = ERROR_STATE; // The string "=" is not allowed
 						retract();
 					}
@@ -270,7 +278,7 @@ public class Lexer
 						state = character == '0' ? 18 : 19;
 					}
 					else
-						state = INITIAL_STATE_COMMENTS;
+						state = INITIAL_STATE_COMMENTS; // Set the state to the initial state of comments diagram
 					break;
 				case 18:
 					if(character == '.')
@@ -399,6 +407,7 @@ public class Lexer
 					break;
 			}
 
+			// Transition diagram to match comments
 			switch(state)
 			{
 				case INITIAL_STATE_COMMENTS:
@@ -406,31 +415,65 @@ public class Lexer
 						state = 26;
 					else
 						if(character != EOF) // The symbol EOF must not be treated as an error
+						{
+							errorCharacter = character; // In this case the current read character is not a lexeme recognize by a pattern's token so set the errorCharacter to character
 							state = ERROR_STATE;
+						}
 					break;
 				case 26:
-					if(character == '/')
-						state = 27;
-					else
+					switch(character)
 					{
-						retract();
-						state = ERROR_STATE;
+						case '/':
+							state = 27;
+							break;
+						case '*':
+							state = 28;
+							skippedCharacters = 0;
+							break;
+						default:
+							retract();
+							errorCharacter = '/'; // After read a character not equal to "/" definitely the error is on the character "/" because "/" is not a lexeme recognize by a pattern's token
+							state = ERROR_STATE;
+							break;
 					}
 					break;
 				case 27:
 					if(character == '\r' || character == '\n')
 						state = 0;
 					break;
+				case 28:
+					if(character == '*')
+						state = 29;
+					skippedCharacters++; // Increase the skipped character number even if a "*" is read because it may be part of the block comment
+					break;
+				case 29:
+					if(character == '/')
+					{
+						state = 0;
+						skippedCharacters--; // Decrease the skipped character number because in this case "*" is part of the close block comment pattern
+					}
+					else
+						if(character != EOF)
+						{
+							state = 28;
+							skippedCharacters++;
+						}
+						else
+						{
+							for(int i = 0; i < skippedCharacters + 1; i++)
+								retract(); // Must do skippedCharacters + 1 to turn back on "/" and read "*" in the next iteration
+							errorCharacter = '/'; // When the end block comment pattern is not matched, then the "/" in the init block comment pattern is an error
+							state = ERROR_STATE;
+							eof = false; // Setting eof to false because it must restart reading from new position in the file after do retracts
+						}
+					break;
 				default:
 					break;
-
 			}
 
 			// If the string does not match any pattern return error token
 			if(state == ERROR_STATE)
-			{
-				return new Token("ERROR");
-			}
+				return new Token("ERROR", errorCharacter + "");
 		}
 	}
 
