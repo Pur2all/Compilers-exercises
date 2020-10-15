@@ -30,6 +30,11 @@ if then else
 for(int i = 10; i <10; i++){
     j<--123;
 }
+/*
+Sono un commento su piu linee
+*/
 919.12
-/* // Non puoi vedermi
+//Non puoi vedermi
 34E
+/*
+

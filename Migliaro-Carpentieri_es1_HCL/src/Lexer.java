@@ -438,7 +438,7 @@ public class Lexer
 					}
 					break;
 				case 27:
-					if(character == '\r' || character == '\n')
+					if(character == '\r' || character == '\n') // If character is a new line set state 0 because in line comment is finish
 						state = 0;
 					break;
 				case 28:
