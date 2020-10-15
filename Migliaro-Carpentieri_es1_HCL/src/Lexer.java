@@ -62,6 +62,9 @@ public class Lexer
 		// Current reading lexeme
 		String lexeme = "";
 
+		// Indicate the error character
+		char errorCharacter = 0;
+
 		// Current reading character
 		char character;
 
@@ -208,6 +211,7 @@ public class Lexer
 						return new Token("RELOP", "NEQ");
 					else
 					{
+						errorCharacter = '!'; // After read a character not equal to = definitely  the error is on the character ! because ! is not a lexeme recognize by a pattern's token
 						state = ERROR_STATE; // The string "!" is not allowed
 						retract();
 					}
@@ -254,6 +258,7 @@ public class Lexer
 						return new Token("RELOP", "EQ");
 					else
 					{
+						errorCharacter = '='; // After read a character not equal to = definitely  the error is on the character = because = is not a lexeme recognize by a pattern's token
 						state = ERROR_STATE; // The string "=" is not allowed
 						retract();
 					}
@@ -406,7 +411,11 @@ public class Lexer
 						state = 26;
 					else
 						if(character != EOF) // The symbol EOF must not be treated as an error
+						{
+							errorCharacter = character; // In this case the current read character is not a lexeme recognize by a pattern's token so set the errorCharacter to character
 							state = ERROR_STATE;
+						}
+
 					break;
 				case 26:
 					if(character == '/')
@@ -414,6 +423,7 @@ public class Lexer
 					else
 					{
 						retract();
+						errorCharacter = '/'; // After read a character not equal to / definitely  the error is on the character / because / is not a lexeme recognize by a pattern's token
 						state = ERROR_STATE;
 					}
 					break;
@@ -428,9 +438,8 @@ public class Lexer
 
 			// If the string does not match any pattern return error token
 			if(state == ERROR_STATE)
-			{
-				return new Token("ERROR");
-			}
+				return new Token("ERROR", errorCharacter + "");
+
 		}
 	}
 
