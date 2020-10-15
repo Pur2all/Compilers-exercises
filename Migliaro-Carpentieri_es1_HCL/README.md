@@ -4,7 +4,7 @@
 |        <font size=5> Lessema </font>        	| <font size=5> Token </font> 	| <font size=5> Attributo </font> 	|
 |:-------------------------------------------:	|:---------------------------:	|:-------------------------------:	|
 |               **Delimitatori**              	|                             	|                                 	|
-|              _Qualsiasi spazio_             	|              -              	|                                 	|
+|            _Qualsiasi spaziatura_             |              -              	|                                 	|
 |                **Letterali**                	|                             	|                                 	|
 |                   _Numeri_                  	|             NUM             	|         numero letterale        	|
 |              **Identificatori**             	|                             	|                                 	|
@@ -51,7 +51,7 @@ flussi di caratteri del tipo:
 ## Extra 
 - Gestione dei commenti inline
 - Gestione dei commenti in blocco
-- Gestione dei token di errore con attributo il lessema di errore stesso
+- Gestione dei token di errore con attributo la stringa che lo genera
 - Keyword
     - for
     - return
