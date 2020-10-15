@@ -428,7 +428,7 @@ public class Lexer
 							break;
 						case '*':
 							state = 28;
-							skippedCharacters = 0;
+							skippedCharacters = 0; // Reset number of skipped characters at the init of a new block comment
 							break;
 						default:
 							retract();
