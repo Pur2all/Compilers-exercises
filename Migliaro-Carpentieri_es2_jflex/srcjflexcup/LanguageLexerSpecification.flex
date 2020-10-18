@@ -14,7 +14,7 @@
 // All new line character
 LineTerminator = \r|\n|\r\n
 // All white spaces
-WhiteSpace = {LineTerminator} | [ \t\f]
+WhiteSpace = {LineTerminator}|[ \t\f]
 
 //NUMERIC LITERALS
 Digit = [0-9]
@@ -35,11 +35,11 @@ Letter = [a-zA-Z]
 Identifiers = {Letter}[{Letter}{Digit}]*
 
 //COMMETNS
-BlockComment = "/*" [^*] ~"*/" | "/*" "*"+ "/"
+BlockComment = "/*"[^*] ~"*/"|"/*""*"+ "/"
 InputCharacter = [^\r\n]
-InlineComment = "//" {InputCharacter}* {LineTerminator}?
+InlineComment = "//"{InputCharacter}* {LineTerminator}?
 
-Comment = {BlockComment} | {InlineComment}
+Comment = {BlockComment}|{InlineComment}
 
 %%
 
