@@ -9,6 +9,8 @@
 %line
 %column
 %function nextToken
+%type Token
+
 
 %{
 StringBuffer string = new StringBuffer();
@@ -37,21 +39,21 @@ Digits = {Digit}+
 // This reg. exp. match all integer
 NumericInt = [1-9]{Digits}|0
 // This reg. exp. match all float
-NumericFloat  = {NumericInt}.{Digits}
-// This reg. exp match all number in scientific notation
-NumericScientificNotation = [{NumericInt}{NumericFloat}]E[+-]?{NumericInt}
+NumericFloat = {NumericInt}"."{Digits}
+// This reg. exp. match all number in scientific notation
+NumericScientificNotation = ({NumericInt}|{NumericFloat})E[+-]?{NumericInt}
 // This reg. exp match all numeric literals
-NumericLiterals = [{NumericInt}{NumericFloat}{NumericScientificNotation}]
+NumericLiterals = {NumericInt}|{NumericFloat}|{NumericScientificNotation}
 
 // IDENTIFIERS
 Letter = [a-zA-Z]
 
 Identifiers = {Letter}[{Letter}{Digit}]*
 
-//COMMETNS
+//COMMENTS
 BlockComment = "/*"[^*] ~"*/"|"/*""*"+ "/"
 InputCharacter = [^\r\n]
-InlineComment = "//"{InputCharacter}* {LineTerminator}?
+InlineComment = "//"{InputCharacter}*{LineTerminator}?
 
 Comment = {BlockComment}|{InlineComment}
 
@@ -59,9 +61,6 @@ Comment = {BlockComment}|{InlineComment}
 
 // NUMERIC LITERALS
 <YYINITIAL> {NumericLiterals}   {return token(LanguageLexerSpecificationSym.NUM, yytext());}
-
-// IDENTIFIERS
-<YYINITIAL> {Identifiers}       {return token(LanguageLexerSpecificationSym.ID, yytext());}
 
 // KEYWORDS
 <YYINITIAL> "if"                {return token(LanguageLexerSpecificationSym.IF);}
@@ -72,6 +71,9 @@ Comment = {BlockComment}|{InlineComment}
 <YYINITIAL> "int"               {return token(LanguageLexerSpecificationSym.INT);}
 <YYINITIAL> "float"             {return token(LanguageLexerSpecificationSym.FLOAT);}
 <YYINITIAL> "return"            {return token(LanguageLexerSpecificationSym.RETURN);}
+
+// IDENTIFIERS
+<YYINITIAL> {Identifiers}       {return token(LanguageLexerSpecificationSym.ID, yytext());}
 
 // OPERATORS
 <YYINITIAL> "<"                 {return token(LanguageLexerSpecificationSym.RELOP, "<");}
@@ -92,3 +94,5 @@ Comment = {BlockComment}|{InlineComment}
 
 // ERROR
 <YYINITIAL> [^]                 {return token(LanguageLexerSpecificationSym.ERROR, yytext());}
+
+<<EOF>>                         {return null;}
