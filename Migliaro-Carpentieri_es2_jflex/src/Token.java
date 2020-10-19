@@ -2,39 +2,39 @@ public class Token
 {
     private int name;
     private String attribute;
-    private int line;
-    private int column;
 
-    public Token(int name, int line, int column)
+    public Token(int name)
     {
         this.name = name;
-        this.line = line;
-        this.column = column;
     }
 
-    public Token(int name, int line, int column, String attribute)
+    public Token(int name, String attribute)
     {
         this.name = name;
-        this.line = line;
-        this.column = column;
         this.attribute = attribute;
     }
 
-    public int getName() {
+    public int getName()
+    {
         return name;
     }
 
-    public void setName(int name) {
+    public void setName(int name)
+    {
         this.name = name;
     }
 
-    public String getAttribute() {
+    public String getAttribute()
+    {
         return attribute;
     }
 
-    public String toString(){
+    public String toString()
+    {
         String strName = "";
-        switch (name){
+
+        switch (name)
+        {
             case LanguageLexerSpecificationSym.NUM:
                 strName = "NUM";
                 break;

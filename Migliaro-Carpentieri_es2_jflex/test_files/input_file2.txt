@@ -1,0 +1,39 @@
+
+// Sono un commento e sono visibile stai sbagliando qualcosa
+//
+int i <- 0;
+if(i < 000.12E+123) then
+{
+    return 10;?^
+}
+/
+float x =! 0.003;
+x <-- 12.9..11E+12;
+
+00000.0
+3.12.12.E
+12.12
+/
+?
+=!
+//Sono stati implementati i commenti quindi non sarò visibile
+x y z ? 77.?f 12.fs.12.12
+
+=<
+int pluto(?)
+while(true){
+==!=
+}=
+?
+return
+if then else
+for(int i = 10; i <10; i++){
+    j<--123;
+}
+/*
+Sono un commento su piu linee
+*/
+919.12
+//Non puoi vedermi
+34E
+/*

@@ -1,7 +1,8 @@
+import java.util.HashMap;
+
 /**
 * This class is a generated lexer with JFlex
 */
-import java.util.HashMap;
 %%
 
 %class Lexer
@@ -20,12 +21,12 @@ private HashMap<String, Token> stringTable;
 
 private Token token(int type)
 {
-    return new Token(type, yyline, yycolumn);
+    return new Token(type);
 }
 
 private Token token(int type, String value)
 {
-    return new Token(type, yyline, yycolumn, value);
+    return new Token(type, value);
 }
 
 private Token installID(String lexeme)
@@ -35,29 +36,27 @@ private Token installID(String lexeme)
         return stringTable.get(lexeme);
     else
     {
-        token = new Token(LanguageLexerSpecificationSym.ID, yyline, yycolumn, lexeme);
+        token = new Token(LanguageLexerSpecificationSym.ID, lexeme);
         stringTable.put(lexeme, token);
         return token;
     }
 }
-
-
 %}
 
 
 %init{
     stringTable = new HashMap<String, Token>();
-    stringTable.put("if", new Token(LanguageLexerSpecificationSym.IF,0,0,null));
-    stringTable.put("then", new Token(LanguageLexerSpecificationSym.THEN,0,0,null));
-    stringTable.put("else", new Token(LanguageLexerSpecificationSym.ELSE,0,0,null));
-    stringTable.put("while", new Token(LanguageLexerSpecificationSym.WHILE,0,0,null));
-    stringTable.put("int", new Token(LanguageLexerSpecificationSym.INT,0,0,null));
-    stringTable.put("float", new Token(LanguageLexerSpecificationSym.FLOAT,0,0,null));
-    stringTable.put("return", new Token(LanguageLexerSpecificationSym.RETURN,0,0,null));
-    stringTable.put("for", new Token(LanguageLexerSpecificationSym.FOR,0,0,null));
 
-
+    stringTable.put("if", new Token(LanguageLexerSpecificationSym.IF));
+    stringTable.put("then", new Token(LanguageLexerSpecificationSym.THEN));
+    stringTable.put("else", new Token(LanguageLexerSpecificationSym.ELSE));
+    stringTable.put("while", new Token(LanguageLexerSpecificationSym.WHILE));
+    stringTable.put("int", new Token(LanguageLexerSpecificationSym.INT));
+    stringTable.put("float", new Token(LanguageLexerSpecificationSym.FLOAT));
+    stringTable.put("return", new Token(LanguageLexerSpecificationSym.RETURN));
+    stringTable.put("for", new Token(LanguageLexerSpecificationSym.FOR));
 %init}
+
 // DELIMITERS
 // All new line character
 LineTerminator = \r|\n|\r\n
@@ -91,14 +90,14 @@ Comment = {BlockComment}|{InlineComment}
 
 %%
 
+//DELIMITERS
+<YYINITIAL> {WhiteSpace}        {return null;}
+
 // NUMERIC LITERALS
 <YYINITIAL> {NumericLiterals}   {return token(LanguageLexerSpecificationSym.NUM, yytext());}
 
 // IDENTIFIERS
 <YYINITIAL> {Identifiers}       {return installID(yytext());}
-
-//DELIMITERS
-<YYINITIAL> {WhiteSpace}        {return null;}
 
 // OPERATORS
 <YYINITIAL> "<"                 {return token(LanguageLexerSpecificationSym.RELOP, "LT");}
@@ -116,6 +115,9 @@ Comment = {BlockComment}|{InlineComment}
 <YYINITIAL> "}"                 {return token(LanguageLexerSpecificationSym.RBRAC);}
 <YYINITIAL> ";"                 {return token(LanguageLexerSpecificationSym.SEMICOLON);}
 <YYINITIAL> ","                 {return token(LanguageLexerSpecificationSym.COMMA);}
+
+// COMMENTS
+<YYINITIAL> {Comment}           {return null;}
 
 // ERROR
 <YYINITIAL> [^]                 {return token(LanguageLexerSpecificationSym.ERROR, yytext());}
