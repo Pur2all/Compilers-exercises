@@ -318,7 +318,7 @@ private Symbol installID(String lexeme)
         return stringTable.get(lexeme);
     else
     {
-        token = new Symbol(TokenSym.ID, lexeme);
+        token = new Symbol(Token.ID, lexeme);
         stringTable.put(lexeme, token);
         return token;
     }
@@ -333,14 +333,14 @@ private Symbol installID(String lexeme)
   Lexer(java.io.Reader in) {
       stringTable = new HashMap<String, Symbol>();
 
-    stringTable.put("if", new Symbol(TokenSym.IF));
-    stringTable.put("then", new Symbol(TokenSym.THEN));
-    stringTable.put("else", new Symbol(TokenSym.ELSE));
-    stringTable.put("while", new Symbol(TokenSym.WHILE));
-    stringTable.put("int", new Symbol(TokenSym.INT));
-    stringTable.put("float", new Symbol(TokenSym.FLOAT));
-    stringTable.put("return", new Symbol(TokenSym.RETURN));
-    stringTable.put("for", new Symbol(TokenSym.FOR));
+    stringTable.put("if", new Symbol(Token.IF));
+    stringTable.put("then", new Symbol(Token.THEN));
+    stringTable.put("else", new Symbol(Token.ELSE));
+    stringTable.put("while", new Symbol(Token.WHILE));
+    stringTable.put("int", new Symbol(Token.INT));
+    stringTable.put("float", new Symbol(Token.FLOAT));
+    stringTable.put("return", new Symbol(Token.RETURN));
+    stringTable.put("for", new Symbol(Token.FOR));
     this.zzReader = in;
   }
 
@@ -686,7 +686,7 @@ private Symbol installID(String lexeme)
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
           case 1:
-            { return token(TokenSym.ERROR, yytext());
+            { return token(Token.ERROR, yytext());
             }
             // fall through
           case 18: break;
@@ -696,37 +696,37 @@ private Symbol installID(String lexeme)
             // fall through
           case 19: break;
           case 3:
-            { return token(TokenSym.LPAR);
+            { return token(Token.LPAR);
             }
             // fall through
           case 20: break;
           case 4:
-            { return token(TokenSym.RPAR);
+            { return token(Token.RPAR);
             }
             // fall through
           case 21: break;
           case 5:
-            { return token(TokenSym.COMMA);
+            { return token(Token.COMMA);
             }
             // fall through
           case 22: break;
           case 6:
-            { return token(TokenSym.NUM, yytext());
+            { return token(Token.NUM, yytext());
             }
             // fall through
           case 23: break;
           case 7:
-            { return token(TokenSym.SEMICOLON);
+            { return token(Token.SEMICOLON);
             }
             // fall through
           case 24: break;
           case 8:
-            { return token(TokenSym.RELOP, "LT");
+            { return token(Token.RELOP, "LT");
             }
             // fall through
           case 25: break;
           case 9:
-            { return token(TokenSym.RELOP, "GT");
+            { return token(Token.RELOP, "GT");
             }
             // fall through
           case 26: break;
@@ -736,37 +736,37 @@ private Symbol installID(String lexeme)
             // fall through
           case 27: break;
           case 11:
-            { return token(TokenSym.LBRAC);
+            { return token(Token.LBRAC);
             }
             // fall through
           case 28: break;
           case 12:
-            { return token(TokenSym.RBRAC);
+            { return token(Token.RBRAC);
             }
             // fall through
           case 29: break;
           case 13:
-            { return token(TokenSym.RELOP, "NEQ");
+            { return token(Token.RELOP, "NEQ");
             }
             // fall through
           case 30: break;
           case 14:
-            { return token(TokenSym.RELOP, "LEQ");
+            { return token(Token.RELOP, "LEQ");
             }
             // fall through
           case 31: break;
           case 15:
-            { return token(TokenSym.RELOP, "EQ");
+            { return token(Token.RELOP, "EQ");
             }
             // fall through
           case 32: break;
           case 16:
-            { return token(TokenSym.RELOP, "GEQ");
+            { return token(Token.RELOP, "GEQ");
             }
             // fall through
           case 33: break;
           case 17:
-            { return token(TokenSym.ASSIGN);
+            { return token(Token.ASSIGN);
             }
             // fall through
           case 34: break;

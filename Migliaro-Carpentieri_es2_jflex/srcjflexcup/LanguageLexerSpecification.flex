@@ -1,4 +1,5 @@
 import java.util.HashMap;
+import java_cup.runtime.*;
 
 /**
 * This class is a generated lexer with JFlex
@@ -7,36 +8,31 @@ import java.util.HashMap;
 
 %class Lexer
 %unicode
-%standalone
-%line
-%column
-%function nextToken
-%type Token
-
+%cup
 
 
 
 %{
-private HashMap<String, Token> stringTable;
+private HashMap<String, Symbol> stringTable;
 
-private Token token(int type)
+private Symbol token(int type)
 {
-    return new Token(type);
+    return new Symbol(type);
 }
 
-private Token token(int type, String value)
+private Symbol token(int type, String value)
 {
-    return new Token(type, value);
+    return new Symbol(type, value);
 }
 
-private Token installID(String lexeme)
+private Symbol installID(String lexeme)
 {
-    Token token;
+    Symbol token;
     if(stringTable.containsKey(lexeme))
         return stringTable.get(lexeme);
     else
     {
-        token = new Token(LanguageLexerSpecificationSym.ID, lexeme);
+        token = new Symbol(TokenSym.ID, lexeme);
         stringTable.put(lexeme, token);
         return token;
     }
@@ -45,16 +41,16 @@ private Token installID(String lexeme)
 
 
 %init{
-    stringTable = new HashMap<String, Token>();
+    stringTable = new HashMap<String, Symbol>();
 
-    stringTable.put("if", new Token(LanguageLexerSpecificationSym.IF));
-    stringTable.put("then", new Token(LanguageLexerSpecificationSym.THEN));
-    stringTable.put("else", new Token(LanguageLexerSpecificationSym.ELSE));
-    stringTable.put("while", new Token(LanguageLexerSpecificationSym.WHILE));
-    stringTable.put("int", new Token(LanguageLexerSpecificationSym.INT));
-    stringTable.put("float", new Token(LanguageLexerSpecificationSym.FLOAT));
-    stringTable.put("return", new Token(LanguageLexerSpecificationSym.RETURN));
-    stringTable.put("for", new Token(LanguageLexerSpecificationSym.FOR));
+    stringTable.put("if", new Symbol(TokenSym.IF));
+    stringTable.put("then", new Symbol(TokenSym.THEN));
+    stringTable.put("else", new Symbol(TokenSym.ELSE));
+    stringTable.put("while", new Symbol(TokenSym.WHILE));
+    stringTable.put("int", new Symbol(TokenSym.INT));
+    stringTable.put("float", new Symbol(TokenSym.FLOAT));
+    stringTable.put("return", new Symbol(TokenSym.RETURN));
+    stringTable.put("for", new Symbol(TokenSym.FOR));
 %init}
 
 // DELIMITERS
@@ -94,32 +90,32 @@ Comment = {BlockComment}|{InlineComment}
 <YYINITIAL> {WhiteSpace}        {return null;}
 
 // NUMERIC LITERALS
-<YYINITIAL> {NumericLiterals}   {return token(LanguageLexerSpecificationSym.NUM, yytext());}
+<YYINITIAL> {NumericLiterals}   {return token(TokenSym.NUM, yytext());}
 
 // IDENTIFIERS
 <YYINITIAL> {Identifiers}       {return installID(yytext());}
 
 // OPERATORS
-<YYINITIAL> "<"                 {return token(LanguageLexerSpecificationSym.RELOP, "LT");}
-<YYINITIAL> "<="                {return token(LanguageLexerSpecificationSym.RELOP, "LEQ");}
-<YYINITIAL> ">"                 {return token(LanguageLexerSpecificationSym.RELOP, "GT");}
-<YYINITIAL> ">="                {return token(LanguageLexerSpecificationSym.RELOP, "GEQ");}
-<YYINITIAL> "=="                {return token(LanguageLexerSpecificationSym.RELOP, "EQ");}
-<YYINITIAL> "!="                {return token(LanguageLexerSpecificationSym.RELOP, "NEQ");}
-<YYINITIAL> "<--"               {return token(LanguageLexerSpecificationSym.ASSIGN);}
+<YYINITIAL> "<"                 {return token(TokenSym.RELOP, "LT");}
+<YYINITIAL> "<="                {return token(TokenSym.RELOP, "LEQ");}
+<YYINITIAL> ">"                 {return token(TokenSym.RELOP, "GT");}
+<YYINITIAL> ">="                {return token(TokenSym.RELOP, "GEQ");}
+<YYINITIAL> "=="                {return token(TokenSym.RELOP, "EQ");}
+<YYINITIAL> "!="                {return token(TokenSym.RELOP, "NEQ");}
+<YYINITIAL> "<--"               {return token(TokenSym.ASSIGN);}
 
 // SEPARATORS
-<YYINITIAL> "("                 {return token(LanguageLexerSpecificationSym.LPAR);}
-<YYINITIAL> ")"                 {return token(LanguageLexerSpecificationSym.RPAR);}
-<YYINITIAL> "{"                 {return token(LanguageLexerSpecificationSym.LBRAC);}
-<YYINITIAL> "}"                 {return token(LanguageLexerSpecificationSym.RBRAC);}
-<YYINITIAL> ";"                 {return token(LanguageLexerSpecificationSym.SEMICOLON);}
-<YYINITIAL> ","                 {return token(LanguageLexerSpecificationSym.COMMA);}
+<YYINITIAL> "("                 {return token(TokenSym.LPAR);}
+<YYINITIAL> ")"                 {return token(TokenSym.RPAR);}
+<YYINITIAL> "{"                 {return token(TokenSym.LBRAC);}
+<YYINITIAL> "}"                 {return token(TokenSym.RBRAC);}
+<YYINITIAL> ";"                 {return token(TokenSym.SEMICOLON);}
+<YYINITIAL> ","                 {return token(TokenSym.COMMA);}
 
 // COMMENTS
 <YYINITIAL> {Comment}           {return null;}
 
 // ERROR
-<YYINITIAL> [^]                 {return token(LanguageLexerSpecificationSym.ERROR, yytext());}
+<YYINITIAL> [^]                 {return token(TokenSym.ERROR, yytext());}
 
 <<EOF>>                         {return null;}

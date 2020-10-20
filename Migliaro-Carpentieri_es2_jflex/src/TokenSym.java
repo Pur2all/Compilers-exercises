@@ -1,4 +1,4 @@
-public interface LanguageLexerSpecificationSym
+public interface TokenSym
 {
     public static final int NUM = 0;
     public static final int ID = 1;
@@ -19,4 +19,26 @@ public interface LanguageLexerSpecificationSym
     public static final int SEMICOLON = 16;
     public static final int COMMA = 17;
     public static final int ERROR = 18;
+
+    public static final String[] TOKEN_NAMES = {
+            "NUM",
+            "ID",
+            "IF",
+            "THEN",
+            "ELSE",
+            "WHILE",
+            "FOR",
+            "INT",
+            "FLOAT",
+            "RETURN",
+            "RELOP",
+            "ASSIGN",
+            "LBRAC",
+            "RBRAC",
+            "LPAR",
+            "RPAR",
+            "SEMICOLON",
+            "COMMA",
+            "ERROR"
+    };
 }

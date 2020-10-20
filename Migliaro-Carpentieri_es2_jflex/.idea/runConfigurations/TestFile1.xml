@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="TestFile1" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="Lexer" />
+    <option name="MAIN_CLASS_NAME" value="Tester" />
     <module name="Migliaro-Carpentieri_es2_Jflex" />
     <option name="PROGRAM_PARAMETERS" value="test_files/input_file1.txt" />
     <method v="2">
