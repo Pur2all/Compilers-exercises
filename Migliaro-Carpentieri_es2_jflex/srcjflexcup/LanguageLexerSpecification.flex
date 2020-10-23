@@ -86,36 +86,38 @@ Comment = {BlockComment}|{InlineComment}
 
 %%
 
-//DELIMITERS
-<YYINITIAL> {WhiteSpace}        {return null;}
+<YYINITIAL> {
+    //DELIMITERS
+    {WhiteSpace}        {return null;}
 
-// NUMERIC LITERALS
-<YYINITIAL> {NumericLiterals}   {return token(TokenSym.NUM, yytext());}
+    // NUMERIC LITERALS
+    {NumericLiterals}   {return token(TokenSym.NUM, yytext());}
 
-// IDENTIFIERS
-<YYINITIAL> {Identifiers}       {return installID(yytext());}
+    // IDENTIFIERS
+    {Identifiers}       {return installID(yytext());}
 
-// OPERATORS
-<YYINITIAL> "<"                 {return token(TokenSym.RELOP, "LT");}
-<YYINITIAL> "<="                {return token(TokenSym.RELOP, "LEQ");}
-<YYINITIAL> ">"                 {return token(TokenSym.RELOP, "GT");}
-<YYINITIAL> ">="                {return token(TokenSym.RELOP, "GEQ");}
-<YYINITIAL> "=="                {return token(TokenSym.RELOP, "EQ");}
-<YYINITIAL> "!="                {return token(TokenSym.RELOP, "NEQ");}
-<YYINITIAL> "<--"               {return token(TokenSym.ASSIGN);}
+    // OPERATORS
+    "<"                 {return token(TokenSym.RELOP, "LT");}
+    "<="                {return token(TokenSym.RELOP, "LEQ");}
+    ">"                 {return token(TokenSym.RELOP, "GT");}
+    ">="                {return token(TokenSym.RELOP, "GEQ");}
+    "=="                {return token(TokenSym.RELOP, "EQ");}
+    "!="                {return token(TokenSym.RELOP, "NEQ");}
+    "<--"               {return token(TokenSym.ASSIGN);}
 
-// SEPARATORS
-<YYINITIAL> "("                 {return token(TokenSym.LPAR);}
-<YYINITIAL> ")"                 {return token(TokenSym.RPAR);}
-<YYINITIAL> "{"                 {return token(TokenSym.LBRAC);}
-<YYINITIAL> "}"                 {return token(TokenSym.RBRAC);}
-<YYINITIAL> ";"                 {return token(TokenSym.SEMICOLON);}
-<YYINITIAL> ","                 {return token(TokenSym.COMMA);}
+    // SEPARATORS
+    "("                 {return token(TokenSym.LPAR);}
+    ")"                 {return token(TokenSym.RPAR);}
+    "{"                 {return token(TokenSym.LBRAC);}
+    "}"                 {return token(TokenSym.RBRAC);}
+    ";"                 {return token(TokenSym.SEMICOLON);}
+    ","                 {return token(TokenSym.COMMA);}
 
-// COMMENTS
-<YYINITIAL> {Comment}           {return null;}
+    // COMMENTS
+    {Comment}           {return null;}
 
-// ERROR
-<YYINITIAL> [^]                 {return token(TokenSym.ERROR, yytext());}
+    // ERROR
+    [^]                 {return token(TokenSym.ERROR, yytext());}
+}
 
-<<EOF>>                         {return null;}
+<<EOF>>                 {return null;}

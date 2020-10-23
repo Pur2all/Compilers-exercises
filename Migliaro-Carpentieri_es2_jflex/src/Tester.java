@@ -29,7 +29,7 @@ public class Tester
         }
         catch(IOException e)
         {
-            e.printStackTrace();
+            System.err.println("Error in reading from file");
         }
     }
 }
