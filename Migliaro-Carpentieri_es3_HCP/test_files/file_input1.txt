@@ -1,0 +1,7 @@
+do
+    x <-- 3
+while 1;
+if x > 2
+    then y <-- x
+    else z <-- 7;
+x <-- y

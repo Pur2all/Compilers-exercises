@@ -34,6 +34,7 @@ public class Lexer
 		stringTable.put("if", new Token("IF"));
 		stringTable.put("then", new Token("THEN"));
 		stringTable.put("else", new Token("ELSE"));
+		stringTable.put("do", new Token("DO"));
 		stringTable.put("while", new Token("WHILE"));
 		stringTable.put("int", new Token("INT"));
 		stringTable.put("float", new Token("FLOAT"));
@@ -80,7 +81,7 @@ public class Lexer
 		{
 			// If file is ended return null to indicate end of file
 			if(eof)
-				return null;
+				return new Token("EOF");
 
 			// Read next character
 			character = fileReader.getNextChar();

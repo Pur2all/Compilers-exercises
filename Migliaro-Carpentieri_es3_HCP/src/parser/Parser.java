@@ -7,17 +7,25 @@ import java.util.ArrayList;
 
 /*
 Grammar:
-	"" is epsilon
-	S -> Program EOF
-	Program -> Stmt A
-	A -> ;Stmt A | ""
-    Stmt -> IF Expr THEN Stmt ELSE Stmt
-            | ID ASSIGN Expr
-            | DO Stmt WHILE Expr
-     Expr -> T L
-     L -> RELOP T L | ""
-     T -> NUM | ID
+	(V, T, P, S) where:
+		V = {S, Program, A, Stmt, Expr, T, L}
+		T = {EOF, ;, IF, THEN, ELSE, ASSIGN, DO, WHILE, RELOP, NUM, ID}
+		P = {
+				S -> Program EOF,
+				Program -> Stmt A,
+				A -> ;Stmt A | "",
+				Stmt -> IF Expr THEN Stmt ELSE Stmt
+						| ID ASSIGN Expr
+						| DO Stmt WHILE Expr,
+				 Expr -> T L,
+				 L -> RELOP T L | "",
+				 T -> NUM | ID
+			}
+
+	Note:
+    "" is epsilon
  */
+
 public class Parser
 {
 	// Array of read tokens
@@ -29,20 +37,22 @@ public class Parser
 	// Index of token to match
 	private int currentPosition;
 
-	public Parser()
+	public Parser(String filePath)
 	{
 		readTokens = new ArrayList<String>();
 		lexer = new Lexer();
 		currentPosition = 0;
+
+		lexer.initialize(filePath);
 	}
 
-	public boolean recognize() throws IOException
+	public boolean recognize()
 	{
 		readNextToken();
 		return S();
 	}
 
-	// Method to implement production S -> Program EOF
+	// Method that implements production S -> Program EOF
 	private boolean S()
 	{
 		if(!Program())
@@ -55,7 +65,7 @@ public class Parser
 		return true;
 	}
 
-	// Method to implement production Program -> Stmt A
+	// Method that implements production Program -> Stmt A
 	private boolean Program()
 	{
 		if(!Stmt())
@@ -67,15 +77,73 @@ public class Parser
 		return true;
 	}
 
+	// Method that implements production Stmt -> IF Expr THEN Stmt ELSE Stmt
+	//            								| ID ASSIGN Expr
+	//            								| DO Stmt WHILE Expr
 	private boolean Stmt()
 	{
-		return true;
+		int backtrackPoint = currentPosition;
+
+		// Stmt -> IF Expr THEN Stmt ELSE Stmt
+		if(getLastToken().equals("IF"))
+		{
+			readNextToken();
+			if(Expr())
+			{
+				if(getLastToken().equals("THEN"))
+				{
+					readNextToken();
+					if(Stmt())
+					{
+						if(getLastToken().equals("ELSE"))
+						{
+							readNextToken();
+							if(Stmt())
+								return true;
+						}
+					}
+				}
+			}
+		}
+
+		currentPosition = backtrackPoint;
+
+		// Stmt -> ID ASSIGN Expr
+		if(getLastToken().equals("ID"))
+		{
+			readNextToken();
+			if(getLastToken().equals("ASSIGN"))
+			{
+				readNextToken();
+				if(Expr())
+					return true;
+			}
+		}
+
+		currentPosition = backtrackPoint;
+
+		// Stmt -> DO Stmt WHILE Expr
+		if(getLastToken().equals("DO"))
+		{
+			readNextToken();
+			if(Stmt())
+			{
+				if(getLastToken().equals("WHILE"))
+				{
+					readNextToken();
+					if(Expr())
+						return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
-	// Method to implement production A -> ;Stmt A | ""
+	// Method that implements production A -> ;Stmt A | ""
 	private boolean A()
 	{
-		int backtrackPoint = readTokens.size();
+		int backtrackPoint = currentPosition;
 
 		if(getLastToken().equals("SEMICOLON"))
 		{
@@ -101,22 +169,62 @@ public class Parser
 			}
 		}
 
+		// Epsilon
 		return true;
 	}
 
+	// Method that implements production Expr -> T L
 	private boolean Expr()
 	{
-		return true;
+		if(T())
+			return L();
+
+		return false;
 	}
 
+	// Method that implements production L -> RELOP T L | ""
 	private boolean L()
 	{
+		int backtrackPoint = currentPosition;
+
+		if(getLastToken().equals("RELOP"))
+		{
+			readNextToken();
+			if(T())
+				if(L())
+				{
+					return true;
+				}
+				else
+				{
+					// Set the position to the backtrack point
+					currentPosition = backtrackPoint;
+					// Epsilon
+					return true;
+				}
+			else
+			{
+				// Set the position to the backtrack point
+				currentPosition = backtrackPoint;
+				// Epsilon
+				return true;
+			}
+		}
+
+		// Epsilon
 		return true;
 	}
 
+	// Method that implements production T -> NUM | ID
 	private boolean T()
 	{
-		return true;
+		if(getLastToken().equals("NUM") || getLastToken().equals("ID"))
+		{
+			readNextToken();
+			return true;
+		}
+
+		return false;
 	}
 
 	private void readNextToken()
@@ -135,7 +243,7 @@ public class Parser
 
 	private String getLastToken()
 	{
-		return readTokens.get(currentPosition);
+		return readTokens.get(currentPosition - 1);
 	}
 }
 
