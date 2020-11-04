@@ -1,0 +1,11 @@
+/*
+Corretto
+*/
+
+if x < 3.5 then
+    y <-- 10
+ else
+    x <-- y;
+do
+x <-- 10
+while i!=10

@@ -1,0 +1,11 @@
+// Codice corretto
+do
+x <-- 10
+while i!=10;
+if x<11 then
+    x<--10
+else
+    x<--12;
+ do
+    z<--10
+ while 1
