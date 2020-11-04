@@ -49,6 +49,7 @@ public class Parser
 	public boolean recognize()
 	{
 		readNextToken();
+
 		return S();
 	}
 
@@ -60,7 +61,6 @@ public class Parser
 		else
 			if(!getLastToken().equals("EOF"))
 				return false;
-
 
 		return true;
 	}
@@ -100,6 +100,7 @@ public class Parser
 							readNextToken();
 							if(Stmt())
 								return true;
+
 						}
 					}
 				}
@@ -150,24 +151,11 @@ public class Parser
 			readNextToken();
 			if(Stmt())
 				if(A())
-				{
 					return true;
-				}
-				else
-				{
-					// Set the position to the backtrack point
-					currentPosition = backtrackPoint;
-					// Epsilon
-					return true;
-				}
-			else
-			{
-				// Set the position to the backtrack point
-				currentPosition = backtrackPoint;
-				// Epsilon
-				return true;
-			}
 		}
+
+		// Set the position to the backtrack point
+		currentPosition = backtrackPoint;
 
 		// Epsilon
 		return true;
@@ -176,8 +164,8 @@ public class Parser
 	// Method that implements production Expr -> T L
 	private boolean Expr()
 	{
-		if(T())
-			return L();
+		if(T() && L())
+			return true;
 
 		return false;
 	}
@@ -192,24 +180,11 @@ public class Parser
 			readNextToken();
 			if(T())
 				if(L())
-				{
 					return true;
-				}
-				else
-				{
-					// Set the position to the backtrack point
-					currentPosition = backtrackPoint;
-					// Epsilon
-					return true;
-				}
-			else
-			{
-				// Set the position to the backtrack point
-				currentPosition = backtrackPoint;
-				// Epsilon
-				return true;
-			}
 		}
+
+		// Set the position to the backtrack point
+		currentPosition = backtrackPoint;
 
 		// Epsilon
 		return true;
@@ -218,9 +193,16 @@ public class Parser
 	// Method that implements production T -> NUM | ID
 	private boolean T()
 	{
-		if(getLastToken().equals("NUM") || getLastToken().equals("ID"))
+		if(getLastToken().equals("NUM"))
 		{
 			readNextToken();
+
+			return true;
+		}
+		if(getLastToken().equals("ID"))
+		{
+			readNextToken();
+
 			return true;
 		}
 
