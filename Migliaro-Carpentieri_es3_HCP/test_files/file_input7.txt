@@ -1,0 +1,9 @@
+if x < 3 then
+    do
+        if x < 2 then
+            x <-- 4
+        else
+            x <-- 1;
+    while x > 2;
+else
+    x <-- 5
