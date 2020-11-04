@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TestFile12" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="tester.Tester" />
+    <module name="Migliaro-Carpentieri_es3_HCP" />
+    <option name="PROGRAM_PARAMETERS" value="test_files/file_source3.txt" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
