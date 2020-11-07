@@ -4,15 +4,15 @@
 La grammatica fornitaci per l'esercitazione è la seguente:
 ```
 G = (V, T, P, S) dove:
- N = {Program, Stmt, Expr},
- T = {ID, IF, THEN, ELSE, RELOP, NUMBER, ;, ASSIGN, WHILE, DO, EOF},  
+ V = {S, Program, Stmt, Expr},
+ T = {EOF, SEMICOLON, IF, THEN, ELSE, ASSIGN, DO, WHILE, RELOP, NUM, ID},
  P = {  
-        S -> Program EOF
-        Program -> Program ; Stmt
-                | Stmt
+        S -> Program EOF,
+        Program -> Program SEMICOLON Stmt
+                | Stmt,
         Stmt -> IF Expr THEN Stmt ELSE Stmt
                 | ID ASSIGN Expr
-                | DO Stmt WHILE Expr
+                | DO Stmt WHILE Expr,
         Expr -> Expr RELOP Expr
                 | ID 
                 | NUMBER
@@ -30,7 +30,7 @@ Inoltre, poiché la grammatica è anche ricorsiva sinistra, dovuto alle produzio
 non terminali "Program" e "Expr", sono state fatte anche le seguenti modifiche:
 ```
 Program -> Stmt A
-A -> ; Stmt A | ""
+A -> SEMICOLON Stmt A | ""
 ```
 
 ```
@@ -42,17 +42,17 @@ T -> ID | NUMBER
 Quindi, la grammatica finale, utilizzata nell'implementazione del parser, è la seguente:
 ```
 G = (V, T, P, S) dove:
- N = {Program, Stmt, Expr},
- T = {ID, IF, THEN, ELSE, RELOP, NUMBER, ;, ASSIGN, WHILE, DO, EOF},  
+ V = {S, Program, A, Stmt, Expr, T, L},
+ T = {EOF, SEMICOLON, IF, THEN, ELSE, ASSIGN, DO, WHILE, RELOP, NUM, ID},
  P = {  
-        S -> Program EOF
-        Program -> Stmt A
-        A -> ; Stmt A | ""
+        S -> Program EOF,
+        Program -> Stmt A,
+        A -> SEMICOLON Stmt A | "",
         Stmt -> IF Expr THEN Stmt ELSE Stmt
                 | ID ASSIGN Expr
-                | DO Stmt WHILE Expr
-        Expr -> T L
-        L -> RELOP T L | ""
+                | DO Stmt WHILE Expr,
+        Expr -> T L,
+        L -> RELOP T L | "",
         T -> ID | NUMBER
      }
 ```
