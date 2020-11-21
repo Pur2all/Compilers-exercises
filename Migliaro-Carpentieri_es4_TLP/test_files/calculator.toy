@@ -1,0 +1,43 @@
+proc main() void:
+	string userInput := "";
+	bool endProgram := false;
+    float firstNumber := 0 , secondNumber := 0, result := 0;
+	while
+		readln(userInput);
+		userInput = 1
+	do
+		write("Type :");
+		write("+ to execute addition");
+		write("- to execute subtraction");
+		write("* to execute multiplication");
+		write("/ to execute division");
+		readln(userInput);
+        write("Type first number:");
+        readln(firstNumber);
+        write("Type second number:");
+        readln(secondNumber);
+
+		if userInput = "+" then
+            result := add(firstNumber, secondNumber);
+        elif userInput = "-" then
+            result := add(firstNumber, -secondNumber);
+        elif userInput = "*" then
+            result := mul(firstNumber, secondNumber);
+        else
+            result := mul(firstNumber, 1/secondNumber);
+
+		fi;
+		write("The result is: ", result);
+	od;
+corp;
+
+proc add(float first, second) float:
+    first + second
+corp;
+
+proc mul(float first, second) float:
+    first * second
+corp;
+
+
+
