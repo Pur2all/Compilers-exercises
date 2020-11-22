@@ -721,7 +721,7 @@ private Symbol installID(String lexeme)
             // fall through
           case 36: break;
           case 2:
-            { throw new Error("Carattere non riconosciuto: " + yytext());
+            { throw new Error("Carattere non riconosciuto: ", yytext());
             }
             // fall through
           case 37: break;

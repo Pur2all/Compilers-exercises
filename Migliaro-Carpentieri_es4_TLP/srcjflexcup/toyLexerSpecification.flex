@@ -33,7 +33,7 @@ private Symbol installID(String lexeme)
         return stringTable.get(lexeme);
     else
     {
-        token = new Symbol(sym.ID, lexeme);
+        token = new Symbol(ParserSym.ID, lexeme);
         stringTable.put(lexeme, token);
 
         return token;
@@ -46,26 +46,26 @@ private Symbol installID(String lexeme)
     stringTable = new HashMap<String, Symbol>();
     string = new StringBuffer();
 
-    stringTable.put("if", new Symbol(sym.IF));
-    stringTable.put("then", new Symbol(sym.THEN));
-    stringTable.put("elif", new Symbol(sym.ELIF));
-    stringTable.put("else", new Symbol(sym.ELSE));
-    stringTable.put("fi", new Symbol(sym.FI));
-    stringTable.put("while", new Symbol(sym.WHILE));
-    stringTable.put("do", new Symbol(sym.DO));
-    stringTable.put("od", new Symbol(sym.OD));
-    stringTable.put("int", new Symbol(sym.INT));
-    stringTable.put("float", new Symbol(sym.FLOAT));
-    stringTable.put("string", new Symbol(sym.STRING));
-    stringTable.put("bool", new Symbol(sym.BOOL));
-    stringTable.put("proc", new Symbol(sym.PROC));
-    stringTable.put("corp", new Symbol(sym.CORP));
-    stringTable.put("void", new Symbol(sym.VOID));
-    stringTable.put("readln", new Symbol(sym.READ));
-    stringTable.put("write", new Symbol(sym.WRITE));
-    stringTable.put("null", new Symbol(sym.NULL));
-    stringTable.put("true", new Symbol(sym.TRUE));
-    stringTable.put("false", new Symbol(sym.FALSE));
+    stringTable.put("if", new Symbol(ParserSym.IF));
+    stringTable.put("then", new Symbol(ParserSym.THEN));
+    stringTable.put("elif", new Symbol(ParserSym.ELIF));
+    stringTable.put("else", new Symbol(ParserSym.ELSE));
+    stringTable.put("fi", new Symbol(ParserSym.FI));
+    stringTable.put("while", new Symbol(ParserSym.WHILE));
+    stringTable.put("do", new Symbol(ParserSym.DO));
+    stringTable.put("od", new Symbol(ParserSym.OD));
+    stringTable.put("int", new Symbol(ParserSym.INT));
+    stringTable.put("float", new Symbol(ParserSym.FLOAT));
+    stringTable.put("string", new Symbol(ParserSym.STRING));
+    stringTable.put("bool", new Symbol(ParserSym.BOOL));
+    stringTable.put("proc", new Symbol(ParserSym.PROC));
+    stringTable.put("corp", new Symbol(ParserSym.CORP));
+    stringTable.put("void", new Symbol(ParserSym.VOID));
+    stringTable.put("readln", new Symbol(ParserSym.READ));
+    stringTable.put("write", new Symbol(ParserSym.WRITE));
+    stringTable.put("null", new Symbol(ParserSym.NULL));
+    stringTable.put("true", new Symbol(ParserSym.TRUE));
+    stringTable.put("false", new Symbol(ParserSym.FALSE));
 %init}
 
 // DELIMITERS
@@ -99,8 +99,8 @@ Identifiers = {LetterOrUnderscore}[{LetterOrUnderscore}{Digit}]*
     {WhiteSpace}        {return null;}
 
     // NUMERIC LITERALS
-    {NumericInt}        {return token(sym.INT_CONST, yytext());}
-    {NumericFloat}      {return token(sym.FLOAT_CONST, yytext());}
+    {NumericInt}        {return token(ParserSym.INT_CONST, yytext());}
+    {NumericFloat}      {return token(ParserSym.FLOAT_CONST, yytext());}
 
     // STRING LITERALS
     \"                  {string.setLength(0);
@@ -110,44 +110,42 @@ Identifiers = {LetterOrUnderscore}[{LetterOrUnderscore}{Digit}]*
     {Identifiers}       {return installID(yytext());}
 
     // RELATIONAL OPERATORS
-    "<"                 {return token(sym.LT);}
-    "<="                {return token(sym.LE);}
-    ">"                 {return token(sym.GT);}
-    ">="                {return token(sym.GE);}
-    "="                 {return token(sym.EQ);}
-    "<>"                {return token(sym.NE);}
+    "<"                 {return token(ParserSym.LT);}
+    "<="                {return token(ParserSym.LE);}
+    ">"                 {return token(ParserSym.GT);}
+    ">="                {return token(ParserSym.GE);}
+    "="                 {return token(ParserSym.EQ);}
+    "<>"                {return token(ParserSym.NE);}
 
     // BOOLEAN OPERATORS
-    "&&"                {return token(sym.AND);}
-    "||"                {return token(sym.OR);}
-    "!"                 {return token(sym.NOT);}
+    "&&"                {return token(ParserSym.AND);}
+    "||"                {return token(ParserSym.OR);}
+    "!"                 {return token(ParserSym.NOT);}
 
     // OPERATORS
-    ":="                {return token(sym.ASSIGN);}
-    "+"                 {return token(sym.PLUS);}
-    "-"                 {return token(sym.MINUS);}
-    "*"                 {return token(sym.TIMES);}
-    "/"                 {return token(sym.DIV);}
+    ":="                {return token(ParserSym.ASSIGN);}
+    "+"                 {return token(ParserSym.PLUS);}
+    "-"                 {return token(ParserSym.MINUS);}
+    "*"                 {return token(ParserSym.TIMES);}
+    "/"                 {return token(ParserSym.DIV);}
 
     // SEPARATORS
-    "("                 {return token(sym.LPAR);}
-    ")"                 {return token(sym.RPAR);}
-    "{"                 {return token(sym.LBRAC);}
-    "}"                 {return token(sym.RBRAC);}
-    ";"                 {return token(sym.SEMI);}
-    ","                 {return token(sym.COMMA);}
-    ":"                 {return token(sym.COLON);}
+    "("                 {return token(ParserSym.LPAR);}
+    ")"                 {return token(ParserSym.RPAR);}
+    ";"                 {return token(ParserSym.SEMI);}
+    ","                 {return token(ParserSym.COMMA);}
+    ":"                 {return token(ParserSym.COLON);}
 
     // COMMENTS
     "/*"                {yybegin(COMMENTS);}
 
     // ERROR
-    [^]                 {return token(sym.ERROR, yytext());}
+    [^]                 {throw new Error("Carattere non riconosciuto: " + yytext());}
 }
 
 <STRING> {
     \"                  {yybegin(YYINITIAL);
-                         return token(sym.STRING_CONST, string.toString());}
+                         return token(ParserSym.STRING_CONST, string.toString());}
     [^\n\r\"\\]+        {string.append(yytext());}
     \\t                 {string.append('\t');}
     \\n                 {string.append('\n');}

@@ -24,7 +24,7 @@ precedence left TIMES, DIV;
 precedence left UMINUS;
 
 // Productions
-Program ::= VarDeclList ProcList;
+Program ::= VarDeclList ProcList {: System.out.println("Codice sintatticamente corretto"); :};
 
 VarDeclList ::= EMPTY
 	          | VarDecl VarDeclList;
