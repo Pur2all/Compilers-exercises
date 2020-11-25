@@ -1,13 +1,10 @@
 proc main() void:
-	string userInput := "";
-	bool endProgram := false;
-    float firstNumber := 0 , secondNumber := 0, result := 0;
 	while
-		readln(userInput);
+    	readln(userInput);
 		userInput = 1
 	do
 		write("Type :");
-		write("+ to execute addition");
+	    write("+ to execute addition");
 		write("- to execute subtraction");
 		write("* to execute multiplication");
 		write("/ to execute division");
@@ -25,18 +22,18 @@ proc main() void:
             result := mul(firstNumber, secondNumber);
         else
             result := mul(firstNumber, 1/secondNumber);
-
 		fi;
+
 		write("The result is: ", result);
 	od;
 corp;
 
 proc add(float first, second) float:
-    first + second
+    -> first + second
 corp;
 
 proc mul(float first, second) float:
-    first * second
+    -> first * second
 corp;
 
 

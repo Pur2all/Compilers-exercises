@@ -4,16 +4,14 @@ class Parser;
 // Terminals
 terminal SEMI, COMMA, ID, INT, STRING, FLOAT, BOOL, PROC, LPAR, RPAR, COLON, CORP, VOID, IF,
          THEN, ELIF, FI, ELSE, WHILE, DO, OD, READ, WRITE, ASSIGN, PLUS, MINUS, TIMES, DIV,
-         EQ, NE, LT, LE, GT, GE, AND, OR, NOT, NULL, TRUE, FALSE, INT_CONST, FLOAT_CONST, STRING_CONST, UMINUS, EMPTY;
+         EQ, NE, LT, LE, GT, GE, AND, OR, NOT, NULL, TRUE, FALSE, INT_CONST, FLOAT_CONST, STRING_CONST, UMINUS, RETURN;
 
 // Non terminals
 nonterminal Program, VarDeclList, ProcList, VarDecl, Type, IdListInit, Proc, ResultTypeList, ReturnExprs,
-            ExprList, ParamDeclList, ParDecl, IdList, ResultType, StatList, Stat, IfStat, ElifList, Elif,
-            Else, WhileStat, ReadlnStat, WriteStat, AssignStat, CallProc, Expr;
+            ExprList, ParamDeclList, ParDecl, ResultType, StatList, Stat, IfStat, ElifList, Elif,
+            Else, WhileStat, ReadlnStat, WriteStat, AssignStat, CallProc, Expr, IdList;
 
 // Precedences
-precedence nonassoc EMPTY;
-precedence nonassoc IF, ID, WHILE, READ, WRITE, NULL, TRUE, FALSE, INT_CONST, FLOAT_CONST, STRING_CONST;
 precedence right ASSIGN;
 precedence left OR;
 precedence left AND;
@@ -24,103 +22,109 @@ precedence left TIMES, DIV;
 precedence left UMINUS;
 
 // Productions
-Program ::= VarDeclList ProcList {: System.out.println("Codice sintatticamente corretto"); :};
+Program ::= VarDeclList ProcList {:System.out.println("Program -> VarDeclList ProcList");:};
 
-VarDeclList ::= EMPTY
-	          | VarDecl VarDeclList;
+VarDeclList ::= VarDecl VarDeclList {:System.out.println("VarDeclList -> VarDecl VarDeclList");:}
+              | /* empty */{:System.out.println("VarDeclList -> ''");:};
 
-ProcList ::= Proc
-	       | Proc ProcList;
+ProcList ::= Proc {:System.out.println("ProcList -> Proc");:}
+	       | Proc ProcList {:System.out.println("ProcList -> Proc ProcList");:};
 
-VarDecl ::= Type IdListInit SEMI;
+VarDecl ::= Type IdListInit SEMI {:System.out.println("VarDecl -> Type IdListInit");:};
 
-Type ::= INT
-       | BOOL
-       | FLOAT
-       | STRING;
+Type ::= INT {:System.out.println("Type -> INT");:}
+       | BOOL {:System.out.println("Type -> BOOL");:}
+       | FLOAT {:System.out.println("Type -> FLOAT");:}
+       | STRING {:System.out.println("Type -> STRING");:};
 
-IdListInit ::= ID
-           	 | IdListInit COMMA ID
-	         | ID ASSIGN Expr
-	         | IdListInit COMMA ID ASSIGN Expr;
+IdListInit ::= ID {:System.out.println("IdListInit -> ID");:}
+           	 | IdListInit COMMA ID {:System.out.println("IdListInit -> IdListInit COMMA ID");:}
+	         | ID ASSIGN Expr {:System.out.println("IdListInit -> ID ASSIGN Expr");:}
+	         | IdListInit COMMA ID ASSIGN Expr {:System.out.println("IdListInit -> IdListInit COMMA ID ASSSIGN Expr");:};
 
-Proc ::= PROC ID LPAR ParamDeclList RPAR ResultTypeList COLON VarDeclList StatList ReturnExprs CORP SEMI
-	   | PROC ID LPAR RPAR ResultTypeList COLON VarDeclList StatList ReturnExprs CORP SEMI;
+Proc ::= PROC ID LPAR ParamDeclList RPAR ResultType COLON VarDeclList StatList ReturnExprs CORP SEMI {:System.out.println("Proc -> PROC ID LPAR ParamDeclList RPAR ResultTypeList COLON VarDeclList StatList ReturnExprs CORP SEMI");:}
+       | PROC ID LPAR ParamDeclList RPAR ResultType COLON VarDeclList ReturnExprs CORP SEMI
+       | PROC ID LPAR RPAR ResultType COLON VarDeclList StatList ReturnExprs CORP SEMI {:System.out.println("Proc -> PROC ID LPAR RPAR ResultTypeList COLON VarDeclList StatList ReturnExprs CORP SEMI");:}
+       | PROC ID LPAR RPAR ResultType COLON VarDeclList ReturnExprs CORP SEMI;
 
-ResultTypeList ::= ResultType
-	             | ResultType COMMA ResultTypeList;
+ResultType ::= ResultTypeList {:System.out.println("ResultTypeList -> ResultType");:}
+	         | VOID {:System.out.println("ResultType -> void");:};
 
-ReturnExprs::=  ExprList
-	          | EMPTY;
+ReturnExprs::=  RETURN ExprList {:System.out.println("ReturnExprs -> ExprList");:}
+	          | /* empty */ {:System.out.println("ReturnExprs -> ''");:};
 
-ExprList ::= Expr
-	       | Expr COMMA ExprList;
+ExprList ::= Expr {:System.out.println("ExprList -> Expr");:}
+	       | Expr COMMA ExprList {:System.out.println("ExprList -> Expr COMMA ExprList");:};
 
-ParamDeclList ::= ParDecl
-                | ParamDeclList SEMI ParDecl;
+ParamDeclList ::= ParDecl {:System.out.println("ParmaDecList -> ParDecl");:}
+                | ParamDeclList SEMI ParDecl {:System.out.println("ParamDeclList -> ParamDeclList SEMI ParDecl");:};
 
-ParDecl ::= Type IdList;
+ParDecl ::= Type ExprList {:System.out.println("ParDecl -> Type ExprList");:};
 
-IdList ::= ID
-         | IdList COMMA ID;
+IdList ::= ID {:System.out.println("IdList ->  ID");:}
+         | IdList COMMA ID {:System.out.println("IdList -> IdList COMMA ID");:};
 
-ResultType ::= Type
-             | VOID;
+ResultTypeList ::= Type
+                 | Type COMMA ResultTypeList {:System.out.println("ResultTypeList -> ResultType COMMA ResultTypeList");:};
 
-StatList ::= Stat
-           | Stat StatList;
+StatList ::= StatList Stat SEMI
+           | Stat SEMI{:System.out.println("StatList -> Stat");:};
 
-Stat ::= IfStat SEMI
-	   | WhileStat SEMI
-	   | ReadlnStat SEMI
-	   | WriteStat SEMI
-	   | AssignStat SEMI
-	   | CallProc SEMI
-	   | EMPTY;
+Stat ::= IfStat  {:System.out.println("Stat -> IfStat SEMI");:}
+	   | WhileStat   {:System.out.println("Stat -> WhileStat SEMI");:}
+	   | ReadlnStat {:System.out.println("Stat -> ReadlnStat SEMI");:}
+	   | WriteStat  {:System.out.println("Stat -> WriteStat SEMI");:}
+	   | AssignStat  {:System.out.println("Stat -> AssignStat SEMI");:}
+	   | CallProc  {:System.out.println("Stat -> CallProc SEMI");:};
 
-IfStat ::= IF Expr THEN StatList ElifList Else FI;
+IfStat ::= IF Expr THEN StatList ElifList Else FI {:System.out.println("IfStat -> IF Expr THEN StatList ElifList Else FI");:}
+          |IF Expr THEN ElifList Else FI;
 
-ElifList ::= EMPTY
-	       | Elif ElifList;
+ElifList ::= /* empty */ {:System.out.println("ElisfList -> ''");:}
+	       | Elif ElifList {:System.out.println("ElifList -> Elif ElifList");:};
 
-Elif ::= ELIF Expr THEN StatList;
+Elif ::= ELIF Expr THEN StatList {:System.out.println("Elif -> ELIF Expr THEN StatList");:}
+       | ELIF Expr THEN ;
 
-Else ::= EMPTY
-       | ELSE StatList;
+Else ::= /* empty */ {:System.out.println("Else ->''");:}
+       | ELSE StatList {:System.out.println("Else -> ELSE StatList");:}
+       | ELSE;
 
-WhileStat ::= WHILE StatList Expr DO StatList OD
-	        | WHILE Expr DO StatList OD;
+WhileStat ::= WHILE StatList Expr DO StatList OD {:System.out.println("WhileStat ->WHILE StatList Expr DO StatList OD");:}
+	        | WHILE Expr DO StatList OD {:System.out.println("WhileStat ->  WHILE Expr DO StatList OD");:}
+	        | WHILE StatList Expr DO OD
+	        | WHILE Expr DO OD;
 
-ReadlnStat ::= READ LPAR IdList RPAR;
+ReadlnStat ::= READ LPAR IdList RPAR {:System.out.println("ReadlnStat -> READ LPAR IList RPAR");:};
 
-WriteStat ::=  WRITE LPAR ExprList RPAR;
+WriteStat ::=  WRITE LPAR ExprList RPAR {:System.out.println("WriteStat ->WRITE LPAR ExprList RPAR");:};
 
-AssignStat ::= IdList ASSIGN  ExprList;
+AssignStat ::= IdList ASSIGN ExprList {:System.out.println("AssignStat -> ExprList ASSIGN ExprList");:};
 
-CallProc ::= ID LPAR ExprList RPAR
-	       | ID LPAR RPAR;
+CallProc ::= ID LPAR ExprList RPAR {:System.out.println("CallProc -> ID LPAR ExprList RPAR");:}
+	       | ID LPAR RPAR {:System.out.println("CallProc -> ID LPAR RPAR ");:};
 
-Expr ::= NULL
-	   | TRUE
-	   | FALSE
-	   | INT_CONST
-	   | FLOAT_CONST
-       | STRING_CONST
-       | ID
-       | CallProc
-       | Expr  PLUS Expr
-       | Expr  MINUS Expr
-       | Expr  TIMES Expr
-       | Expr  DIV Expr
-       | Expr  AND Expr
-       | Expr  OR Expr
-       | Expr  GT Expr
-       | Expr  GE Expr
-       | Expr  LT Expr
-       | Expr  LE Expr
-       | Expr  EQ Expr
-       | Expr  NE Expr
-       | MINUS Expr     %prec UMINUS
-       | NOT Expr;
+Expr ::= NULL {:System.out.println("Expr -> NULL ");:}
+	   | TRUE {:System.out.println("Expr -> TRUE ");:}
+	   | FALSE {:System.out.println("Expr -> FALSE ");:}
+	   | INT_CONST {:System.out.println("Expr -> INT_CONST ");:}
+	   | FLOAT_CONST {:System.out.println("Expr -> FLOAT_CONST ");:}
+       | STRING_CONST {:System.out.println("Expr -> STRING_CONST ");:}
+       | ID {:System.out.println("Expr -> ID ");:}
+       | CallProc {:System.out.println("Expr -> CallProc ");:}
+       | Expr  PLUS Expr {:System.out.println("Expr -> Expr PLUS Expr ");:}
+       | Expr  MINUS Expr {:System.out.println("Expr -> Expr MINUS Expr ");:}
+       | Expr  TIMES Expr {:System.out.println("Expr -> Expr TIMES Expr ");:}
+       | Expr  DIV Expr {:System.out.println("Expr -> Expr DIV Expr ");:}
+       | Expr  AND Expr {:System.out.println("Expr -> Expr AND Expr ");:}
+       | Expr  OR Expr {:System.out.println("Expr -> Expr OR Expr ");:}
+       | Expr  GT Expr {:System.out.println("Expr -> Expr GT Expr ");:}
+       | Expr  GE Expr {:System.out.println("Expr -> Expr GE Expr ");:}
+       | Expr  LT Expr {:System.out.println("Expr -> Expr LT Expr ");:}
+       | Expr  LE Expr {:System.out.println("Expr -> Expr LE Expr ");:}
+       | Expr  EQ Expr {:System.out.println("Expr -> Expr EQ Expr ");:}
+       | Expr  NE Expr {:System.out.println("Expr -> Expr NE Expr ");:}
+       | MINUS Expr   {:System.out.println("Expr -> MINUS Expr ");:}  %prec UMINUS
+       | NOT Expr {:System.out.println("Expr ->NOT Expr ");:};
 
 

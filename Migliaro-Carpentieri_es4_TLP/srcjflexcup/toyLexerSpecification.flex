@@ -30,7 +30,11 @@ private Symbol installID(String lexeme)
 {
     Symbol token;
     if(stringTable.containsKey(lexeme))
-        return stringTable.get(lexeme);
+    {
+    	token = stringTable.get(lexeme);
+    	Symbol symbol = new Symbol(token.sym,token.value);
+    	return symbol;
+    }
     else
     {
         token = new Symbol(ParserSym.ID, lexeme);
@@ -88,6 +92,9 @@ LetterOrUnderscore = [a-zA-Z_]
 
 Identifiers = {LetterOrUnderscore}[{LetterOrUnderscore}{Digit}]*
 
+// COMMENT
+CommentContent = ( [^*] | \*+ [^/*] )*
+
 // STATES DECLARATION
 %state STRING
 %state COMMENTS
@@ -96,7 +103,7 @@ Identifiers = {LetterOrUnderscore}[{LetterOrUnderscore}{Digit}]*
 
 <YYINITIAL> {
     //DELIMITERS
-    {WhiteSpace}        {return null;}
+    {WhiteSpace}        {/* ignore */}
 
     // NUMERIC LITERALS
     {NumericInt}        {return token(ParserSym.INT_CONST, yytext());}
@@ -108,6 +115,9 @@ Identifiers = {LetterOrUnderscore}[{LetterOrUnderscore}{Digit}]*
 
     // IDENTIFIERS
     {Identifiers}       {return installID(yytext());}
+
+    //RETURN
+    "->"                {return token(ParserSym.RETURN);}
 
     // RELATIONAL OPERATORS
     "<"                 {return token(ParserSym.LT);}
@@ -146,19 +156,19 @@ Identifiers = {LetterOrUnderscore}[{LetterOrUnderscore}{Digit}]*
 <STRING> {
     \"                  {yybegin(YYINITIAL);
                          return token(ParserSym.STRING_CONST, string.toString());}
+    <<EOF>>             {throw new Error("Stringa costante non completata");}
     [^\n\r\"\\]+        {string.append(yytext());}
     \\t                 {string.append('\t');}
-    \\n                 {string.append('\n');}
-    \\r                 {string.append('\r');}
+    [\r\n]+             {string.append(yytext());}
     \\\"                {string.append('\"');}
     \\                  {string.append('\\');}
-    <<EOF>>             {throw new Error("Stringa costante non completata");}
 }
 
 <COMMENTS> {
     "*/"                {yybegin(YYINITIAL);}
+    {CommentContent}    {/* ignore */}
     <<EOF>>             {throw new Error("Commento non chiuso");}
-    !"*/"               { /* ignore */ }
+
 }
 
-<<EOF>>                 {return null;}
+<<EOF>>                 {return new Symbol(ParserSym.EOF);}
