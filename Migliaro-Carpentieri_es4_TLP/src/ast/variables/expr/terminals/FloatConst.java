@@ -4,9 +4,9 @@ import ast.variables.Expression;
 
 public class FloatConst implements Expression
 {
-	public float value;
+	public Float value;
 
-	public FloatConst(float value)
+	public FloatConst(Float value)
 	{
 		this.value = value;
 	}

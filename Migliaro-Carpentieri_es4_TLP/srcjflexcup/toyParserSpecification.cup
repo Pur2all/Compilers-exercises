@@ -1,15 +1,23 @@
+import ast.variables.*;
+import ast.variables.expr.terminals.*;
+import ast.variables.expr.binary_operations.*;
+import ast.variables.expr.unary_operations.*;
 // Parser class name
 class Parser;
-
 // Terminals
-terminal SEMI, COMMA, ID, INT, STRING, FLOAT, BOOL, PROC, LPAR, RPAR, COLON, CORP, VOID, IF,
+terminal String INT_CONST, FLOAT_CONST;
+terminal String STRING_CONST, ID;
+
+terminal SEMI, COMMA, INT, STRING, FLOAT, BOOL, PROC, LPAR, RPAR, COLON, CORP, VOID, IF,
          THEN, ELIF, FI, ELSE, WHILE, DO, OD, READ, WRITE, ASSIGN, PLUS, MINUS, TIMES, DIV,
-         EQ, NE, LT, LE, GT, GE, AND, OR, NOT, NULL, TRUE, FALSE, INT_CONST, FLOAT_CONST, STRING_CONST, UMINUS, RETURN;
+         EQ, NE, LT, LE, GT, GE, AND, OR, NOT, NULL, TRUE, FALSE, UMINUS, RETURN;
 
 // Non terminals
+nonterminal Expression Expr;
+nonterminal CallProc CallProc;
 nonterminal Program, VarDeclList, ProcList, VarDecl, Type, IdListInit, Proc, ResultTypeList, ReturnExprs,
             ExprList, ParamDeclList, ParDecl, ResultType, StatList, Stat, IfStat, ElifList, Elif,
-            Else, WhileStat, ReadlnStat, WriteStat, AssignStat, CallProc, Expr, IdList;
+            Else, WhileStat, ReadlnStat, WriteStat, AssignStat, IdList;
 
 // Precedences
 precedence right ASSIGN;
@@ -53,7 +61,7 @@ ResultType ::= ResultTypeList {:System.out.println("ResultTypeList -> ResultType
 ReturnExprs::=  RETURN ExprList {:System.out.println("ReturnExprs -> ExprList");:}
 	          | /* empty */ {:System.out.println("ReturnExprs -> ''");:};
 
-ExprList ::= Expr {:System.out.println("ExprList -> Expr");:}
+ExprList ::= Expr:e1 {: System.out.println(e1);:}
 	       | Expr COMMA ExprList {:System.out.println("ExprList -> Expr COMMA ExprList");:};
 
 ParamDeclList ::= ParDecl {:System.out.println("ParmaDecList -> ParDecl");:}
@@ -104,27 +112,25 @@ AssignStat ::= IdList ASSIGN ExprList {:System.out.println("AssignStat -> ExprLi
 CallProc ::= ID LPAR ExprList RPAR {:System.out.println("CallProc -> ID LPAR ExprList RPAR");:}
 	       | ID LPAR RPAR {:System.out.println("CallProc -> ID LPAR RPAR ");:};
 
-Expr ::= NULL {:System.out.println("Expr -> NULL ");:}
-	   | TRUE {:System.out.println("Expr -> TRUE ");:}
-	   | FALSE {:System.out.println("Expr -> FALSE ");:}
-	   | INT_CONST {:System.out.println("Expr -> INT_CONST ");:}
-	   | FLOAT_CONST {:System.out.println("Expr -> FLOAT_CONST ");:}
-       | STRING_CONST {:System.out.println("Expr -> STRING_CONST ");:}
-       | ID {:System.out.println("Expr -> ID ");:}
-       | CallProc {:System.out.println("Expr -> CallProc ");:}
-       | Expr  PLUS Expr {:System.out.println("Expr -> Expr PLUS Expr ");:}
-       | Expr  MINUS Expr {:System.out.println("Expr -> Expr MINUS Expr ");:}
-       | Expr  TIMES Expr {:System.out.println("Expr -> Expr TIMES Expr ");:}
-       | Expr  DIV Expr {:System.out.println("Expr -> Expr DIV Expr ");:}
-       | Expr  AND Expr {:System.out.println("Expr -> Expr AND Expr ");:}
-       | Expr  OR Expr {:System.out.println("Expr -> Expr OR Expr ");:}
-       | Expr  GT Expr {:System.out.println("Expr -> Expr GT Expr ");:}
-       | Expr  GE Expr {:System.out.println("Expr -> Expr GE Expr ");:}
-       | Expr  LT Expr {:System.out.println("Expr -> Expr LT Expr ");:}
-       | Expr  LE Expr {:System.out.println("Expr -> Expr LE Expr ");:}
-       | Expr  EQ Expr {:System.out.println("Expr -> Expr EQ Expr ");:}
-       | Expr  NE Expr {:System.out.println("Expr -> Expr NE Expr ");:}
-       | MINUS Expr   {:System.out.println("Expr -> MINUS Expr ");:}  %prec UMINUS
-       | NOT Expr {:System.out.println("Expr ->NOT Expr ");:};
-
-
+Expr ::= NULL {: RESULT = new Null(); :}
+	   | TRUE {: RESULT = new True(); :}
+	   | FALSE {: RESULT = new False(); :}
+	   | INT_CONST:val {: RESULT = new IntConst(Integer.parseInt(val)); :}
+	   | FLOAT_CONST:val {: RESULT = new FloatConst(Float.parseFloat(val)); :}
+       | STRING_CONST:val {: RESULT = new StringConst(val); :}
+       | ID:val {: RESULT = new Id(val); :}
+       | CallProc:val {: RESULT = val; :}
+       | Expr:e1 PLUS Expr:e2 {: RESULT = new AddExpr(e1, e2); :}
+       | Expr:e1 MINUS Expr:e2 {: RESULT = new MinExpr(e1, e2); :}
+       | Expr:e1 TIMES Expr:e2 {: RESULT = new TimesExpr(e1, e2); :}
+       | Expr:e1 DIV Expr:e2 {: RESULT = new DivExpr(e1, e2); :}
+       | Expr:e1 AND Expr:e2 {: RESULT = new AndExpr(e1, e2); :}
+       | Expr:e1 OR Expr:e2 {: RESULT = new OrExpr(e1, e2); :}
+       | Expr:e1 GT Expr:e2 {: RESULT = new GtExpr(e1, e2); :}
+       | Expr:e1 GE Expr:e2 {: RESULT = new GeExpr(e1, e2); :}
+       | Expr:e1 LT Expr:e2 {: RESULT = new LtExpr(e1, e2); :}
+       | Expr:e1 LE Expr:e2 {: RESULT = new LeExpr(e1, e2); :}
+       | Expr:e1 EQ Expr:e2 {: RESULT = new EqExpr(e1, e2); :}
+       | Expr:e1 NE Expr:e2 {: RESULT = new NeExpr(e1, e2); :}
+       | MINUS Expr:e {: RESULT = new UminExpr(e); :}  %prec UMINUS
+       | NOT Expr:e {: RESULT = new NotExpr(e); :};

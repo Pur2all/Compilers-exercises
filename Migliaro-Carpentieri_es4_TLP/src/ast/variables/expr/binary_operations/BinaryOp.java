@@ -2,7 +2,7 @@ package ast.variables.expr.binary_operations;
 
 import ast.variables.Expression;
 
-public class BinaryOp implements Expression
+public abstract class BinaryOp implements Expression
 {
 	public Expression leftExpr, rightExpr;
 
@@ -10,5 +10,14 @@ public class BinaryOp implements Expression
 	{
 		this.leftExpr = leftExpr;
 		this.rightExpr = rightExpr;
+	}
+
+	@Override
+	public String toString()
+	{
+		return ""+this.getClass().getName()+"{" +
+				"leftExpr=" + leftExpr +
+				", rightExpr=" + rightExpr +
+				'}';
 	}
 }

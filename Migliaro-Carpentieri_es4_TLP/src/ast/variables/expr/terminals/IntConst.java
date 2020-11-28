@@ -4,9 +4,9 @@ import ast.variables.Expression;
 
 public class IntConst implements Expression
 {
-	public int value;
+	public Integer value;
 
-	public IntConst(int value)
+	public IntConst(Integer value)
 	{
 		this.value = value;
 	}

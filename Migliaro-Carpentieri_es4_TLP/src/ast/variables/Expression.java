@@ -4,8 +4,8 @@ import visitor.Visitor;
 
 public interface Expression
 {
-	default Expression accept(Visitor visitor)
+	default Object accept(Visitor visitor)
 	{
-		return (Expression) visitor.visit(this);
+		return visitor.visit(this);
 	}
 }
