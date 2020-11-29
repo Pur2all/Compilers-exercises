@@ -1,14 +1,15 @@
 package visitor;
 
-import ast.variables.Expression;
+import ast.variables.*;
 import ast.variables.expr.binary_operations.*;
 import ast.variables.expr.terminals.*;
 import ast.variables.expr.unary_operations.*;
+import ast.variables.stat.*;
 
 public interface Visitor
 {
+	/* EXPRESSIONS */
 
-	Object visit(Expression expression);
 	// Binary operations
 	Object visit(AddExpr expression);
 	Object visit(AndExpr expression);
@@ -35,4 +36,30 @@ public interface Visitor
 	// Unary operations
 	Object visit(NotExpr expression);
 	Object visit(UminExpr expression);
+
+
+	/* CallProc */
+	Object visit(CallProc callProc);
+
+	Object visit(AssignStat assignStat);
+
+	Object visit(ReadlnStat readlnStat);
+
+	Object visit(WriteStat writeStat);
+
+	Object visit(WhileStat whileStat);
+
+	Object visit(Elif elif);
+
+	Object visit(If anIf);
+
+	Object visit(Else anElse);
+
+	Object visit(ParDecl parDecl);
+
+	Object visit(IdListInit idListInit);
+
+	Object visit(VarDecl varDecl);
+
+	Object visit(Proc proc);
 }

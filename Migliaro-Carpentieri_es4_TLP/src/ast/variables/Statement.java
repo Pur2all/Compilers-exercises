@@ -2,6 +2,6 @@ package ast.variables;
 
 import visitor.Visitable;
 
-public interface Expression extends Visitable
+public interface Statement extends Visitable
 {
 }

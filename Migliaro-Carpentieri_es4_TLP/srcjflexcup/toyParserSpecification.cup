@@ -2,8 +2,13 @@ import ast.variables.*;
 import ast.variables.expr.terminals.*;
 import ast.variables.expr.binary_operations.*;
 import ast.variables.expr.unary_operations.*;
+import ast.variables.stat.*;
+
+import java.util.ArrayList;
+
 // Parser class name
 class Parser;
+
 // Terminals
 terminal String INT_CONST, FLOAT_CONST;
 terminal String STRING_CONST, ID;
@@ -15,9 +20,26 @@ terminal SEMI, COMMA, INT, STRING, FLOAT, BOOL, PROC, LPAR, RPAR, COLON, CORP, V
 // Non terminals
 nonterminal Expression Expr;
 nonterminal CallProc CallProc;
-nonterminal Program, VarDeclList, ProcList, VarDecl, Type, IdListInit, Proc, ResultTypeList, ReturnExprs,
-            ExprList, ParamDeclList, ParDecl, ResultType, StatList, Stat, IfStat, ElifList, Elif,
-            Else, WhileStat, ReadlnStat, WriteStat, AssignStat, IdList;
+nonterminal ArrayList<Expression> ExprList, ReturnExprs;
+nonterminal ArrayList<Id> IdList;
+nonterminal AssignStat AssignStat;
+nonterminal WriteStat WriteStat;
+nonterminal ReadlnStat ReadlnStat;
+nonterminal WhileStat WhileStat;
+nonterminal Else Else;
+nonterminal Elif Elif;
+nonterminal ArrayList<Elif> ElifList;
+nonterminal If IfStat;
+nonterminal ArrayList<String> ResultConcreteTypesList, ResultTypeList;
+nonterminal ParDecl ParDecl;
+nonterminal ArrayList<ParDecl> ParamDeclList;
+nonterminal IdListInit IdListInit;
+nonterminal VarDecl VarDecl;
+nonterminal String Type;
+nonterminal ArrayList<Statement> StatList;
+nonterminal Statement Stat;
+
+nonterminal Program, VarDeclList, ProcList, Proc;
 
 // Precedences
 precedence right ASSIGN;
@@ -38,79 +60,110 @@ VarDeclList ::= VarDecl VarDeclList {:System.out.println("VarDeclList -> VarDecl
 ProcList ::= Proc {:System.out.println("ProcList -> Proc");:}
 	       | Proc ProcList {:System.out.println("ProcList -> Proc ProcList");:};
 
-VarDecl ::= Type IdListInit SEMI {:System.out.println("VarDecl -> Type IdListInit");:};
+VarDecl ::= Type:type IdListInit:idListInit SEMI {: RESULT = new VarDecl(type, idListInit); :};
 
-Type ::= INT {:System.out.println("Type -> INT");:}
-       | BOOL {:System.out.println("Type -> BOOL");:}
-       | FLOAT {:System.out.println("Type -> FLOAT");:}
-       | STRING {:System.out.println("Type -> STRING");:};
+Type ::= INT {: RESULT = ParserSym.terminalNames[ParserSym.INT]; :}
+       | BOOL {: RESULT = ParserSym.terminalNames[ParserSym.BOOL]; :}
+       | FLOAT {: RESULT = ParserSym.terminalNames[ParserSym.FLOAT]; :}
+       | STRING {: RESULT = ParserSym.terminalNames[ParserSym.STRING]; :};
 
-IdListInit ::= ID {:System.out.println("IdListInit -> ID");:}
-           	 | IdListInit COMMA ID {:System.out.println("IdListInit -> IdListInit COMMA ID");:}
-	         | ID ASSIGN Expr {:System.out.println("IdListInit -> ID ASSIGN Expr");:}
-	         | IdListInit COMMA ID ASSIGN Expr {:System.out.println("IdListInit -> IdListInit COMMA ID ASSSIGN Expr");:};
+IdListInit ::= ID:val {: RESULT = new IdListInit();
+                         RESULT.put(val, null); :}
+           	 | IdListInit:idListInit COMMA ID:val {: idListInit.put(val, null);
+                                                     RESULT = idListInit;
+                                                     :}
+	         | ID:val ASSIGN Expr:expr {: RESULT = new IdListInit();
+	                                      RESULT.put(val, expr);:}
+	         | IdListInit:idListInit COMMA ID:val ASSIGN Expr:expr {: idListInit.put(val, expr);
+	                                                                    RESULT = idListInit; :};
 
-Proc ::= PROC ID LPAR ParamDeclList RPAR ResultType COLON VarDeclList StatList ReturnExprs CORP SEMI {:System.out.println("Proc -> PROC ID LPAR ParamDeclList RPAR ResultTypeList COLON VarDeclList StatList ReturnExprs CORP SEMI");:}
-       | PROC ID LPAR ParamDeclList RPAR ResultType COLON VarDeclList ReturnExprs CORP SEMI
-       | PROC ID LPAR RPAR ResultType COLON VarDeclList StatList ReturnExprs CORP SEMI {:System.out.println("Proc -> PROC ID LPAR RPAR ResultTypeList COLON VarDeclList StatList ReturnExprs CORP SEMI");:}
-       | PROC ID LPAR RPAR ResultType COLON VarDeclList ReturnExprs CORP SEMI;
+Proc ::= PROC ID:val LPAR ParamDeclList:parDeclList RPAR ResultTypeList:resultTypeList COLON VarDeclList:varDeclList StatList:statList ReturnExprs:returnExprs CORP SEMI {:System.out.println("Proc -> PROC ID LPAR ParamDeclList RPAR ResultTypeList COLON VarDeclList StatList ReturnExprs CORP SEMI");:}
+       | PROC ID LPAR ParamDeclList RPAR ResultTypeList COLON VarDeclList ReturnExprs CORP SEMI
+       | PROC ID LPAR RPAR ResultTypeList COLON VarDeclList StatList ReturnExprs CORP SEMI {:System.out.println("Proc -> PROC ID LPAR RPAR ResultTypeList COLON VarDeclList StatList ReturnExprs CORP SEMI");:}
+       | PROC ID LPAR RPAR ResultTypeList COLON VarDeclList ReturnExprs CORP SEMI;
 
-ResultType ::= ResultTypeList {:System.out.println("ResultTypeList -> ResultType");:}
-	         | VOID {:System.out.println("ResultType -> void");:};
+ResultTypeList ::= ResultConcreteTypesList:resultConcreteTypesList {: RESULT = resultConcreteTypesList; :}
+	         | VOID {: RESULT = new ArrayList<String>();
+	          RESULT.add(ParserSym.terminalNames[ParserSym.VOID]); :};
 
-ReturnExprs::=  RETURN ExprList {:System.out.println("ReturnExprs -> ExprList");:}
-	          | /* empty */ {:System.out.println("ReturnExprs -> ''");:};
+ResultConcreteTypesList ::= Type:type {: RESULT = new ArrayList<String>();
+                                RESULT.add(type); :}
+                 | Type:type COMMA ResultConcreteTypesList:resultConcreteTypesList {: resultConcreteTypesList.add(0, type);
+                                                                    RESULT = resultConcreteTypesList; :};
 
-ExprList ::= Expr:e1 {: System.out.println(e1);:}
-	       | Expr COMMA ExprList {:System.out.println("ExprList -> Expr COMMA ExprList");:};
+ReturnExprs::= RETURN ExprList:exprList {: RESULT = exprList; :}
+	         | /* empty */ {: RESULT = new ArrayList<Expression>(); :};
 
-ParamDeclList ::= ParDecl {:System.out.println("ParmaDecList -> ParDecl");:}
-                | ParamDeclList SEMI ParDecl {:System.out.println("ParamDeclList -> ParamDeclList SEMI ParDecl");:};
+ExprList ::= Expr:e1 {:
+                        RESULT = new ArrayList<Expression>();
+                        RESULT.add(e1);
+                     :}
+	       | Expr:e1 COMMA ExprList:exprList {:
+	                                            exprList.add(0, e1);
+	                                            RESULT = exprList;
+	                                         :};
 
-ParDecl ::= Type ExprList {:System.out.println("ParDecl -> Type ExprList");:};
+ParamDeclList ::= ParDecl:parDecl {: RESULT = new ArrayList<ParDecl>();
+                                     RESULT.add(parDecl);:}
+                | ParamDeclList:parDeclList SEMI ParDecl:parDecl {: parDeclList.add(0, parDecl);
+                                                                    RESULT = parDeclList; :};
 
-IdList ::= ID {:System.out.println("IdList ->  ID");:}
-         | IdList COMMA ID {:System.out.println("IdList -> IdList COMMA ID");:};
+ParDecl ::= Type:type IdList:idList {: RESULT = new ParDecl(type, idList); :};
 
-ResultTypeList ::= Type
-                 | Type COMMA ResultTypeList {:System.out.println("ResultTypeList -> ResultType COMMA ResultTypeList");:};
+IdList ::= ID:val {:
+                    RESULT = new ArrayList<Id>();
+                    RESULT.add(new Id(val));
+                  :}
+         | IdList:idList COMMA ID:val {:
+	                                    idList.add(0, new Id(val));
+	                                    RESULT = idList;
+                                      :};
 
-StatList ::= StatList Stat SEMI
-           | Stat SEMI{:System.out.println("StatList -> Stat");:};
+StatList ::= StatList:statList Stat:statement SEMI {:
+	                                                  statList.add(0, statement);
+                                                      RESULT = statList;
+                                                   :}
+           | Stat:stat SEMI {:
+	                           RESULT = new ArrayList<Statement>();
+                               RESULT.add(stat);
+                            :};
 
-Stat ::= IfStat  {:System.out.println("Stat -> IfStat SEMI");:}
-	   | WhileStat   {:System.out.println("Stat -> WhileStat SEMI");:}
-	   | ReadlnStat {:System.out.println("Stat -> ReadlnStat SEMI");:}
-	   | WriteStat  {:System.out.println("Stat -> WriteStat SEMI");:}
-	   | AssignStat  {:System.out.println("Stat -> AssignStat SEMI");:}
-	   | CallProc  {:System.out.println("Stat -> CallProc SEMI");:};
+Stat ::= IfStat:ifStat {: RESULT = ifStat; :}
+	   | WhileStat:whileStat {: RESULT = whileStat; :}
+	   | ReadlnStat:readlnStat {: RESULT = readlnStat; :}
+	   | WriteStat:writeStat {: RESULT = writeStat; :}
+	   | AssignStat:assignStat {: RESULT = assignStat; :}
+	   | CallProc:callProc {: RESULT = callProc; :};
 
-IfStat ::= IF Expr THEN StatList ElifList Else FI {:System.out.println("IfStat -> IF Expr THEN StatList ElifList Else FI");:}
-          |IF Expr THEN ElifList Else FI;
+IfStat ::= IF Expr:expr THEN StatList:statList ElifList:elifList Else:anElse FI {: RESULT = new If(expr, statList, elifList, anElse); :}
+         | IF Expr:expr THEN ElifList:elifList Else:anElse FI {: RESULT = new If(expr, elifList, anElse); :};
 
-ElifList ::= /* empty */ {:System.out.println("ElisfList -> ''");:}
-	       | Elif ElifList {:System.out.println("ElifList -> Elif ElifList");:};
+ElifList ::= /* empty */ {: RESULT = new ArrayList<Elif>(); :}
+	       | Elif:elif ElifList:elifList {:
+	                                        elifList.add(0, elif);
+	                                        RESULT = elifList;
+	                                     :};
 
-Elif ::= ELIF Expr THEN StatList {:System.out.println("Elif -> ELIF Expr THEN StatList");:}
-       | ELIF Expr THEN ;
+Elif ::= ELIF Expr:expr THEN StatList:statList {: RESULT = new Elif(expr, statList); :}
+       | ELIF Expr:expr THEN {: RESULT = new Elif(expr); :};
 
-Else ::= /* empty */ {:System.out.println("Else ->''");:}
-       | ELSE StatList {:System.out.println("Else -> ELSE StatList");:}
-       | ELSE;
+Else ::= /* empty */ {: RESULT = new Else(null); :}
+       | ELSE StatList:statList {: RESULT = new Else(statList); :}
+       | ELSE {: RESULT = new Else(new ArrayList<Statement>()); :};
 
-WhileStat ::= WHILE StatList Expr DO StatList OD {:System.out.println("WhileStat ->WHILE StatList Expr DO StatList OD");:}
-	        | WHILE Expr DO StatList OD {:System.out.println("WhileStat ->  WHILE Expr DO StatList OD");:}
-	        | WHILE StatList Expr DO OD
-	        | WHILE Expr DO OD;
+WhileStat ::= WHILE StatList:condStats Expr:expr DO StatList:bodyStats OD {: RESULT = new WhileStat(condStats, expr, bodyStats); :}
+	        | WHILE Expr:expr DO StatList:bodyStats OD {: RESULT = new WhileStat(expr, bodyStats, true); :}
+	        | WHILE StatList:condStats Expr:expr DO OD {: RESULT = new WhileStat(expr, condStats, false); :}
+	        | WHILE Expr:expr DO OD {: RESULT = new WhileStat(expr); :};
 
-ReadlnStat ::= READ LPAR IdList RPAR {:System.out.println("ReadlnStat -> READ LPAR IList RPAR");:};
+ReadlnStat ::= READ LPAR IdList:idList RPAR {: RESULT = new ReadlnStat(idList); :};
 
-WriteStat ::=  WRITE LPAR ExprList RPAR {:System.out.println("WriteStat ->WRITE LPAR ExprList RPAR");:};
+WriteStat ::=  WRITE LPAR ExprList:exprList RPAR {: RESULT = new WriteStat(exprList); :};
 
-AssignStat ::= IdList ASSIGN ExprList {:System.out.println("AssignStat -> ExprList ASSIGN ExprList");:};
+AssignStat ::= IdList:idList ASSIGN ExprList:exprList {: RESULT = new AssignStat(idList, exprList); :};
 
-CallProc ::= ID LPAR ExprList RPAR {:System.out.println("CallProc -> ID LPAR ExprList RPAR");:}
-	       | ID LPAR RPAR {:System.out.println("CallProc -> ID LPAR RPAR ");:};
+CallProc ::= ID:val LPAR ExprList:exprList RPAR {: RESULT = new CallProc(val, exprList); :}
+	       | ID:val LPAR RPAR {: RESULT = new CallProc(val); :};
 
 Expr ::= NULL {: RESULT = new Null(); :}
 	   | TRUE {: RESULT = new True(); :}

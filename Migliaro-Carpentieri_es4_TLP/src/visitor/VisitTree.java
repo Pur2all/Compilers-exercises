@@ -1,10 +1,11 @@
 package visitor;
 
-import ast.variables.Expression;
+import ast.variables.*;
 import ast.variables.expr.binary_operations.*;
 import ast.variables.expr.terminals.*;
 import ast.variables.expr.unary_operations.NotExpr;
 import ast.variables.expr.unary_operations.UminExpr;
+import ast.variables.stat.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -25,12 +26,6 @@ public class VisitTree implements Visitor
 		{
 			System.err.println("Errore creazione dell'oggetto Document per creazione del'xml");
 		}
-	}
-
-	@Override
-	public Object visit(Expression expression)
-	{
-		return null;
 	}
 
 	// Binary operations
@@ -242,5 +237,77 @@ public class VisitTree implements Visitor
 		umin.appendChild(document.createTextNode(op.toString()));
 
 		return umin;
+	}
+
+	@Override
+	public Object visit(CallProc callProc)
+	{
+		return null;
+	}
+
+	@Override
+	public Object visit(AssignStat assignStat)
+	{
+		return null;
+	}
+
+	@Override
+	public Object visit(ReadlnStat readlnStat)
+	{
+		return null;
+	}
+
+	@Override
+	public Object visit(WriteStat writeStat)
+	{
+		return null;
+	}
+
+	@Override
+	public Object visit(WhileStat whileStat)
+	{
+		return null;
+	}
+
+	@Override
+	public Object visit(Elif elif)
+	{
+		return null;
+	}
+
+	@Override
+	public Object visit(If anIf)
+	{
+		return null;
+	}
+
+	@Override
+	public Object visit(Else anElse)
+	{
+		return null;
+	}
+
+	@Override
+	public Object visit(ParDecl parDecl)
+	{
+		return null;
+	}
+
+	@Override
+	public Object visit(IdListInit idListInit)
+	{
+		return null;
+	}
+
+	@Override
+	public Object visit(VarDecl varDecl)
+	{
+		return null;
+	}
+
+	@Override
+	public Object visit(Proc proc)
+	{
+		return null;
 	}
 }

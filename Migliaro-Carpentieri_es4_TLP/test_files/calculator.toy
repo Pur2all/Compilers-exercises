@@ -35,6 +35,3 @@ corp;
 proc mul(float first, second) float:
     -> first * second
 corp;
-
-
-
