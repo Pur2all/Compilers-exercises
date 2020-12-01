@@ -38,8 +38,10 @@ nonterminal VarDecl VarDecl;
 nonterminal String Type;
 nonterminal ArrayList<Statement> StatList;
 nonterminal Statement Stat;
-
-nonterminal Program, VarDeclList, ProcList, Proc;
+nonterminal Proc Proc;
+nonterminal ArrayList<Proc> ProcList;
+nonterminal ArrayList<VarDecl> VarDeclList;
+nonterminal Program Program;
 
 // Precedences
 precedence right ASSIGN;
@@ -52,13 +54,20 @@ precedence left TIMES, DIV;
 precedence left UMINUS;
 
 // Productions
-Program ::= VarDeclList ProcList {:System.out.println("Program -> VarDeclList ProcList");:};
+Program ::= VarDeclList:varDeclList ProcList:procList {: RESULT = new Program(varDeclList, procList); :};
 
-VarDeclList ::= VarDecl VarDeclList {:System.out.println("VarDeclList -> VarDecl VarDeclList");:}
-              | /* empty */{:System.out.println("VarDeclList -> ''");:};
+VarDeclList ::= VarDecl:varDecl VarDeclList:varDeclList {: varDeclList.add(0, varDecl);
+                                                            RESULT = varDeclList;
+                                                        :}
+              | /* empty */                             {: RESULT = new ArrayList<VarDecl>(); :};
 
-ProcList ::= Proc {:System.out.println("ProcList -> Proc");:}
-	       | Proc ProcList {:System.out.println("ProcList -> Proc ProcList");:};
+ProcList ::= Proc:proc  {:
+                          RESULT = new ArrayList<Proc>();
+                          RESULT.add(proc);
+                        :}
+	       | Proc:proc ProcList:procList {: procList.add(0, proc);
+                                            RESULT = procList;
+	                                      :};
 
 VarDecl ::= Type:type IdListInit:idListInit SEMI {: RESULT = new VarDecl(type, idListInit); :};
 
@@ -77,10 +86,11 @@ IdListInit ::= ID:val {: RESULT = new IdListInit();
 	         | IdListInit:idListInit COMMA ID:val ASSIGN Expr:expr {: idListInit.put(val, expr);
 	                                                                    RESULT = idListInit; :};
 
-Proc ::= PROC ID:val LPAR ParamDeclList:parDeclList RPAR ResultTypeList:resultTypeList COLON VarDeclList:varDeclList StatList:statList ReturnExprs:returnExprs CORP SEMI {:System.out.println("Proc -> PROC ID LPAR ParamDeclList RPAR ResultTypeList COLON VarDeclList StatList ReturnExprs CORP SEMI");:}
-       | PROC ID LPAR ParamDeclList RPAR ResultTypeList COLON VarDeclList ReturnExprs CORP SEMI
-       | PROC ID LPAR RPAR ResultTypeList COLON VarDeclList StatList ReturnExprs CORP SEMI {:System.out.println("Proc -> PROC ID LPAR RPAR ResultTypeList COLON VarDeclList StatList ReturnExprs CORP SEMI");:}
-       | PROC ID LPAR RPAR ResultTypeList COLON VarDeclList ReturnExprs CORP SEMI;
+Proc ::= PROC ID:val LPAR ParamDeclList:parDeclList RPAR ResultTypeList:resultTypeList COLON
+         VarDeclList:varDeclList StatList:statList ReturnExprs:returnExprs CORP SEMI {: RESULT = new Proc(val, parDeclList, resultTypeList, varDeclList, statList, returnExprs); :}
+       | PROC ID:val LPAR ParamDeclList:parDeclList RPAR ResultTypeList:resultTypeList COLON VarDeclList:varDeclList ReturnExprs:returnExprs CORP SEMI {: RESULT = new Proc(val, parDeclList, resultTypeList, varDeclList, null, returnExprs, true); :}
+       | PROC ID:val LPAR RPAR ResultTypeList:resultTypeList COLON VarDeclList:varDeclList StatList:statList ReturnExprs:returnExprs CORP SEMI {: RESULT = new Proc(val, null, resultTypeList, varDeclList, statList, returnExprs, false); :}
+       | PROC ID:val LPAR RPAR ResultTypeList:resultTypeList COLON VarDeclList:varDeclList ReturnExprs:returnExprs CORP SEMI {: RESULT = new Proc(val, resultTypeList, varDeclList, returnExprs);:};
 
 ResultTypeList ::= ResultConcreteTypesList:resultConcreteTypesList {: RESULT = resultConcreteTypesList; :}
 	         | VOID {: RESULT = new ArrayList<String>();

@@ -5,7 +5,7 @@ import visitor.Visitor;
 
 public class True implements Expression
 {
-	public static final boolean value = true;
+	public static final Boolean value = true;
 
 	public Object accept(Visitor visitor)
 	{

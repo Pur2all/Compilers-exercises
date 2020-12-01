@@ -62,4 +62,6 @@ public interface Visitor
 	Object visit(VarDecl varDecl);
 
 	Object visit(Proc proc);
+
+	Object visit(Program program);
 }
