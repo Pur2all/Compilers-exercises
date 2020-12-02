@@ -10,6 +10,6 @@ public class Tester
 		Parser parser = new Parser(new Lexer(new FileReader(args[0])));
 		Program root = (Program) parser.parse().value;
 		VisitTree visitTree = new VisitTree();
-		visitTree.visita(root);
+		visitTree.createAST(root);
 	}
 }
