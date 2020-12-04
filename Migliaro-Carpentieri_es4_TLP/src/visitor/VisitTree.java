@@ -7,11 +7,17 @@ import ast.variables.expr.unary_operations.NotExpr;
 import ast.variables.expr.unary_operations.UminExpr;
 import ast.variables.stat.*;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.File;
 import java.util.ArrayList;
 
 public class VisitTree implements Visitor
@@ -34,145 +40,73 @@ public class VisitTree implements Visitor
 	@Override
 	public Object visit(AddExpr expression)
 	{
-		Element op1 = (Element) expression.leftExpr.accept(this);
-		Element op2 = (Element) expression.rightExpr.accept(this);
-
-		Element add = document.createElement("AddOp");
-		add.appendChild(document.createTextNode(op1.toString() + ", " + op2.toString()));
-
-		return add;
+		return binaryExpr(expression, "AddOp");
 	}
 
 	@Override
 	public Object visit(AndExpr expression)
 	{
-		Element op1 = (Element) expression.leftExpr.accept(this);
-		Element op2 = (Element) expression.rightExpr.accept(this);
-
-		Element and = document.createElement("AndOp");
-		and.appendChild(document.createTextNode(op1.toString() + ", " + op2.toString()));
-
-		return and;
+		return binaryExpr(expression, "AndOp");
 	}
 
 	@Override
 	public Object visit(DivExpr expression)
 	{
-		Element op1 = (Element) expression.leftExpr.accept(this);
-		Element op2 = (Element) expression.rightExpr.accept(this);
-
-		Element div = document.createElement("DivOp");
-		div.appendChild(document.createTextNode(op1.toString() + ", " + op2.toString()));
-
-		return div;
+		return binaryExpr(expression, "DivOp");
 	}
 
 	@Override
 	public Object visit(EqExpr expression)
 	{
-		Element op1 = (Element) expression.leftExpr.accept(this);
-		Element op2 = (Element) expression.rightExpr.accept(this);
-
-		Element eq = document.createElement("EqOp");
-		eq.appendChild(document.createTextNode(op1.toString() + ", " + op2.toString()));
-
-		return eq;
+		return binaryExpr(expression, "EqOp");
 	}
 
 	@Override
 	public Object visit(GeExpr expression)
 	{
-		Element op1 = (Element) expression.leftExpr.accept(this);
-		Element op2 = (Element) expression.rightExpr.accept(this);
-
-		Element ge = document.createElement("GeOp");
-		ge.appendChild(document.createTextNode(op1.toString() + ", " + op2.toString()));
-
-		return ge;
+		return binaryExpr(expression, "GeOp");
 	}
 
 	@Override
 	public Object visit(GtExpr expression)
 	{
-		Element op1 = (Element) expression.leftExpr.accept(this);
-		Element op2 = (Element) expression.rightExpr.accept(this);
-
-		Element gt = document.createElement("GtOp");
-		gt.appendChild(document.createTextNode(op1.toString() + ", " + op2.toString()));
-
-		return gt;
+		return binaryExpr(expression, "GtOp");
 	}
 
 	@Override
 	public Object visit(LeExpr expression)
 	{
-		Element op1 = (Element) expression.leftExpr.accept(this);
-		Element op2 = (Element) expression.rightExpr.accept(this);
-
-		Element le = document.createElement("LeOp");
-		le.appendChild(document.createTextNode(op1.toString() + ", " + op2.toString()));
-
-		return le;
+		return binaryExpr(expression, "LeOp");
 	}
 
 	@Override
 	public Object visit(LtExpr expression)
 	{
-		Element op1 = (Element) expression.leftExpr.accept(this);
-		Element op2 = (Element) expression.rightExpr.accept(this);
-
-		Element lt = document.createElement("LtOp");
-		lt.appendChild(document.createTextNode(op1.toString() + ", " + op2.toString()));
-
-		return lt;
+		return binaryExpr(expression, "LtOp");
 	}
 
 	@Override
 	public Object visit(MinExpr expression)
 	{
-		Element op1 = (Element) expression.leftExpr.accept(this);
-		Element op2 = (Element) expression.rightExpr.accept(this);
-
-		Element min = document.createElement("MinOp");
-		min.appendChild(document.createTextNode(op1.toString() + ", " + op2.toString()));
-
-		return min;
+		return binaryExpr(expression, "MinOp");
 	}
 
 	@Override
 	public Object visit(NeExpr expression)
 	{
-		Element op1 = (Element) expression.leftExpr.accept(this);
-		Element op2 = (Element) expression.rightExpr.accept(this);
-
-		Element ne = document.createElement("NeOp");
-		ne.appendChild(document.createTextNode(op1.toString() + ", " + op2.toString()));
-
-		return ne;
+		return binaryExpr(expression, "NeOp");
 	}
 
 	@Override
 	public Object visit(OrExpr expression)
 	{
-		Element op1 = (Element) expression.leftExpr.accept(this);
-		Element op2 = (Element) expression.rightExpr.accept(this);
-
-		Element or = document.createElement("OrOp");
-		or.appendChild(document.createTextNode(op1.toString() + ", " + op2.toString()));
-
-		return or;
+		return binaryExpr(expression, "OrOp");
 	}
 
 	@Override
 	public Object visit(TimesExpr expression)
 	{
-		Element op1 = (Element) expression.leftExpr.accept(this);
-		Element op2 = (Element) expression.rightExpr.accept(this);
-
-		Element times = document.createElement("TimesOp");
-		times.appendChild(document.createTextNode(op1.toString() + ", " + op2.toString()));
-
-		return times;
+		return binaryExpr(expression, "TimeOp");
 	}
 
 	// Terminals
@@ -222,10 +156,10 @@ public class VisitTree implements Visitor
 	@Override
 	public Object visit(NotExpr expression)
 	{
-		Element op = (Element) expression.expression.accept(this);
+		Node op = (Node) expression.expression.accept(this);
 
-		Element not = document.createElement("NotOp");
-		not.appendChild(document.createTextNode(op.toString()));
+		Node not = document.createElement("NotOp");
+		not.appendChild(op);
 
 		return not;
 	}
@@ -233,10 +167,10 @@ public class VisitTree implements Visitor
 	@Override
 	public Object visit(UminExpr expression)
 	{
-		Element op = (Element) expression.expression.accept(this);
+		Node op = (Node) expression.expression.accept(this);
 
-		Element umin = document.createElement("UminOp");
-		umin.appendChild(document.createTextNode(op.toString()));
+		Node umin = document.createElement("UminOp");
+		umin.appendChild(op);
 
 		return umin;
 	}
@@ -244,29 +178,81 @@ public class VisitTree implements Visitor
 	@Override
 	public Object visit(CallProc callProc)
 	{
-		Element callProcOp = document.createElement("CallProcOp");
+		Node callProcOp = document.createElement("CallProcOp");
 		callProcOp.appendChild(document.createTextNode(formatId(callProc.id)));
-		Element paramOp = document.createElement("ParamOp");
+		Node paramOp = document.createElement("ParamOp");
 
-		callProc.arguments.forEach(arg->paramOp.appendChild((Element) arg.accept(this)));
+		callProc.arguments.forEach(arg -> paramOp.appendChild((Node) arg.accept(this)));
 		callProcOp.appendChild(paramOp);
 
 		return callProcOp;
 	}
 
-	//PROBLEMA
 	@Override
 	public Object visit(AssignStat assignStat)
 	{
-		return null;
+		Node assignStatOp = document.createElement("AssignStatOp");
+		int exprsSize = assignStat.exprList.size(), idsSize = assignStat.idList.size(), i;
+		Node assignOp;
+
+		// Se le liste di id e di espressioni sono uguali allora creaiamo un numero di assignOp pari al numero di id indipendentemente se siano funzioni, costanti o variabili.
+		if(assignStat.idList.size() == assignStat.exprList.size())
+		{
+			for(i = 0; i < idsSize; i++)
+			{
+				assignOp = document.createElement("AssignOp");
+
+				assignOp.appendChild((Node) assignStat.idList.get(i).accept(this));
+				assignOp.appendChild(document.createTextNode(", "));
+				assignOp.appendChild((Node) assignStat.exprList.get(i).accept(this));
+				assignStatOp.appendChild(assignOp);
+			}
+		}
+		// In questo caso la lista di id è più grande della lista di espressioni e sicuramente contiene una
+		// funzione, altrimenti ci sarebbe stato un errore nella costruzione dell'albero.
+		else
+		{
+			int h = 0;
+			for(int j = 0; j < exprsSize; j++)
+			{
+				// Se troviamo una funzione assegnamo gli id a tale funzione finché possibile.
+				if(assignStat.exprList.get(j) instanceof CallProc)
+				{
+					int indexFunctionReturn = 0;
+
+					for(int k = h; k <= idsSize - exprsSize + j; k++, h++)
+					{
+						assignOp = document.createElement("AssignOp");
+						assignOp.appendChild((Node) assignStat.idList.get(k).accept(this));
+						assignOp.appendChild(document.createTextNode(", "));
+						assignOp.appendChild((Node) assignStat.exprList.get(j).accept(this));
+						assignOp.appendChild(document.createTextNode("" + (indexFunctionReturn++)));
+						assignStatOp.appendChild(assignOp);
+					}
+				}
+				else
+				{
+
+					assignOp = document.createElement("AssignOp");
+					assignOp.appendChild((Node) assignStat.idList.get(h).accept(this));
+					assignOp.appendChild(document.createTextNode(", "));
+					assignOp.appendChild((Node) assignStat.exprList.get(j).accept(this));
+					h++;
+					assignStatOp.appendChild(assignOp);
+				}
+			}
+		}
+
+		return assignStatOp;
 	}
 
 	@Override
 	public Object visit(ReadlnStat readlnStat)
 	{
-		Element readOp = document.createElement("ReadOp");
-		Element idListOp = document.createElement("IdListOp");
-		readlnStat.idList.forEach(id->idListOp.appendChild((Element) id.accept(this)));
+		Node readOp = document.createElement("ReadOp");
+		Node idListOp = document.createElement("IdListOp");
+
+		readlnStat.idList.forEach(id -> idListOp.appendChild((Node) id.accept(this)));
 		readOp.appendChild(idListOp);
 
 		return readOp;
@@ -275,8 +261,8 @@ public class VisitTree implements Visitor
 	@Override
 	public Object visit(WriteStat writeStat)
 	{
-		Element writeOp = document.createElement("WriteOp");
-		writeStat.exprList.forEach(expression->writeOp.appendChild((Element) expression.accept(this)));
+		Node writeOp = document.createElement("WriteOp");
+		writeStat.exprList.forEach(expression -> writeOp.appendChild((Node) expression.accept(this)));
 
 		return writeOp;
 	}
@@ -284,15 +270,15 @@ public class VisitTree implements Visitor
 	@Override
 	public Object visit(WhileStat whileStat)
 	{
-		Element whileOp = document.createElement("WhileOp");
-		Element conditionStat = document.createElement("ConditionStat");
-		Element body = document.createElement("WhileBody");
+		Node whileOp = document.createElement("WhileOp");
+		Node conditionStat = document.createElement("ConditionStat");
+		Node body = document.createElement("WhileBody");
 
-		whileStat.condStatements.forEach(statement->conditionStat.appendChild((Element) statement.accept(this)));
-		whileStat.bodyStatements.forEach(bodyStatement->body.appendChild((Element) bodyStatement.accept(this)));
+		whileStat.condStatements.forEach(statement -> conditionStat.appendChild((Node) statement.accept(this)));
+		whileStat.bodyStatements.forEach(bodyStatement -> body.appendChild((Node) bodyStatement.accept(this)));
 
 		whileOp.appendChild(conditionStat);
-		whileOp.appendChild((Element) whileStat.expr.accept(this));
+		whileOp.appendChild((Node) whileStat.expr.accept(this));
 		whileOp.appendChild(body);
 
 		return whileOp;
@@ -301,11 +287,11 @@ public class VisitTree implements Visitor
 	@Override
 	public Object visit(Elif elif)
 	{
-		Element elifOp = document.createElement("ElifOp");
-		Element body = document.createElement("ElifBody");
-		elif.statements.forEach(statement -> body.appendChild((Element) statement.accept(this)));
+		Node elifOp = document.createElement("ElifOp");
+		Node body = document.createElement("ElifBody");
+		elif.statements.forEach(statement -> body.appendChild((Node) statement.accept(this)));
 
-		elifOp.appendChild((Element) elif.expr.accept(this));
+		elifOp.appendChild((Node) elif.expr.accept(this));
 		elifOp.appendChild(body);
 
 		return elifOp;
@@ -314,16 +300,15 @@ public class VisitTree implements Visitor
 	@Override
 	public Object visit(If anIf)
 	{
-		Element ifOp = document.createElement("ifOp");
-		Element elseOp = document.createElement("ElseOp");
-		Element body = document.createElement("ifBody");
+		Node ifOp = document.createElement("ifOp");
+		Node body = document.createElement("ifBody");
 
-		elseOp.appendChild((Element) anIf.anElse.accept(this));
-		anIf.statements.forEach(statement -> body.appendChild((Element) statement.accept(this)));
-		anIf.elifList.forEach(elif -> ifOp.appendChild((Element) elif.accept(this)));
-		ifOp.appendChild((Element) anIf.expression.accept(this));
+		anIf.statements.forEach(statement -> body.appendChild((Node) statement.accept(this)));
+
+		ifOp.appendChild((Node) anIf.expression.accept(this));
 		ifOp.appendChild(body);
-		ifOp.appendChild(elseOp);
+		anIf.elifList.forEach(elif -> ifOp.appendChild((Node) elif.accept(this)));
+		ifOp.appendChild((Node) anIf.anElse.accept(this));
 
 		return ifOp;
 	}
@@ -331,19 +316,20 @@ public class VisitTree implements Visitor
 	@Override
 	public Object visit(Else anElse)
 	{
-		Element elseOp = document.createElement("ElseOp");
-		anElse.statements.forEach(statement -> elseOp.appendChild((Element) statement.accept(this)));
+		Node elseOp = document.createElement("ElseOp");
+		if(anElse.statements != null)
+			anElse.statements.forEach(statement -> elseOp.appendChild((Node) statement.accept(this)));
 
-		return anElse;
+		return elseOp;
 	}
 
 	@Override
 	public Object visit(ParDecl parDecl)
 	{
-		Element parDeclOp = document.createElement("ParDeclOp");
+		Node parDeclOp = document.createElement("ParDeclOp");
 		parDeclOp.appendChild(document.createTextNode(parDecl.type));
-		Element idListOp = document.createElement("IdListOp");
-		parDecl.idList.forEach(id -> idListOp.appendChild((Element) id.accept(this)) );
+		Node idListOp = document.createElement("IdListOp");
+		parDecl.idList.forEach(id -> idListOp.appendChild((Node) id.accept(this)));
 		parDeclOp.appendChild(idListOp);
 
 		return parDeclOp;
@@ -352,46 +338,137 @@ public class VisitTree implements Visitor
 	@Override
 	public Object visit(IdListInit idListInit)
 	{
-		Element idListInitOp = document.createElement("IdListInitOp");
-		return  null;
+		Node idListInitOp = document.createElement("IdListInitOp");
+
+		ArrayList<Id> ids = new ArrayList<>();
+		ArrayList<Expression> exprs = new ArrayList<>();
+
+		idListInit.forEach((id, expression) ->
+						   {
+							   if(expression != null)
+							   {
+								   ids.add(0, id);
+								   exprs.add(0, expression);
+							   }
+							   else
+								   idListInitOp.appendChild((Node) id.accept(this));
+						   });
+
+		AssignStat assignStat = null;
+		try
+		{
+			assignStat = new AssignStat(ids, exprs);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		idListInitOp.appendChild((Node) assignStat.accept(this));
+
+		return idListInitOp;
 	}
 
 	@Override
 	public Object visit(VarDecl varDecl)
 	{
-		return null;
+		Node varDeclOp = document.createElement("VarDeclOp");
+		Node typeTag = document.createElement("Type");
+
+		typeTag.appendChild(document.createTextNode(varDecl.type));
+		typeTag.appendChild((Node) varDecl.idListInit.accept(this));
+		varDeclOp.appendChild(typeTag);
+
+		return varDeclOp;
 	}
 
 	@Override
 	public Object visit(Proc proc)
 	{
-		Element procOp = document.createElement("ProcOp");
-		procOp.appendChild(document.createTextNode("<ID, " + proc.id + ">"));
-		return null;
+		Node procOp = document.createElement("ProcOp");
 
+		procOp.appendChild(document.createTextNode(formatId(proc.id)));
+
+		Node paramDeclListOp = document.createElement("ParamDeclListOp");
+		proc.params.forEach(parDecl -> paramDeclListOp.appendChild((Node) parDecl.accept(this)));
+		procOp.appendChild(paramDeclListOp);
+
+
+		if(proc.resultTypeList != null)
+		{
+			Node resultTypeListOp = document.createElement("ResultTypeListOp");
+			proc.resultTypeList.forEach(resultType -> resultTypeListOp.appendChild(document.createTextNode(resultType)));
+			procOp.appendChild(resultTypeListOp);
+		}
+
+		Node varDeclListOp = document.createElement("VarDeclListOp");
+		proc.varDeclList.forEach(varDecl -> varDeclListOp.appendChild((Node) varDecl.accept(this)));
+		procOp.appendChild(varDeclListOp);
+
+		Node statsListOp = document.createElement("StatListOp");
+		proc.statements.forEach(statement -> statsListOp.appendChild((Node) statement.accept(this)));
+		procOp.appendChild(statsListOp);
+
+		if(proc.returnExprs != null)
+		{
+			Node returnExprsOp = document.createElement("ReturnExprsOp");
+			proc.returnExprs.forEach(expression -> returnExprsOp.appendChild((Node) expression.accept(this)));
+			procOp.appendChild(returnExprsOp);
+		}
+
+		return procOp;
 	}
 
 	@Override
 	public Object visit(Program program)
 	{
-		ArrayList<Element> elements = new ArrayList<>();
+		ArrayList<Node> elements = new ArrayList<>();
 
-		program.varDeclList.forEach(varDecl->elements.add((Element) varDecl.accept(this)));
-		program.procList.forEach(proc->elements.add((Element) proc.accept(this)));
+		program.varDeclList.forEach(varDecl -> elements.add((Node) varDecl.accept(this)));
+		program.procList.forEach(proc -> elements.add((Node) proc.accept(this)));
 
-		Element programOp = document.createElement("Program");
-		elements.forEach(element->programOp.appendChild(element));
+		Node programOp = document.createElement("Program");
+		elements.forEach(element -> programOp.appendChild(element));
 
 		return programOp;
 	}
 
-	public void visita(Visitable obj)
+	public void createAST(Visitable obj)
 	{
-		document.appendChild((Element) obj.accept(this));
+		document.appendChild((Node) obj.accept(this));
+		try
+		{
+			Transformer transformer = TransformerFactory.newInstance().newTransformer();
+			DOMSource domSource = new DOMSource(document);
+			StreamResult streamResult = new StreamResult(new File("ast.xml"));
+
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+			transformer.transform(domSource, streamResult);
+		}
+		catch(TransformerException transformerConfigurationException)
+		{
+			transformerConfigurationException.printStackTrace();
+		}
+
+		System.out.println("AST created in \"ast.xml\"");
 	}
 
 	private String formatId(String id)
 	{
-		return "<ID, " + id + ">";
+		return "(ID, " + id + ")";
+	}
+
+	private Object binaryExpr(BinaryOp expression, String nameOp)
+	{
+		Node op1 = (Node) expression.leftExpr.accept(this);
+		Node op2 = (Node) expression.rightExpr.accept(this);
+
+		Node binaryOp = document.createElement(nameOp);
+		binaryOp.appendChild(op1);
+		binaryOp.appendChild(document.createTextNode(", "));
+		binaryOp.appendChild(op2);
+
+		return binaryOp;
 	}
 }

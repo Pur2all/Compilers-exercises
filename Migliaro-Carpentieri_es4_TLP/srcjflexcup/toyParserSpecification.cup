@@ -77,13 +77,13 @@ Type ::= INT {: RESULT = ParserSym.terminalNames[ParserSym.INT]; :}
        | STRING {: RESULT = ParserSym.terminalNames[ParserSym.STRING]; :};
 
 IdListInit ::= ID:val {: RESULT = new IdListInit();
-                         RESULT.put(val, null); :}
-           	 | IdListInit:idListInit COMMA ID:val {: idListInit.put(val, null);
+                         RESULT.put(new Id(val), null); :}
+           	 | IdListInit:idListInit COMMA ID:val {: idListInit.put(new Id(val), null);
                                                      RESULT = idListInit;
                                                      :}
 	         | ID:val ASSIGN Expr:expr {: RESULT = new IdListInit();
-	                                      RESULT.put(val, expr);:}
-	         | IdListInit:idListInit COMMA ID:val ASSIGN Expr:expr {: idListInit.put(val, expr);
+	                                      RESULT.put(new Id(val), expr);:}
+	         | IdListInit:idListInit COMMA ID:val ASSIGN Expr:expr {: idListInit.put(new Id(val), expr);
 	                                                                    RESULT = idListInit; :};
 
 Proc ::= PROC ID:val LPAR ParamDeclList:parDeclList RPAR ResultTypeList:resultTypeList COLON
@@ -115,7 +115,7 @@ ExprList ::= Expr:e1 {:
 
 ParamDeclList ::= ParDecl:parDecl {: RESULT = new ArrayList<ParDecl>();
                                      RESULT.add(parDecl);:}
-                | ParamDeclList:parDeclList SEMI ParDecl:parDecl {: parDeclList.add(0, parDecl);
+                | ParamDeclList:parDeclList SEMI ParDecl:parDecl {: parDeclList.add(parDecl);
                                                                     RESULT = parDeclList; :};
 
 ParDecl ::= Type:type IdList:idList {: RESULT = new ParDecl(type, idList); :};
@@ -125,12 +125,12 @@ IdList ::= ID:val {:
                     RESULT.add(new Id(val));
                   :}
          | IdList:idList COMMA ID:val {:
-	                                    idList.add(0, new Id(val));
+	                                    idList.add(new Id(val));
 	                                    RESULT = idList;
                                       :};
 
 StatList ::= StatList:statList Stat:statement SEMI {:
-	                                                  statList.add(0, statement);
+	                                                  statList.add(statement);
                                                       RESULT = statList;
                                                    :}
            | Stat:stat SEMI {:

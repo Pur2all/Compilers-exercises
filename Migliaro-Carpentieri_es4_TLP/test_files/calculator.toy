@@ -1,7 +1,10 @@
 proc main() void:
-	while
+	string userInput := "";
+    float firstNumber, secondNumber, result;
+
+   	while
     	readln(userInput);
-		userInput = 1
+		userInput = "1"
 	do
 		write("Type :");
 	    write("+ to execute addition");
