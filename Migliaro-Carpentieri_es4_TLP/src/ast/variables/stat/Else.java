@@ -12,7 +12,7 @@ public class Else implements Visitable
 
 	public Else(ArrayList<Statement> statements)
 	{
-		this.statements = statements;
+		this.statements = statements != null ? statements : new ArrayList<>();
 	}
 
 	public Object accept(Visitor visitor)

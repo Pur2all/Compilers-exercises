@@ -9,7 +9,7 @@ public class Tester
 	{
 		Parser parser = new Parser(new Lexer(new FileReader(args[0])));
 		Program root = (Program) parser.parse().value;
-		VisitTree visitTree = new VisitTree();
+		VisitTree visitTree = new VisitTree(args[0].replace(".toy", ".xml").replace("test_files/", ""));
 		visitTree.createAST(root);
 	}
 }

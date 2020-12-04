@@ -23,16 +23,18 @@ import java.util.ArrayList;
 public class VisitTree implements Visitor
 {
 	private Document document;
+	private String filePath;
 
-	public VisitTree()
+	public VisitTree(String filePath)
 	{
 		try
 		{
 			document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+			this.filePath = filePath;
 		}
 		catch(ParserConfigurationException e)
 		{
-			System.err.println("Errore creazione dell'oggetto Document per creazione del'xml");
+			System.err.println("Errore creazione dell'oggetto Document per creazione del file xml");
 		}
 	}
 
@@ -317,8 +319,7 @@ public class VisitTree implements Visitor
 	public Object visit(Else anElse)
 	{
 		Node elseOp = document.createElement("ElseOp");
-		if(anElse.statements != null)
-			anElse.statements.forEach(statement -> elseOp.appendChild((Node) statement.accept(this)));
+		anElse.statements.forEach(statement -> elseOp.appendChild((Node) statement.accept(this)));
 
 		return elseOp;
 	}
@@ -358,13 +359,12 @@ public class VisitTree implements Visitor
 		try
 		{
 			assignStat = new AssignStat(ids, exprs);
+			idListInitOp.appendChild((Node) assignStat.accept(this));
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
 		}
-
-		idListInitOp.appendChild((Node) assignStat.accept(this));
 
 		return idListInitOp;
 	}
@@ -440,7 +440,7 @@ public class VisitTree implements Visitor
 		{
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			DOMSource domSource = new DOMSource(document);
-			StreamResult streamResult = new StreamResult(new File("ast.xml"));
+			StreamResult streamResult = new StreamResult(new File(filePath));
 
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
@@ -451,7 +451,7 @@ public class VisitTree implements Visitor
 			transformerConfigurationException.printStackTrace();
 		}
 
-		System.out.println("AST created in \"ast.xml\"");
+		System.out.println("AST created in \"" + filePath + "\"");
 	}
 
 	private String formatId(String id)
