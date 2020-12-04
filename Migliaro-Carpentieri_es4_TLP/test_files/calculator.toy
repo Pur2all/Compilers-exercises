@@ -1,8 +1,9 @@
 proc main() void:
 	string userInput := "";
-    float firstNumber, secondNumber, result;
+    float firstNumber := 0, secondNumber := 0, result := 0;
 
-   	while
+	while
+		write("Type 1 to execute operation or 0 to exit: ")
     	readln(userInput);
 		userInput = "1"
 	do
@@ -32,7 +33,7 @@ proc main() void:
 corp;
 
 proc add(float first, second) float:
-    -> first + second
+    -> first + second + first + second
 corp;
 
 proc mul(float first, second) float:
