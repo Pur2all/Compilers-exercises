@@ -181,11 +181,9 @@ public class VisitTree implements Visitor
 	public Object visit(CallProc callProc)
 	{
 		Node callProcOp = document.createElement("CallProcOp");
-		callProcOp.appendChild(document.createTextNode(formatId(callProc.id)));
-		Node paramOp = document.createElement("ParamOp");
 
-		callProc.arguments.forEach(arg -> paramOp.appendChild((Node) arg.accept(this)));
-		callProcOp.appendChild(paramOp);
+		callProcOp.appendChild(document.createTextNode(formatId(callProc.id)));
+		callProcOp.appendChild((Node) formatList(callProc.arguments, "ParamOp"));
 
 		return callProcOp;
 	}
@@ -194,56 +192,9 @@ public class VisitTree implements Visitor
 	public Object visit(AssignStat assignStat)
 	{
 		Node assignStatOp = document.createElement("AssignStatOp");
-		int exprsSize = assignStat.exprList.size(), idsSize = assignStat.idList.size(), i;
-		Node assignOp;
 
-		// Se le liste di id e di espressioni sono uguali allora creaiamo un numero di assignOp pari al numero di id indipendentemente se siano funzioni, costanti o variabili.
-		if(assignStat.idList.size() == assignStat.exprList.size())
-		{
-			for(i = 0; i < idsSize; i++)
-			{
-				assignOp = document.createElement("AssignOp");
-
-				assignOp.appendChild((Node) assignStat.idList.get(i).accept(this));
-				assignOp.appendChild(document.createTextNode(", "));
-				assignOp.appendChild((Node) assignStat.exprList.get(i).accept(this));
-				assignStatOp.appendChild(assignOp);
-			}
-		}
-		// In questo caso la lista di id è più grande della lista di espressioni e sicuramente contiene una
-		// funzione, altrimenti ci sarebbe stato un errore nella costruzione dell'albero.
-		else
-		{
-			int h = 0;
-			for(int j = 0; j < exprsSize; j++)
-			{
-				// Se troviamo una funzione assegnamo gli id a tale funzione finché possibile.
-				if(assignStat.exprList.get(j) instanceof CallProc)
-				{
-					int indexFunctionReturn = 0;
-
-					for(int k = h; k <= idsSize - exprsSize + j; k++, h++)
-					{
-						assignOp = document.createElement("AssignOp");
-						assignOp.appendChild((Node) assignStat.idList.get(k).accept(this));
-						assignOp.appendChild(document.createTextNode(", "));
-						assignOp.appendChild((Node) assignStat.exprList.get(j).accept(this));
-						assignOp.appendChild(document.createTextNode("" + (indexFunctionReturn++)));
-						assignStatOp.appendChild(assignOp);
-					}
-				}
-				else
-				{
-
-					assignOp = document.createElement("AssignOp");
-					assignOp.appendChild((Node) assignStat.idList.get(h).accept(this));
-					assignOp.appendChild(document.createTextNode(", "));
-					assignOp.appendChild((Node) assignStat.exprList.get(j).accept(this));
-					h++;
-					assignStatOp.appendChild(assignOp);
-				}
-			}
-		}
+		assignStatOp.appendChild((Node) formatList(assignStat.idList, "IdListOp"));
+		assignStatOp.appendChild((Node) formatList(assignStat.exprList, "ExprListOp"));
 
 		return assignStatOp;
 	}
@@ -328,10 +279,9 @@ public class VisitTree implements Visitor
 	public Object visit(ParDecl parDecl)
 	{
 		Node parDeclOp = document.createElement("ParDeclOp");
+
 		parDeclOp.appendChild(document.createTextNode(parDecl.type));
-		Node idListOp = document.createElement("IdListOp");
-		parDecl.idList.forEach(id -> idListOp.appendChild((Node) id.accept(this)));
-		parDeclOp.appendChild(idListOp);
+		parDeclOp.appendChild((Node) formatList(parDecl.idList, "IdListOp"));
 
 		return parDeclOp;
 	}
@@ -344,26 +294,35 @@ public class VisitTree implements Visitor
 		ArrayList<Id> ids = new ArrayList<>();
 		ArrayList<Expression> exprs = new ArrayList<>();
 
+		ArrayList<Id> aloneIds = new ArrayList<>();
+
 		idListInit.forEach((id, expression) ->
 						   {
+							   // Se trovo un espressione allora memorizzo i valori per utilizzarli dopo in assign stat
 							   if(expression != null)
 							   {
 								   ids.add(0, id);
 								   exprs.add(0, expression);
 							   }
 							   else
-								   idListInitOp.appendChild((Node) id.accept(this));
+								   aloneIds.add(id);
 						   });
 
-		AssignStat assignStat = null;
-		try
+		idListInitOp.appendChild((Node) formatList(aloneIds, "IdListOp"));
+
+		if(!ids.isEmpty())
 		{
-			assignStat = new AssignStat(ids, exprs);
-			idListInitOp.appendChild((Node) assignStat.accept(this));
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
+			AssignStat assignStat;
+
+			try
+			{
+				assignStat = new AssignStat(ids, exprs);
+				idListInitOp.appendChild((Node) assignStat.accept(this));
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
 		}
 
 		return idListInitOp;
@@ -397,24 +356,24 @@ public class VisitTree implements Visitor
 		if(proc.resultTypeList != null)
 		{
 			Node resultTypeListOp = document.createElement("ResultTypeListOp");
-			proc.resultTypeList.forEach(resultType -> resultTypeListOp.appendChild(document.createTextNode(resultType)));
+
+			for(int i = 0; i < proc.resultTypeList.size() - 1; i++)
+				resultTypeListOp.appendChild(document.createTextNode(proc.resultTypeList.get(i) + ", "));
+
+			if(!proc.resultTypeList.isEmpty())
+				resultTypeListOp.appendChild(document.createTextNode(proc.resultTypeList.get(proc.resultTypeList.size() - 1)));
+
 			procOp.appendChild(resultTypeListOp);
 		}
 
-		Node varDeclListOp = document.createElement("VarDeclListOp");
-		proc.varDeclList.forEach(varDecl -> varDeclListOp.appendChild((Node) varDecl.accept(this)));
-		procOp.appendChild(varDeclListOp);
+		procOp.appendChild((Node) formatList(proc.varDeclList, "VarDeclListOp"));
 
 		Node statsListOp = document.createElement("StatListOp");
 		proc.statements.forEach(statement -> statsListOp.appendChild((Node) statement.accept(this)));
 		procOp.appendChild(statsListOp);
 
 		if(proc.returnExprs != null)
-		{
-			Node returnExprsOp = document.createElement("ReturnExprsOp");
-			proc.returnExprs.forEach(expression -> returnExprsOp.appendChild((Node) expression.accept(this)));
-			procOp.appendChild(returnExprsOp);
-		}
+			procOp.appendChild((Node) formatList(proc.returnExprs, "ReturnExprsOp"));
 
 		return procOp;
 	}
@@ -433,7 +392,7 @@ public class VisitTree implements Visitor
 		return programOp;
 	}
 
-	public void createAST(Visitable obj)
+	public void createXML(Visitable obj)
 	{
 		document.appendChild((Node) obj.accept(this));
 		try
@@ -451,7 +410,7 @@ public class VisitTree implements Visitor
 			transformerConfigurationException.printStackTrace();
 		}
 
-		System.out.println("AST created in \"" + filePath + "\"");
+		System.out.println("XML created in \"" + filePath + "\"");
 	}
 
 	private String formatId(String id)
@@ -470,5 +429,20 @@ public class VisitTree implements Visitor
 		binaryOp.appendChild(op2);
 
 		return binaryOp;
+	}
+
+	private Object formatList(ArrayList<? extends Visitable> list, String nodeName)
+	{
+		Node node = document.createElement(nodeName);
+
+		for(int i = 0; i < list.size() - 1; i++)
+		{
+			node.appendChild((Node) list.get(i).accept(this));
+			node.appendChild(document.createTextNode(", "));
+		}
+		if(!list.isEmpty())
+			node.appendChild((Node) list.get(list.size() - 1).accept(this));
+
+		return node;
 	}
 }
