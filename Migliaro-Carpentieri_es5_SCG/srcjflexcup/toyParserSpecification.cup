@@ -1,0 +1,183 @@
+import ast.variables.*;
+import ast.variables.expr.terminals.*;
+import ast.variables.expr.binary_operations.*;
+import ast.variables.expr.unary_operations.*;
+import ast.variables.stat.*;
+
+import java.util.ArrayList;
+
+// Parser class name
+class Parser;
+
+// Terminals
+terminal String INT_CONST, FLOAT_CONST;
+terminal String STRING_CONST, ID;
+
+terminal SEMI, COMMA, INT, STRING, FLOAT, BOOL, PROC, LPAR, RPAR, COLON, CORP, VOID, IF,
+         THEN, ELIF, FI, ELSE, WHILE, DO, OD, READ, WRITE, ASSIGN, PLUS, MINUS, TIMES, DIV,
+         EQ, NE, LT, LE, GT, GE, AND, OR, NOT, NULL, TRUE, FALSE, UMINUS, RETURN;
+
+// Non terminals
+nonterminal Expression Expr;
+nonterminal CallProc CallProc;
+nonterminal ArrayList<Expression> ExprList, ReturnExprs;
+nonterminal ArrayList<Id> IdList;
+nonterminal AssignStat AssignStat;
+nonterminal WriteStat WriteStat;
+nonterminal ReadlnStat ReadlnStat;
+nonterminal WhileStat WhileStat;
+nonterminal Else Else;
+nonterminal Elif Elif;
+nonterminal ArrayList<Elif> ElifList;
+nonterminal If IfStat;
+nonterminal ArrayList<String> ResultConcreteTypesList, ResultTypeList;
+nonterminal ParDecl ParDecl;
+nonterminal ArrayList<ParDecl> ParamDeclList;
+nonterminal IdListInit IdListInit;
+nonterminal VarDecl VarDecl;
+nonterminal String Type;
+nonterminal ArrayList<Statement> StatList;
+nonterminal Statement Stat;
+nonterminal Proc Proc;
+nonterminal ArrayList<Proc> ProcList;
+nonterminal ArrayList<VarDecl> VarDeclList;
+nonterminal Program Program;
+
+// Precedences
+precedence right ASSIGN;
+precedence left OR;
+precedence left AND;
+precedence left NOT;
+precedence nonassoc EQ, NE, LT, LE, GT, GE;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV;
+precedence left UMINUS;
+
+// Productions
+Program ::= VarDeclList:varDeclList ProcList:procList   {: RESULT = new Program(varDeclList, procList); :};
+
+VarDeclList ::= VarDecl:varDecl VarDeclList:varDeclList {: varDeclList.add(0, varDecl);
+                                                           RESULT = varDeclList; :}
+              | /* empty */                             {: RESULT = new ArrayList<VarDecl>(); :};
+
+ProcList ::= Proc:proc                      {: RESULT = new ArrayList<Proc>();
+                                               RESULT.add(proc); :}
+	       | Proc:proc ProcList:procList    {: procList.add(0, proc);
+	                                           RESULT = procList; :};
+
+VarDecl ::= Type:type IdListInit:idListInit SEMI {: RESULT = new VarDecl(type, idListInit); :};
+
+Type ::= INT    {: RESULT = ParserSym.terminalNames[ParserSym.INT]; :}
+       | BOOL   {: RESULT = ParserSym.terminalNames[ParserSym.BOOL]; :}
+       | FLOAT  {: RESULT = ParserSym.terminalNames[ParserSym.FLOAT]; :}
+       | STRING {: RESULT = ParserSym.terminalNames[ParserSym.STRING]; :};
+
+IdListInit ::= ID:val                                              {: RESULT = new IdListInit();
+                                                                      RESULT.put(new Id(val), null); :}
+           	 | IdListInit:idListInit COMMA ID:val                  {: idListInit.put(new Id(val), null);
+           	                                                          RESULT = idListInit; :}
+	         | ID:val ASSIGN Expr:expr                             {: RESULT = new IdListInit();
+	                                                                  RESULT.put(new Id(val), expr);:}
+	         | IdListInit:idListInit COMMA ID:val ASSIGN Expr:expr {: idListInit.put(new Id(val), expr);
+	                                                                  RESULT = idListInit; :};
+
+Proc ::= PROC ID:val LPAR ParamDeclList:parDeclList RPAR ResultTypeList:resultTypeList COLON
+         VarDeclList:varDeclList StatList:statList ReturnExprs:returnExprs CORP SEMI        {: RESULT = new Proc(val, parDeclList, resultTypeList, varDeclList, statList, returnExprs); :}
+       | PROC ID:val LPAR ParamDeclList:parDeclList RPAR ResultTypeList:resultTypeList COLON
+         VarDeclList:varDeclList ReturnExprs:returnExprs CORP SEMI                          {: RESULT = new Proc(val, parDeclList, resultTypeList, varDeclList, null, returnExprs, true); :}
+       | PROC ID:val LPAR RPAR ResultTypeList:resultTypeList COLON
+         VarDeclList:varDeclList StatList:statList ReturnExprs:returnExprs CORP SEMI        {: RESULT = new Proc(val, null, resultTypeList, varDeclList, statList, returnExprs, false); :}
+       | PROC ID:val LPAR RPAR ResultTypeList:resultTypeList COLON
+         VarDeclList:varDeclList ReturnExprs:returnExprs CORP SEMI                          {: RESULT = new Proc(val, resultTypeList, varDeclList, returnExprs);:};
+
+ResultTypeList ::= ResultConcreteTypesList:resultConcreteTypesList {: RESULT = resultConcreteTypesList; :}
+	             | VOID                                            {: RESULT = new ArrayList<String>();
+                                                                      RESULT.add(ParserSym.terminalNames[ParserSym.VOID]); :};
+
+ResultConcreteTypesList ::= Type:type {: RESULT = new ArrayList<String>();
+                                         RESULT.add(type); :}
+                          | Type:type COMMA ResultConcreteTypesList:resultConcreteTypesList {: resultConcreteTypesList.add(0, type);
+                                                                                               RESULT = resultConcreteTypesList; :};
+
+ReturnExprs::= RETURN ExprList:exprList {: RESULT = exprList; :}
+	         | /* empty */              {: RESULT = new ArrayList<Expression>(); :};
+
+ExprList ::= Expr:e1                         {: RESULT = new ArrayList<Expression>();
+                                                RESULT.add(e1); :}
+	       | Expr:e1 COMMA ExprList:exprList {: exprList.add(0, e1);
+	                                            RESULT = exprList; :};
+
+ParamDeclList ::= ParDecl:parDecl                                {: RESULT = new ArrayList<ParDecl>();
+                                                                    RESULT.add(parDecl);:}
+                | ParamDeclList:parDeclList SEMI ParDecl:parDecl {: parDeclList.add(parDecl);
+                                                                    RESULT = parDeclList; :};
+
+ParDecl ::= Type:type IdList:idList {: RESULT = new ParDecl(type, idList); :};
+
+IdList ::= ID:val                     {: RESULT = new ArrayList<Id>();
+                                         RESULT.add(new Id(val)); :}
+         | IdList:idList COMMA ID:val {: idList.add(new Id(val));
+	                                     RESULT = idList; :};
+
+StatList ::= StatList:statList Stat:statement SEMI {: statList.add(statement);
+                                                      RESULT = statList; :}
+           | Stat:stat SEMI                        {: RESULT = new ArrayList<Statement>();
+                                                      RESULT.add(stat); :};
+
+Stat ::= IfStat:ifStat          {: RESULT = ifStat; :}
+	   | WhileStat:whileStat    {: RESULT = whileStat; :}
+	   | ReadlnStat:readlnStat  {: RESULT = readlnStat; :}
+	   | WriteStat:writeStat    {: RESULT = writeStat; :}
+	   | AssignStat:assignStat  {: RESULT = assignStat; :}
+	   | CallProc:callProc      {: RESULT = callProc; :};
+
+IfStat ::= IF Expr:expr THEN StatList:statList ElifList:elifList Else:anElse FI {: RESULT = new If(expr, statList, elifList, anElse); :}
+         | IF Expr:expr THEN ElifList:elifList Else:anElse FI                   {: RESULT = new If(expr, elifList, anElse); :};
+
+ElifList ::= /* empty */                 {: RESULT = new ArrayList<Elif>(); :}
+	       | Elif:elif ElifList:elifList {: elifList.add(0, elif);
+	                                        RESULT = elifList; :};
+
+Elif ::= ELIF Expr:expr THEN StatList:statList  {: RESULT = new Elif(expr, statList); :}
+       | ELIF Expr:expr THEN                    {: RESULT = new Elif(expr); :};
+
+Else ::= /* empty */            {: RESULT = new Else(null); :}
+       | ELSE StatList:statList {: RESULT = new Else(statList); :}
+       | ELSE                   {: RESULT = new Else(new ArrayList<Statement>()); :};
+
+WhileStat ::= WHILE StatList:condStats Expr:expr DO StatList:bodyStats OD {: RESULT = new WhileStat(condStats, expr, bodyStats); :}
+	        | WHILE Expr:expr DO StatList:bodyStats OD                    {: RESULT = new WhileStat(expr, bodyStats, true); :}
+	        | WHILE StatList:condStats Expr:expr DO OD                    {: RESULT = new WhileStat(expr, condStats, false); :}
+	        | WHILE Expr:expr DO OD                                       {: RESULT = new WhileStat(expr); :};
+
+ReadlnStat ::= READ LPAR IdList:idList RPAR {: RESULT = new ReadlnStat(idList); :};
+
+WriteStat ::=  WRITE LPAR ExprList:exprList RPAR {: RESULT = new WriteStat(exprList); :};
+
+AssignStat ::= IdList:idList ASSIGN ExprList:exprList {: RESULT = new AssignStat(idList, exprList); :};
+
+CallProc ::= ID:val LPAR ExprList:exprList RPAR {: RESULT = new CallProc(val, exprList); :}
+	       | ID:val LPAR RPAR                   {: RESULT = new CallProc(val); :};
+
+Expr ::= NULL                   {: RESULT = new Null(); :}
+	   | TRUE                   {: RESULT = new True(); :}
+	   | FALSE                  {: RESULT = new False(); :}
+	   | INT_CONST:val          {: RESULT = new IntConst(Integer.parseInt(val)); :}
+	   | FLOAT_CONST:val        {: RESULT = new FloatConst(Float.parseFloat(val)); :}
+       | STRING_CONST:val       {: RESULT = new StringConst(val); :}
+       | ID:val                 {: RESULT = new Id(val); :}
+       | CallProc:val           {: RESULT = val; :}
+       | Expr:e1 PLUS Expr:e2   {: RESULT = new AddExpr(e1, e2); :}
+       | Expr:e1 MINUS Expr:e2  {: RESULT = new MinExpr(e1, e2); :}
+       | Expr:e1 TIMES Expr:e2  {: RESULT = new TimesExpr(e1, e2); :}
+       | Expr:e1 DIV Expr:e2    {: RESULT = new DivExpr(e1, e2); :}
+       | Expr:e1 AND Expr:e2    {: RESULT = new AndExpr(e1, e2); :}
+       | Expr:e1 OR Expr:e2     {: RESULT = new OrExpr(e1, e2); :}
+       | Expr:e1 GT Expr:e2     {: RESULT = new GtExpr(e1, e2); :}
+       | Expr:e1 GE Expr:e2     {: RESULT = new GeExpr(e1, e2); :}
+       | Expr:e1 LT Expr:e2     {: RESULT = new LtExpr(e1, e2); :}
+       | Expr:e1 LE Expr:e2     {: RESULT = new LeExpr(e1, e2); :}
+       | Expr:e1 EQ Expr:e2     {: RESULT = new EqExpr(e1, e2); :}
+       | Expr:e1 NE Expr:e2     {: RESULT = new NeExpr(e1, e2); :}
+       | MINUS Expr:e           {: RESULT = new UminExpr(e); :}  %prec UMINUS
+       | NOT Expr:e             {: RESULT = new NotExpr(e); :};
