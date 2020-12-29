@@ -8,6 +8,11 @@ import ast.variables.expr.unary_operations.UminExpr;
 import ast.variables.stat.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import symbolTable.Kind;
+import symbolTable.SymbolTable;
+import symbolTable.SymbolTableNode;
+import symbolTable.SymbolTableRecord;
+import utils.Pair;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -22,427 +27,331 @@ import java.util.ArrayList;
 
 public class VisitTree implements Visitor
 {
-	private Document document;
-	private String filePath;
+	private SymbolTableNode root;
+	private SymbolTableNode currentSymbolTable;
 
-	public VisitTree(String filePath)
+	public VisitTree()
 	{
-		try
-		{
-			document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-			this.filePath = filePath;
-		}
-		catch(ParserConfigurationException e)
-		{
-			System.err.println("Errore creazione dell'oggetto Document per creazione del file xml");
-		}
+		SymbolTable symbolTable = new SymbolTable("Globals");
+
+		// Nella tabella dei simboli globale memorizziamo le funzioni di libreria readln e write
+		// La notazione [*] sta ad indicare che prende in input un numero variabile di argomenti di qualsiasi tipo concreto
+		symbolTable.put("readln", new SymbolTableRecord(Kind.FUNCTION, "[*] -> void", ""));
+		symbolTable.put("write", new SymbolTableRecord(Kind.FUNCTION, "[*] -> void", ""));
+
+		// Istanziamo la radice dell'albero di symbol tables
+		root = new SymbolTableNode(symbolTable, null);
+
+		// Settiamo l'ultima symbol table usata a quella della radice dell'albero
+		currentSymbolTable = root;
 	}
 
-	// Binary operations
 	@Override
-	public Object visit(AddExpr expression)
+	public Pair<Boolean, String> visit(AddExpr expression)
 	{
 		return binaryExpr(expression, "AddOp");
 	}
 
 	@Override
-	public Object visit(AndExpr expression)
+	public Pair<Boolean, String> visit(AndExpr expression)
 	{
 		return binaryExpr(expression, "AndOp");
 	}
 
 	@Override
-	public Object visit(DivExpr expression)
+	public Pair<Boolean, String> visit(DivExpr expression)
 	{
 		return binaryExpr(expression, "DivOp");
 	}
 
 	@Override
-	public Object visit(EqExpr expression)
+	public Pair<Boolean, String> visit(EqExpr expression)
 	{
 		return binaryExpr(expression, "EqOp");
 	}
 
 	@Override
-	public Object visit(GeExpr expression)
+	public Pair<Boolean, String> visit(GeExpr expression)
 	{
 		return binaryExpr(expression, "GeOp");
 	}
 
 	@Override
-	public Object visit(GtExpr expression)
+	public Pair<Boolean, String> visit(GtExpr expression)
 	{
 		return binaryExpr(expression, "GtOp");
 	}
 
 	@Override
-	public Object visit(LeExpr expression)
+	public Pair<Boolean, String> visit(LeExpr expression)
 	{
 		return binaryExpr(expression, "LeOp");
 	}
 
 	@Override
-	public Object visit(LtExpr expression)
+	public Pair<Boolean, String> visit(LtExpr expression)
 	{
 		return binaryExpr(expression, "LtOp");
 	}
 
 	@Override
-	public Object visit(MinExpr expression)
+	public Pair<Boolean, String> visit(MinExpr expression)
 	{
 		return binaryExpr(expression, "MinOp");
 	}
 
 	@Override
-	public Object visit(NeExpr expression)
+	public Pair<Boolean, String> visit(NeExpr expression)
 	{
 		return binaryExpr(expression, "NeOp");
 	}
 
 	@Override
-	public Object visit(OrExpr expression)
+	public Pair<Boolean, String> visit(OrExpr expression)
 	{
 		return binaryExpr(expression, "OrOp");
 	}
 
 	@Override
-	public Object visit(TimesExpr expression)
+	public Pair<Boolean, String> visit(TimesExpr expression)
 	{
 		return binaryExpr(expression, "TimeOp");
 	}
 
-	// Terminals
-
 	@Override
-	public Object visit(False expression)
+	public Pair<Boolean, String> visit(False expression)
 	{
-		return document.createTextNode(expression.value.toString());
+		return new Pair<>(true, "BOOL");
 	}
 
 	@Override
-	public Object visit(FloatConst expression)
+	public Pair<Boolean, String> visit(FloatConst expression)
 	{
-		return document.createTextNode(expression.value.toString());
+		return new Pair<>(true, "FLOAT");
 	}
 
 	@Override
-	public Object visit(Id expression)
+	public Pair<Boolean, String> visit(Id expression) throws Exception
 	{
-		return document.createTextNode(formatId(expression.value));
+		// Partendo dall'ultima symbol table usata vediamo se l'id è presente (lookup)
+		SymbolTableRecord variableDeclaredInfo = currentSymbolTable.lookup(expression.value);
+
+		if (variableDeclaredInfo == null || variableDeclaredInfo.kind != Kind.VARIABLE)
+			throw new Exception("Variable" + expression.value + " not declared");
+
+		return new Pair<>(true, variableDeclaredInfo.type);
 	}
 
 	@Override
-	public Object visit(IntConst expression)
+	public Pair<Boolean, String> visit(IntConst expression)
 	{
-		return document.createTextNode(expression.value.toString());
+		return new Pair<>(true, "INT");
 	}
 
 	@Override
-	public Object visit(Null expression)
+	public Pair<Boolean, String> visit(Null expression)
 	{
-		return document.createTextNode((String) expression.value);
+		return new Pair<>(true, "NULL");
 	}
 
 	@Override
-	public Object visit(StringConst expression)
+	public Pair<Boolean, String> visit(StringConst expression)
 	{
-		return document.createTextNode(expression.value);
+		return new Pair<>(true, "STRING");
 	}
 
 	@Override
-	public Object visit(True expression)
+	public Pair<Boolean, String> visit(True expression)
 	{
-		return document.createTextNode(expression.value.toString());
+		return new Pair<>(true, "BOOL");
 	}
 
 	@Override
-	public Object visit(NotExpr expression)
+	public Pair<Boolean, String> visit(NotExpr expression) throws Exception
 	{
-		Node op = (Node) expression.expression.accept(this);
-
-		Node not = document.createElement("NotOp");
-		not.appendChild(op);
-
-		return not;
+		return expression.expression.accept(this);
 	}
 
 	@Override
-	public Object visit(UminExpr expression)
+	public Pair<Boolean, String> visit(UminExpr expression) throws Exception
 	{
-		Node op = (Node) expression.expression.accept(this);
-
-		Node umin = document.createElement("UminOp");
-		umin.appendChild(op);
-
-		return umin;
+		return expression.expression.accept(this);
 	}
 
 	@Override
-	public Object visit(CallProc callProc)
+	public Pair<Boolean, String> visit(CallProc callProc) throws Exception
 	{
-		Node callProcOp = document.createElement("CallProcOp");
+		SymbolTableRecord functionDeclaredInfo = currentSymbolTable.lookup(callProc.id);
 
-		callProcOp.appendChild(document.createTextNode(formatId(callProc.id)));
-		callProcOp.appendChild((Node) formatList(callProc.arguments, "ParamOp"));
+		// Controlliamo se la funzione chiamata è stata definita prima di essere chiamata
+		if(functionDeclaredInfo == null || functionDeclaredInfo.kind != Kind.FUNCTION)
+			throw new Exception("Function " + callProc.id + " not declared");
 
-		return callProcOp;
-	}
+		// Otteniamo un array di due stringhe rappresentanti i tipi dei parametri della funzione e i tipi dei valori di ritorno
+		String[] splittedType = functionDeclaredInfo.type.split(" -> ");
 
-	@Override
-	public Object visit(AssignStat assignStat)
-	{
-		Node assignStatOp = document.createElement("AssignStatOp");
+		// Costruiamo un array di stringhe contenente i tipi dei parametri
+		String[] parametersTypes = splittedType[0].split(", ");
 
-		assignStatOp.appendChild((Node) formatList(assignStat.idList, "IdListOp"));
-		assignStatOp.appendChild((Node) formatList(assignStat.exprList, "ExprListOp"));
+		// Salviamo i tipi dei valori di ritorno della funzione
+		String returnTypes = splittedType[1];
 
-		return assignStatOp;
-	}
-
-	@Override
-	public Object visit(ReadlnStat readlnStat)
-	{
-		Node readOp = document.createElement("ReadOp");
-		Node idListOp = document.createElement("IdListOp");
-
-		readlnStat.idList.forEach(id -> idListOp.appendChild((Node) id.accept(this)));
-		readOp.appendChild(idListOp);
-
-		return readOp;
-	}
-
-	@Override
-	public Object visit(WriteStat writeStat)
-	{
-		Node writeOp = document.createElement("WriteOp");
-		writeStat.exprList.forEach(expression -> writeOp.appendChild((Node) expression.accept(this)));
-
-		return writeOp;
-	}
-
-	@Override
-	public Object visit(WhileStat whileStat)
-	{
-		Node whileOp = document.createElement("WhileOp");
-		Node conditionStat = document.createElement("ConditionStat");
-		Node body = document.createElement("WhileBody");
-
-		whileStat.condStatements.forEach(statement -> conditionStat.appendChild((Node) statement.accept(this)));
-		whileStat.bodyStatements.forEach(bodyStatement -> body.appendChild((Node) bodyStatement.accept(this)));
-
-		whileOp.appendChild(conditionStat);
-		whileOp.appendChild((Node) whileStat.expr.accept(this));
-		whileOp.appendChild(body);
-
-		return whileOp;
-	}
-
-	@Override
-	public Object visit(Elif elif)
-	{
-		Node elifOp = document.createElement("ElifOp");
-		Node body = document.createElement("ElifBody");
-		elif.statements.forEach(statement -> body.appendChild((Node) statement.accept(this)));
-
-		elifOp.appendChild((Node) elif.expr.accept(this));
-		elifOp.appendChild(body);
-
-		return elifOp;
-	}
-
-	@Override
-	public Object visit(If anIf)
-	{
-		Node ifOp = document.createElement("ifOp");
-		Node body = document.createElement("ifBody");
-
-		anIf.statements.forEach(statement -> body.appendChild((Node) statement.accept(this)));
-
-		ifOp.appendChild((Node) anIf.expression.accept(this));
-		ifOp.appendChild(body);
-		anIf.elifList.forEach(elif -> ifOp.appendChild((Node) elif.accept(this)));
-		ifOp.appendChild((Node) anIf.anElse.accept(this));
-
-		return ifOp;
-	}
-
-	@Override
-	public Object visit(Else anElse)
-	{
-		Node elseOp = document.createElement("ElseOp");
-		anElse.statements.forEach(statement -> elseOp.appendChild((Node) statement.accept(this)));
-
-		return elseOp;
-	}
-
-	@Override
-	public Object visit(ParDecl parDecl)
-	{
-		Node parDeclOp = document.createElement("ParDeclOp");
-
-		parDeclOp.appendChild(document.createTextNode(parDecl.type));
-		parDeclOp.appendChild((Node) formatList(parDecl.idList, "IdListOp"));
-
-		return parDeclOp;
-	}
-
-	@Override
-	public Object visit(IdListInit idListInit)
-	{
-		Node idListInitOp = document.createElement("IdListInitOp");
-
-		ArrayList<Id> ids = new ArrayList<>();
-		ArrayList<Expression> exprs = new ArrayList<>();
-
-		ArrayList<Id> aloneIds = new ArrayList<>();
-
-		idListInit.forEach((id, expression) ->
-						   {
-							   // Se trovo un espressione allora memorizzo i valori per utilizzarli dopo in assign stat
-							   if(expression != null)
-							   {
-								   ids.add(0, id);
-								   exprs.add(0, expression);
-							   }
-							   else
-								   aloneIds.add(id);
-						   });
-
-		idListInitOp.appendChild((Node) formatList(aloneIds, "IdListOp"));
-
-		if(!ids.isEmpty())
+		// Poiché le due funzioni di libreria non hanno bisogno di questi controlli vengono saltati, per via del loro
+		// poter prendere parametri variabili
+		if(!(callProc.id.equals("readln") || callProc.id.equals("write")))
 		{
-			AssignStat assignStat;
+			// Memorizziamo il numero di parametri della funzione
+			int numOfParametersType = parametersTypes.length;
 
-			try
+			// Controlliamo se gli argomenti della funzione sono in corrispondenza con i parametri
+			for(int i = 0; i < callProc.arguments.size(); i++)
 			{
-				assignStat = new AssignStat(ids, exprs);
-				idListInitOp.appendChild((Node) assignStat.accept(this));
+				// Su ogni argomento invochiamo il metodo accept e salviamo i valori di ritorno
+				Pair<Boolean, String> temp = callProc.arguments.get(i).accept(this);
+
+				// Se l'argomento è una funzione questa potrebbe ritornare più valori, quindi ha bisogno di ulteriori controlli
+				if(callProc.arguments.get(i) instanceof CallProc)
+				{
+					// Costruiamo un array contenente i tipi dei valori di ritorno della funzione presa come argomento
+					// della funzione chiamata
+					String[] returnTypesProc = temp.second.split(", ");
+
+					// Salviamo il numero di parametri ancora da matchare
+					int oldNOPT = numOfParametersType;
+
+					// Sottraiamo al numero di parametri da matchare il numero dei valori di ritorno della funzione presa
+					// come argomento, e se tale valore diventa negativo vuol dire che sono stati dati troppi argomenti
+					// alla funzione e quindi lanciamo eccezione
+					numOfParametersType -= returnTypesProc.length;
+
+					if(numOfParametersType < 0)
+						throw new Exception("Too much arguments given to the function " + callProc.id);
+
+					// Se il numero di parametri matchati è non negativo, per ogni valore di ritorno della funzione presa come
+					// argomento controlliamo se i tipi sono in corrispondenza con i parametri restanti
+					for(String returnTypeProc : returnTypesProc)
+						if(!returnTypeProc.equals(parametersTypes[parametersTypes.length - oldNOPT--]))
+							throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
+				}
+				else
+				{
+					// Se l'argomento non è una funzione e il suo tipo non corrisponde a quello richiesto dal parametro
+					// lanciamo un'eccezione
+					if(!temp.second.equals(parametersTypes[i]))
+						throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
+
+					// In questo caso abbiamo matchato un solo parametro
+					numOfParametersType--;
+				}
+
+				// Se il numero di parametri è negativo vuol dire che sono stati dati troppi argomenti alla funzione
+				// rispetto a quelli che si aspettava, quindi lanciamo eccezione
+				if(numOfParametersType < 0)
+					throw new Exception("Too much arguments given to the function " + callProc.id);
 			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
+
+			// Se il numero di parametri è almeno 1 vuol dire che non tutti i parametri sono stati matchati e che quindi
+			// sono stati dati pochi argomenti alla funzione rispetto a quelli che si aspettava, quindi lanciamo eccezione
+			if (numOfParametersType > 0)
+				throw new Exception("Too few arguments given to the function " + callProc.id);
 		}
 
-		return idListInitOp;
+		return new Pair<>(true, returnTypes);
 	}
 
 	@Override
-	public Object visit(VarDecl varDecl)
+	public Pair<Boolean, String> visit(AssignStat assignStat)
 	{
-		Node varDeclOp = document.createElement("VarDeclOp");
-		Node typeTag = document.createElement("Type");
-
-		typeTag.appendChild(document.createTextNode(varDecl.type));
-		typeTag.appendChild((Node) varDecl.idListInit.accept(this));
-		varDeclOp.appendChild(typeTag);
-
-		return varDeclOp;
+		// TODO
+		return null;
 	}
 
 	@Override
-	public Object visit(Proc proc)
+	public Pair<Boolean, String> visit(ReadlnStat readlnStat)
 	{
-		Node procOp = document.createElement("ProcOp");
-
-		procOp.appendChild(document.createTextNode(formatId(proc.id)));
-
-		Node paramDeclListOp = document.createElement("ParamDeclListOp");
-		proc.params.forEach(parDecl -> paramDeclListOp.appendChild((Node) parDecl.accept(this)));
-		procOp.appendChild(paramDeclListOp);
-
-
-		if(proc.resultTypeList != null)
-		{
-			Node resultTypeListOp = document.createElement("ResultTypeListOp");
-
-			for(int i = 0; i < proc.resultTypeList.size() - 1; i++)
-				resultTypeListOp.appendChild(document.createTextNode(proc.resultTypeList.get(i) + ", "));
-
-			if(!proc.resultTypeList.isEmpty())
-				resultTypeListOp.appendChild(document.createTextNode(proc.resultTypeList.get(proc.resultTypeList.size() - 1)));
-
-			procOp.appendChild(resultTypeListOp);
-		}
-
-		procOp.appendChild((Node) formatList(proc.varDeclList, "VarDeclListOp"));
-
-		Node statsListOp = document.createElement("StatListOp");
-		proc.statements.forEach(statement -> statsListOp.appendChild((Node) statement.accept(this)));
-		procOp.appendChild(statsListOp);
-
-		if(proc.returnExprs != null)
-			procOp.appendChild((Node) formatList(proc.returnExprs, "ReturnExprsOp"));
-
-		return procOp;
+		// TODO
+		return null;
 	}
 
 	@Override
-	public Object visit(Program program)
+	public Pair<Boolean, String> visit(WriteStat writeStat)
 	{
-		ArrayList<Node> elements = new ArrayList<>();
-
-		program.varDeclList.forEach(varDecl -> elements.add((Node) varDecl.accept(this)));
-		program.procList.forEach(proc -> elements.add((Node) proc.accept(this)));
-
-		Node programOp = document.createElement("Program");
-		elements.forEach(element -> programOp.appendChild(element));
-
-		return programOp;
+		// TODO
+		return null;
 	}
 
-	public void createXML(Visitable obj)
+	@Override
+	public Pair<Boolean, String> visit(WhileStat whileStat)
 	{
-		document.appendChild((Node) obj.accept(this));
-		try
-		{
-			Transformer transformer = TransformerFactory.newInstance().newTransformer();
-			DOMSource domSource = new DOMSource(document);
-			StreamResult streamResult = new StreamResult(new File(filePath));
-
-			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-			transformer.transform(domSource, streamResult);
-		}
-		catch(TransformerException transformerConfigurationException)
-		{
-			transformerConfigurationException.printStackTrace();
-		}
-
-		System.out.println("XML created in \"" + filePath + "\"");
+		// TODO
+		return null;
 	}
 
-	private String formatId(String id)
+	@Override
+	public Pair<Boolean, String> visit(Elif elif)
 	{
-		return "(ID, " + id + ")";
+		// TODO
+		return null;
 	}
 
-	private Object binaryExpr(BinaryOp expression, String nameOp)
+	@Override
+	public Pair<Boolean, String> visit(If anIf)
 	{
-		Node op1 = (Node) expression.leftExpr.accept(this);
-		Node op2 = (Node) expression.rightExpr.accept(this);
-
-		Node binaryOp = document.createElement(nameOp);
-		binaryOp.appendChild(op1);
-		binaryOp.appendChild(document.createTextNode(", "));
-		binaryOp.appendChild(op2);
-
-		return binaryOp;
+		// TODO
+		return null;
 	}
 
-	private Object formatList(ArrayList<? extends Visitable> list, String nodeName)
+	@Override
+	public Pair<Boolean, String> visit(Else anElse)
 	{
-		Node node = document.createElement(nodeName);
+		// TODO
+		return null;
+	}
 
-		for(int i = 0; i < list.size() - 1; i++)
-		{
-			node.appendChild((Node) list.get(i).accept(this));
-			node.appendChild(document.createTextNode(", "));
-		}
-		if(!list.isEmpty())
-			node.appendChild((Node) list.get(list.size() - 1).accept(this));
+	@Override
+	public Pair<Boolean, String> visit(ParDecl parDecl)
+	{
+		// TODO
+		return null;
+	}
 
-		return node;
+	@Override
+	public Pair<Boolean, String> visit(IdListInit idListInit)
+	{
+		// TODO
+		return null;
+	}
+
+	@Override
+	public Pair<Boolean, String> visit(VarDecl varDecl)
+	{
+		// TODO: Dobbiamo semplicemente riempire la tabella dei simboli corrente con gli id
+		return null;
+	}
+
+	@Override
+	public Pair<Boolean, String> visit(Proc proc)
+	{
+		// TODO: Dobbiamo creare una nuova symtab e aggiornare quella corrente e il puntatore
+		return null;
+	}
+
+	@Override
+	public Pair<Boolean, String> visit(Program program)
+	{
+		// TODO: Dobbiamo creare una nuova symtab e aggiornare il puntatore alla corrente
+		return null;
+	}
+
+	// Serve per lanciare la visita dell'AST e creare le symbol tables
+	public void visitAST(Visitable visitable) throws Exception
+	{
+		visitable.accept(this);
+	}
+
+	private Pair<Boolean, String> binaryExpr(BinaryOp expression, String nameOp)
+	{
+		// TODO
+		return null;
 	}
 }

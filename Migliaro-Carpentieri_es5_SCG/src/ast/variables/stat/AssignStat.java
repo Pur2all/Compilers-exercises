@@ -4,11 +4,10 @@ import ast.variables.CallProc;
 import ast.variables.Expression;
 import ast.variables.Statement;
 import ast.variables.expr.terminals.Id;
+import utils.Pair;
 import visitor.Visitor;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 
 public class AssignStat implements Statement
 {
@@ -37,7 +36,7 @@ public class AssignStat implements Statement
 		this.exprList = exprList;
 	}
 
-	public Object accept(Visitor visitor)
+	public Pair<Boolean, String> accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

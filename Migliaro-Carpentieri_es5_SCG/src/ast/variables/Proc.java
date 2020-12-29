@@ -1,5 +1,6 @@
 package ast.variables;
 
+import utils.Pair;
 import visitor.Visitable;
 import visitor.Visitor;
 
@@ -42,7 +43,7 @@ public class Proc implements Visitable
 		this.returnExprs = returnExprs;
 	}
 
-	public Object accept(Visitor visitor)
+	public Pair<Boolean, String> accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

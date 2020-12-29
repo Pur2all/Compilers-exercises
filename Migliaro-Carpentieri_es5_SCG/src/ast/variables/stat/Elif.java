@@ -2,7 +2,7 @@ package ast.variables.stat;
 
 import ast.variables.Expression;
 import ast.variables.Statement;
-import visitor.Visitable;
+import utils.Pair;
 import visitor.Visitor;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public class Elif implements Statement
 		this.expr = expr;
 	}
 
-	public Object accept(Visitor visitor)
+	public Pair<Boolean, String> accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

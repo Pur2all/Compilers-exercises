@@ -1,6 +1,8 @@
 package visitor;
 
+import utils.Pair;
+
 public interface Visitable
 {
-	 Object accept(Visitor visitor);
+	 Pair<Boolean, String> accept(Visitor visitor) throws Exception;
 }

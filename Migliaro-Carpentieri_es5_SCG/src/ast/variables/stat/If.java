@@ -2,6 +2,7 @@ package ast.variables.stat;
 
 import ast.variables.Expression;
 import ast.variables.Statement;
+import utils.Pair;
 import visitor.Visitor;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class If implements Statement
 		this.anElse = anElse;
 	}
 
-	public Object accept(Visitor visitor)
+	public Pair<Boolean, String> accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

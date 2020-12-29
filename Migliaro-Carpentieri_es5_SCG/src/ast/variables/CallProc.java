@@ -1,5 +1,6 @@
 package ast.variables;
 
+import utils.Pair;
 import visitor.Visitor;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class CallProc implements Expression, Statement
 		this.arguments = new ArrayList<>();
 	}
 
-	public Object accept(Visitor visitor)
+	public Pair<Boolean, String> accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

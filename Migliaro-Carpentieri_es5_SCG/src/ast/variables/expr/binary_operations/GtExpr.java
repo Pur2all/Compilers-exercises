@@ -1,6 +1,7 @@
 package ast.variables.expr.binary_operations;
 
 import ast.variables.Expression;
+import utils.Pair;
 import visitor.Visitor;
 
 public class GtExpr extends BinaryOp
@@ -10,7 +11,7 @@ public class GtExpr extends BinaryOp
 		super(leftExpr, rightExpr);
 	}
 
-	public Object accept(Visitor visitor)
+	public Pair<Boolean, String> accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

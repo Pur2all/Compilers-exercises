@@ -1,6 +1,7 @@
 package ast.variables.expr.terminals;
 
 import ast.variables.Expression;
+import utils.Pair;
 import visitor.Visitor;
 
 public class FloatConst implements Expression
@@ -12,7 +13,7 @@ public class FloatConst implements Expression
 		this.value = value;
 	}
 
-	public Object accept(Visitor visitor)
+	public Pair<Boolean, String> accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

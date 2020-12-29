@@ -1,6 +1,7 @@
 package ast.variables.expr.unary_operations;
 
 import ast.variables.Expression;
+import utils.Pair;
 import visitor.Visitor;
 
 public class NotExpr extends UnaryOp
@@ -10,7 +11,7 @@ public class NotExpr extends UnaryOp
 		super(expression);
 	}
 
-	public Object accept(Visitor visitor)
+	public Pair<Boolean, String> accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

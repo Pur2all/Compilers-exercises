@@ -2,6 +2,7 @@ package ast.variables.stat;
 
 import ast.variables.Statement;
 import ast.variables.expr.terminals.Id;
+import utils.Pair;
 import visitor.Visitor;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ public class ReadlnStat implements Statement
 		this.idList = idList;
 	}
 
-	public Object accept(Visitor visitor)
+	public Pair<Boolean, String> accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}
