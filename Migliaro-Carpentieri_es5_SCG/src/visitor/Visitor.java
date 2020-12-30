@@ -5,62 +5,61 @@ import ast.variables.expr.binary_operations.*;
 import ast.variables.expr.terminals.*;
 import ast.variables.expr.unary_operations.*;
 import ast.variables.stat.*;
-import utils.Pair;
 
 public interface Visitor
 {
 	/* EXPRESSIONS */
 
 	// Binary operations
-	Pair<Boolean, String> visit(AddExpr expression);
-	Pair<Boolean, String> visit(AndExpr expression);
-	Pair<Boolean, String> visit(DivExpr expression);
-	Pair<Boolean, String> visit(EqExpr expression);
-	Pair<Boolean, String> visit(GeExpr expression);
-	Pair<Boolean, String> visit(GtExpr expression);
-	Pair<Boolean, String> visit(LeExpr expression);
-	Pair<Boolean, String> visit(LtExpr expression);
-	Pair<Boolean, String> visit(MinExpr expression);
-	Pair<Boolean, String> visit(NeExpr expression);
-	Pair<Boolean, String> visit(OrExpr expression);
-	Pair<Boolean, String> visit(TimesExpr expression);
+	Boolean visit(AddExpr expression);
+	Boolean visit(AndExpr expression);
+	Boolean visit(DivExpr expression);
+	Boolean visit(EqExpr expression);
+	Boolean visit(GeExpr expression);
+	Boolean visit(GtExpr expression);
+	Boolean visit(LeExpr expression);
+	Boolean visit(LtExpr expression);
+	Boolean visit(MinExpr expression);
+	Boolean visit(NeExpr expression);
+	Boolean visit(OrExpr expression);
+	Boolean visit(TimesExpr expression);
 
 	// Terminals
-	Pair<Boolean, String> visit(False expression);
-	Pair<Boolean, String> visit(FloatConst expression);
-	Pair<Boolean, String> visit(Id expression) throws Exception;
-	Pair<Boolean, String> visit(IntConst expression);
-	Pair<Boolean, String> visit(Null expression);
-	Pair<Boolean, String> visit(StringConst expression);
-	Pair<Boolean, String> visit(True expression);
+	Boolean visit(False expression);
+	Boolean visit(FloatConst expression);
+	Boolean visit(Id expression) throws Exception;
+	Boolean visit(IntConst expression);
+	Boolean visit(Null expression);
+	Boolean visit(StringConst expression);
+	Boolean visit(True expression);
 
 	// Unary operations
-	Pair<Boolean, String> visit(NotExpr expression) throws Exception;
-	Pair<Boolean, String> visit(UminExpr expression) throws Exception;
+	Boolean visit(NotExpr expression) throws Exception;
+	Boolean visit(UminExpr expression) throws Exception;
 
-	Pair<Boolean, String> visit(CallProc callProc) throws Exception;
+	Boolean visit(CallProc callProc) throws Exception;
 
-	Pair<Boolean, String> visit(AssignStat assignStat);
+	Boolean visit(AssignStat assignStat) throws Exception;
 
-	Pair<Boolean, String> visit(ReadlnStat readlnStat);
+	Boolean visit(ReadlnStat readlnStat) throws Exception;
 
-	Pair<Boolean, String> visit(WriteStat writeStat);
+	Boolean visit(WriteStat writeStat) throws Exception;
 
-	Pair<Boolean, String> visit(WhileStat whileStat);
+	Boolean visit(WhileStat whileStat) throws Exception;
 
-	Pair<Boolean, String> visit(Elif elif);
+	Boolean visit(Elif elif) throws Exception;
 
-	Pair<Boolean, String> visit(If anIf);
+	Boolean visit(If anIf);
 
-	Pair<Boolean, String> visit(Else anElse);
+	Boolean visit(Else anElse);
 
-	Pair<Boolean, String> visit(ParDecl parDecl);
+	Boolean visit(ParDecl parDecl);
 
-	Pair<Boolean, String> visit(IdListInit idListInit);
+	Boolean visit(IdListInit idListInit);
 
-	Pair<Boolean, String> visit(VarDecl varDecl);
+	Boolean visit(VarDecl varDecl);
 
-	Pair<Boolean, String> visit(Proc proc);
+	Boolean visit(Proc proc);
 
-	Pair<Boolean, String> visit(Program program);
+	Boolean visit(Program program);
 }

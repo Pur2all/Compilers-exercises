@@ -1,6 +1,6 @@
 package ast.variables;
 
-import utils.Pair;
+import ast.variables.expr.AbstractExpression;
 import visitor.Visitable;
 import visitor.Visitor;
 
@@ -13,9 +13,10 @@ public class Proc implements Visitable
 	public ArrayList<String> resultTypeList;
 	public ArrayList<VarDecl> varDeclList;
 	public ArrayList<Statement> statements;
-	public ArrayList<Expression> returnExprs;
+	public ArrayList<AbstractExpression> returnExprs;
+	public String typeNode = "VOID";
 
-	public Proc(String id, ArrayList<ParDecl> params, ArrayList<String> resultTypeList, ArrayList<VarDecl> varDeclList, ArrayList<Statement> statements, ArrayList<Expression> returnExprs)
+	public Proc(String id, ArrayList<ParDecl> params, ArrayList<String> resultTypeList, ArrayList<VarDecl> varDeclList, ArrayList<Statement> statements, ArrayList<AbstractExpression> returnExprs)
 	{
 		this.id = id;
 		this.params = params;
@@ -25,7 +26,7 @@ public class Proc implements Visitable
 		this.returnExprs = returnExprs;
 	}
 
-	public Proc(String id, ArrayList<ParDecl> params, ArrayList<String> resultTypeList, ArrayList<VarDecl> varDeclList, ArrayList<Statement> statements, ArrayList<Expression> returnExprs, boolean isEmptyBody)
+	public Proc(String id, ArrayList<ParDecl> params, ArrayList<String> resultTypeList, ArrayList<VarDecl> varDeclList, ArrayList<Statement> statements, ArrayList<AbstractExpression> returnExprs, boolean isEmptyBody)
 	{
 		this.id = id;
 		this.params = isEmptyBody ? params : new ArrayList<>();
@@ -35,7 +36,7 @@ public class Proc implements Visitable
 		this.returnExprs = returnExprs;
 	}
 
-	public Proc(String id, ArrayList<String> resultTypeList, ArrayList<VarDecl> varDeclList, ArrayList<Expression> returnExprs)
+	public Proc(String id, ArrayList<String> resultTypeList, ArrayList<VarDecl> varDeclList, ArrayList<AbstractExpression> returnExprs)
 	{
 		this.id = id;
 		this.resultTypeList = resultTypeList;
@@ -43,7 +44,7 @@ public class Proc implements Visitable
 		this.returnExprs = returnExprs;
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor)
+	public Boolean accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

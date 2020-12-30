@@ -1,10 +1,9 @@
 package ast.variables.stat;
 
 import ast.variables.CallProc;
-import ast.variables.Expression;
 import ast.variables.Statement;
+import ast.variables.expr.AbstractExpression;
 import ast.variables.expr.terminals.Id;
-import utils.Pair;
 import visitor.Visitor;
 
 import java.util.ArrayList;
@@ -12,9 +11,10 @@ import java.util.ArrayList;
 public class AssignStat implements Statement
 {
 	public ArrayList<Id> idList;
-	public ArrayList<Expression> exprList;
+	public ArrayList<AbstractExpression> exprList;
+	public String typeNode = "VOID";
 
-	public AssignStat(ArrayList<Id> idList, ArrayList<Expression> exprList) throws Exception
+	public AssignStat(ArrayList<Id> idList, ArrayList<AbstractExpression> exprList) throws Exception
 	{
 		// Se ci sono più id che espressioni solo nel caso in cui non ci siano funzioni tra le espressioni posso essere certo che ci sia un errore.
 		// Potrei, infatti,  avere una funzione che restitusce più valori.
@@ -36,7 +36,7 @@ public class AssignStat implements Statement
 		this.exprList = exprList;
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor)
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

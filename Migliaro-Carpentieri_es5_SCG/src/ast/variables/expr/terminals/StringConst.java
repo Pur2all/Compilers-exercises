@@ -1,19 +1,18 @@
 package ast.variables.expr.terminals;
 
-import ast.variables.Expression;
-import utils.Pair;
 import visitor.Visitor;
 
-public class StringConst implements Expression
+public class StringConst extends Terminal
 {
 	public String value;
+	public String typeNode = "STRING";
 
 	public StringConst(String value)
 	{
 		this.value = value;
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor)
+	public Boolean accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

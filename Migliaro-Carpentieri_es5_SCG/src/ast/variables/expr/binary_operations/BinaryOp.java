@@ -1,12 +1,13 @@
 package ast.variables.expr.binary_operations;
 
-import ast.variables.Expression;
 
-public abstract class BinaryOp implements Expression
+import ast.variables.expr.AbstractExpression;
+
+public abstract class BinaryOp extends AbstractExpression
 {
-	public Expression leftExpr, rightExpr;
+	public AbstractExpression leftExpr, rightExpr;
 
-	public BinaryOp(Expression leftExpr, Expression rightExpr)
+	public BinaryOp(AbstractExpression leftExpr, AbstractExpression rightExpr)
 	{
 		this.leftExpr = leftExpr;
 		this.rightExpr = rightExpr;

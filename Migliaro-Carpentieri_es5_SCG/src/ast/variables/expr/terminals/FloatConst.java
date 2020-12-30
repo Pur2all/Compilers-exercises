@@ -1,19 +1,18 @@
 package ast.variables.expr.terminals;
 
-import ast.variables.Expression;
-import utils.Pair;
 import visitor.Visitor;
 
-public class FloatConst implements Expression
+public class FloatConst extends Terminal
 {
 	public Float value;
+	public String typeNode = "FLOAT";
 
 	public FloatConst(Float value)
 	{
 		this.value = value;
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor)
+	public Boolean accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

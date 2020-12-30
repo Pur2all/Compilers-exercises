@@ -1,17 +1,18 @@
 package ast.variables.expr.unary_operations;
 
-import ast.variables.Expression;
-import utils.Pair;
+import ast.variables.expr.AbstractExpression;
 import visitor.Visitor;
 
 public class NotExpr extends UnaryOp
 {
-	public NotExpr(Expression expression)
+	public String typeNode = "BOOL";
+
+	public NotExpr(AbstractExpression expression)
 	{
 		super(expression);
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor) throws Exception
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

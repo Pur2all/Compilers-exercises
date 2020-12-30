@@ -1,16 +1,17 @@
 package ast.variables;
 
-import utils.Pair;
+import ast.variables.expr.AbstractExpression;
 import visitor.Visitor;
 
 import java.util.ArrayList;
 
-public class CallProc implements Expression, Statement
+public class CallProc extends AbstractExpression implements Statement
 {
-	public ArrayList<Expression> arguments;
+	public ArrayList<AbstractExpression> arguments;
 	public String id;
 
-	public CallProc(String id, ArrayList<Expression> arguments)
+
+	public CallProc(String id, ArrayList<AbstractExpression> arguments)
 	{
 		this.id = id;
 		this.arguments = arguments;
@@ -22,7 +23,7 @@ public class CallProc implements Expression, Statement
 		this.arguments = new ArrayList<>();
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor) throws Exception
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

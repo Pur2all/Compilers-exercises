@@ -1,20 +1,20 @@
 package ast.variables.stat;
 
-import ast.variables.Expression;
 import ast.variables.Statement;
-import utils.Pair;
+import ast.variables.expr.AbstractExpression;
 import visitor.Visitor;
 
 import java.util.ArrayList;
 
 public class If implements Statement
 {
-	public Expression expression;
+	public AbstractExpression expression;
 	public ArrayList<Statement> statements;
 	public ArrayList<Elif> elifList;
 	public Else anElse;
+	public String typeNode = "VOID";
 
-	public If(Expression expression, ArrayList<Statement> statements, ArrayList<Elif> elifList, Else anElse)
+	public If(AbstractExpression expression, ArrayList<Statement> statements, ArrayList<Elif> elifList, Else anElse)
 	{
 		this.expression = expression;
 		this.statements = statements;
@@ -22,7 +22,7 @@ public class If implements Statement
 		this.anElse = anElse;
 	}
 
-	public If(Expression expression, ArrayList<Elif> elifList, Else anElse)
+	public If(AbstractExpression expression, ArrayList<Elif> elifList, Else anElse)
 	{
 		this.expression = expression;
 		this.statements = new ArrayList<>();
@@ -30,7 +30,7 @@ public class If implements Statement
 		this.anElse = anElse;
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor)
+	public Boolean accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

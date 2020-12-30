@@ -1,12 +1,13 @@
 package ast.variables.expr.unary_operations;
 
-import ast.variables.Expression;
 
-public abstract class UnaryOp implements Expression
+import ast.variables.expr.AbstractExpression;
+
+public abstract class UnaryOp extends AbstractExpression
 {
-	public Expression expression;
+	public AbstractExpression expression;
 
-	public UnaryOp(Expression expression)
+	public UnaryOp(AbstractExpression expression)
 	{
 		this.expression = expression;
 	}

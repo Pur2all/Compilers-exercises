@@ -1,6 +1,5 @@
 package ast.variables;
 
-import utils.Pair;
 import visitor.Visitable;
 import visitor.Visitor;
 
@@ -10,6 +9,7 @@ public class Program implements Visitable
 {
 	public ArrayList<VarDecl> varDeclList;
 	public ArrayList<Proc> procList;
+	public String typeNode = "VOID";
 
 	public Program(ArrayList<VarDecl> varDeclList, ArrayList<Proc> procList)
 	{
@@ -17,7 +17,7 @@ public class Program implements Visitable
 		this.procList = procList;
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor)
+	public Boolean accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

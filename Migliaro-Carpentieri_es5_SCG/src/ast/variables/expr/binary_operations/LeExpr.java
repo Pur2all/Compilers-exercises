@@ -1,17 +1,18 @@
 package ast.variables.expr.binary_operations;
 
-import ast.variables.Expression;
-import utils.Pair;
+import ast.variables.expr.AbstractExpression;
 import visitor.Visitor;
 
 public class LeExpr extends BinaryOp
 {
-	public LeExpr(Expression leftExpr, Expression rightExpr)
+	public String typeNode = "BOOL";
+
+	public LeExpr(AbstractExpression leftExpr, AbstractExpression rightExpr)
 	{
 		super(leftExpr, rightExpr);
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor)
+	public Boolean accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

@@ -1,8 +1,7 @@
 package ast.variables.stat;
 
-import ast.variables.Expression;
 import ast.variables.Statement;
-import utils.Pair;
+import ast.variables.expr.AbstractExpression;
 import visitor.Visitor;
 
 import java.util.ArrayList;
@@ -10,30 +9,31 @@ import java.util.ArrayList;
 public class WhileStat implements Statement
 {
 	public ArrayList<Statement> condStatements, bodyStatements;
-	public Expression expr;
+	public AbstractExpression expr;
+	public String typeNode = "VOID";
 
-	public WhileStat(ArrayList<Statement> condStatements, Expression expr, ArrayList<Statement> bodyStatements)
+	public WhileStat(ArrayList<Statement> condStatements, AbstractExpression expr, ArrayList<Statement> bodyStatements)
 	{
 		this.condStatements = condStatements;
 		this.expr = expr;
 		this.bodyStatements = bodyStatements;
 	}
 
-	public WhileStat(Expression expr, ArrayList<Statement> statements, boolean isBodyStats)
+	public WhileStat(AbstractExpression expr, ArrayList<Statement> statements, boolean isBodyStats)
 	{
 		this.condStatements = isBodyStats ? new ArrayList<>() : statements;
 		this.expr = expr;
 		this.bodyStatements = isBodyStats ? statements : new ArrayList<>();
 	}
 
-	public WhileStat(Expression expr)
+	public WhileStat(AbstractExpression expr)
 	{
 		this.condStatements = new ArrayList<>();
 		this.expr = expr;
 		this.bodyStatements = new ArrayList<>();
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor)
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

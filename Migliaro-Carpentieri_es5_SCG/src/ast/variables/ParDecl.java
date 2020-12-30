@@ -1,7 +1,6 @@
 package ast.variables;
 
 import ast.variables.expr.terminals.Id;
-import utils.Pair;
 import visitor.Visitable;
 import visitor.Visitor;
 
@@ -11,6 +10,7 @@ public class ParDecl implements Visitable
 {
 	public String type;
 	public ArrayList<Id> idList;
+	public String typeNode = "VOID";
 
 	public ParDecl(String type, ArrayList<Id> idList)
 	{
@@ -18,7 +18,7 @@ public class ParDecl implements Visitable
 		this.idList = idList;
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor)
+	public Boolean accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

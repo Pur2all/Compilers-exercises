@@ -1,29 +1,16 @@
 package visitor;
 
 import ast.variables.*;
+import ast.variables.expr.AbstractExpression;
 import ast.variables.expr.binary_operations.*;
 import ast.variables.expr.terminals.*;
 import ast.variables.expr.unary_operations.NotExpr;
 import ast.variables.expr.unary_operations.UminExpr;
 import ast.variables.stat.*;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import symbolTable.Kind;
 import symbolTable.SymbolTable;
 import symbolTable.SymbolTableNode;
 import symbolTable.SymbolTableRecord;
-import utils.Pair;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.File;
-import java.util.ArrayList;
 
 public class VisitTree implements Visitor
 {
@@ -47,143 +34,149 @@ public class VisitTree implements Visitor
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(AddExpr expression)
+	public Boolean visit(AddExpr expression)
 	{
 		return binaryExpr(expression, "AddOp");
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(AndExpr expression)
+	public Boolean visit(AndExpr expression)
 	{
 		return binaryExpr(expression, "AndOp");
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(DivExpr expression)
+	public Boolean visit(DivExpr expression)
 	{
 		return binaryExpr(expression, "DivOp");
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(EqExpr expression)
+	public Boolean visit(EqExpr expression)
 	{
 		return binaryExpr(expression, "EqOp");
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(GeExpr expression)
+	public Boolean visit(GeExpr expression)
 	{
 		return binaryExpr(expression, "GeOp");
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(GtExpr expression)
+	public Boolean visit(GtExpr expression)
 	{
 		return binaryExpr(expression, "GtOp");
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(LeExpr expression)
+	public Boolean visit(LeExpr expression)
 	{
 		return binaryExpr(expression, "LeOp");
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(LtExpr expression)
+	public Boolean visit(LtExpr expression)
 	{
 		return binaryExpr(expression, "LtOp");
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(MinExpr expression)
+	public Boolean visit(MinExpr expression)
 	{
 		return binaryExpr(expression, "MinOp");
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(NeExpr expression)
+	public Boolean visit(NeExpr expression)
 	{
 		return binaryExpr(expression, "NeOp");
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(OrExpr expression)
+	public Boolean visit(OrExpr expression)
 	{
 		return binaryExpr(expression, "OrOp");
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(TimesExpr expression)
+	public Boolean visit(TimesExpr expression)
 	{
 		return binaryExpr(expression, "TimeOp");
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(False expression)
+	public Boolean visit(False expression)
 	{
-		return new Pair<>(true, "BOOL");
+		return true;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(FloatConst expression)
+	public Boolean visit(FloatConst expression)
 	{
-		return new Pair<>(true, "FLOAT");
+		return true;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(Id expression) throws Exception
+	public Boolean visit(Id expression) throws Exception
 	{
 		// Partendo dall'ultima symbol table usata vediamo se l'id è presente (lookup)
 		SymbolTableRecord variableDeclaredInfo = currentSymbolTable.lookup(expression.value);
 
-		if (variableDeclaredInfo == null || variableDeclaredInfo.kind != Kind.VARIABLE)
+		if(variableDeclaredInfo == null || variableDeclaredInfo.kind != Kind.VARIABLE)
 			throw new Exception("Variable" + expression.value + " not declared");
 
-		return new Pair<>(true, variableDeclaredInfo.type);
+		// Assegnamo al nodo id il suo tipo ottenuto dalla tabella dei simboli
+		expression.typeNode = variableDeclaredInfo.type;
+
+		return true;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(IntConst expression)
+	public Boolean visit(IntConst expression)
 	{
-		return new Pair<>(true, "INT");
+		return true;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(Null expression)
+	public Boolean visit(Null expression)
 	{
-		return new Pair<>(true, "NULL");
+		return true;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(StringConst expression)
+	public Boolean visit(StringConst expression)
 	{
-		return new Pair<>(true, "STRING");
+		return true;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(True expression)
+	public Boolean visit(True expression)
 	{
-		return new Pair<>(true, "BOOL");
+		return true;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(NotExpr expression) throws Exception
-	{
-		return expression.expression.accept(this);
-	}
-
-	@Override
-	public Pair<Boolean, String> visit(UminExpr expression) throws Exception
+	public Boolean visit(NotExpr expression) throws Exception
 	{
 		return expression.expression.accept(this);
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(CallProc callProc) throws Exception
+	public Boolean visit(UminExpr expression) throws Exception
+	{
+		// Assegno all'espressione Umin il tipo dell'espressione figlia
+		expression.typeNode = expression.expression.typeNode;
+
+		return expression.expression.accept(this);
+	}
+
+	@Override
+	public Boolean visit(CallProc callProc) throws Exception
 	{
 		SymbolTableRecord functionDeclaredInfo = currentSymbolTable.lookup(callProc.id);
 
-		// Controlliamo se la funzione chiamata è stata definita prima di essere chiamata
+		// Controlliamo se la funzione chiamata è stata definita
 		if(functionDeclaredInfo == null || functionDeclaredInfo.kind != Kind.FUNCTION)
 			throw new Exception("Function " + callProc.id + " not declared");
 
@@ -207,14 +200,16 @@ public class VisitTree implements Visitor
 			for(int i = 0; i < callProc.arguments.size(); i++)
 			{
 				// Su ogni argomento invochiamo il metodo accept e salviamo i valori di ritorno
-				Pair<Boolean, String> temp = callProc.arguments.get(i).accept(this);
+				Boolean temp = callProc.arguments.get(i).accept(this);
+				// Prendo il tipo del nodo dell'i-esimo argomento
+				String typeNode = callProc.arguments.get(i).typeNode;
 
 				// Se l'argomento è una funzione questa potrebbe ritornare più valori, quindi ha bisogno di ulteriori controlli
 				if(callProc.arguments.get(i) instanceof CallProc)
 				{
 					// Costruiamo un array contenente i tipi dei valori di ritorno della funzione presa come argomento
 					// della funzione chiamata
-					String[] returnTypesProc = temp.second.split(", ");
+					String[] returnTypesProc = typeNode.split(", ");
 
 					// Salviamo il numero di parametri ancora da matchare
 					int oldNOPT = numOfParametersType;
@@ -237,7 +232,7 @@ public class VisitTree implements Visitor
 				{
 					// Se l'argomento non è una funzione e il suo tipo non corrisponde a quello richiesto dal parametro
 					// lanciamo un'eccezione
-					if(!temp.second.equals(parametersTypes[i]))
+					if(!typeNode.equals(parametersTypes[i]))
 						throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
 
 					// In questo caso abbiamo matchato un solo parametro
@@ -252,92 +247,139 @@ public class VisitTree implements Visitor
 
 			// Se il numero di parametri è almeno 1 vuol dire che non tutti i parametri sono stati matchati e che quindi
 			// sono stati dati pochi argomenti alla funzione rispetto a quelli che si aspettava, quindi lanciamo eccezione
-			if (numOfParametersType > 0)
+			if(numOfParametersType > 0)
 				throw new Exception("Too few arguments given to the function " + callProc.id);
 		}
 
-		return new Pair<>(true, returnTypes);
+		callProc.typeNode = returnTypes;
+
+		return true;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(AssignStat assignStat)
+	public Boolean visit(AssignStat assignStat) throws Exception
+	{
+		// Chiamo l'accept su id per controllare che gli id siano effettivamente dichiarati
+		for(Id id : assignStat.idList)
+			id.accept(this);
+		// TODO Dobbiamo controllare il tipo delle espressioni e che il numero di id corrisponde al numero di espressioni
+		//  (ricorda delle funzioni con più valroi di ritorno)
+
+		// Chiamo l'accept su expr per controllare la correttezza dell'expr
+		for(AbstractExpression expr : assignStat.exprList)
+			expr.accept(this);
+
+		// L'assignStat non ha tipo
+
+		return true;
+	}
+
+	@Override
+	public Boolean visit(ReadlnStat readlnStat) throws Exception
+	{
+
+		// Chiamo l'accept su id per controllare che gli id siano effettivamente dichiarati
+		for(Id id : readlnStat.idList)
+			id.accept(this);
+
+		// Il tipo di readln non è definito
+
+		return true;
+	}
+
+	@Override
+	public Boolean visit(WriteStat writeStat) throws Exception
+	{
+		// Chiamo l'accept su expr per controllare che siano corrette
+		for(AbstractExpression expr : writeStat.exprList)
+			expr.accept(this);
+
+		return true;
+	}
+
+	@Override
+	public Boolean visit(WhileStat whileStat) throws Exception
+	{
+		// Controllo che gli statament presenti prima della condizione di uscita del while siano corretti
+		for(Statement conditionStat : whileStat.condStatements)
+			conditionStat.accept(this);
+
+		// Controllo che gli statament presenti nel corpo del while siano corretti
+		for(Statement bodyStat : whileStat.bodyStatements)
+			bodyStat.accept(this);
+
+		// Chiamo accept per controllare che l'espresisone sia corretta
+		whileStat.expr.accept(this);
+
+		// Controllo che il tipo dell'espressione sia boolean
+		if(!whileStat.expr.typeNode.equals("BOOL"))
+			throw new Exception("Type mismatch, expression in while is not boolean");
+
+		return true;
+	}
+
+	@Override
+	public Boolean visit(Elif elif) throws Exception
+	{
+
+		// Controlliamo che l'expr sia corretta e che sia di tipo booleano
+		elif.expr.accept(this);
+		if(!elif.expr.typeNode.equals("BOOL"))
+			throw new Exception("Type mismatch, expression is not a if condition");
+
+		// Controllo che gli statament del elif siano corretti
+		for(Statement stat : elif.statements)
+			stat.accept(this);
+
+		// Elif non ha tipo
+
+		return true;
+	}
+
+	@Override
+	public Boolean visit(If anIf)
 	{
 		// TODO
 		return null;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(ReadlnStat readlnStat)
+	public Boolean visit(Else anElse)
 	{
 		// TODO
 		return null;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(WriteStat writeStat)
+	public Boolean visit(ParDecl parDecl)
 	{
 		// TODO
 		return null;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(WhileStat whileStat)
+	public Boolean visit(IdListInit idListInit)
 	{
 		// TODO
 		return null;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(Elif elif)
-	{
-		// TODO
-		return null;
-	}
-
-	@Override
-	public Pair<Boolean, String> visit(If anIf)
-	{
-		// TODO
-		return null;
-	}
-
-	@Override
-	public Pair<Boolean, String> visit(Else anElse)
-	{
-		// TODO
-		return null;
-	}
-
-	@Override
-	public Pair<Boolean, String> visit(ParDecl parDecl)
-	{
-		// TODO
-		return null;
-	}
-
-	@Override
-	public Pair<Boolean, String> visit(IdListInit idListInit)
-	{
-		// TODO
-		return null;
-	}
-
-	@Override
-	public Pair<Boolean, String> visit(VarDecl varDecl)
+	public Boolean visit(VarDecl varDecl)
 	{
 		// TODO: Dobbiamo semplicemente riempire la tabella dei simboli corrente con gli id
 		return null;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(Proc proc)
+	public Boolean visit(Proc proc)
 	{
 		// TODO: Dobbiamo creare una nuova symtab e aggiornare quella corrente e il puntatore
 		return null;
 	}
 
 	@Override
-	public Pair<Boolean, String> visit(Program program)
+	public Boolean visit(Program program)
 	{
 		// TODO: Dobbiamo creare una nuova symtab e aggiornare il puntatore alla corrente
 		return null;
@@ -349,7 +391,7 @@ public class VisitTree implements Visitor
 		visitable.accept(this);
 	}
 
-	private Pair<Boolean, String> binaryExpr(BinaryOp expression, String nameOp)
+	private Boolean binaryExpr(BinaryOp expression, String nameOp)
 	{
 		// TODO
 		return null;

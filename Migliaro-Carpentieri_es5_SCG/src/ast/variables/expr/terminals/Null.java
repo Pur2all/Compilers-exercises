@@ -1,14 +1,13 @@
 package ast.variables.expr.terminals;
 
-import ast.variables.Expression;
-import utils.Pair;
 import visitor.Visitor;
 
-public class Null implements Expression
+public class Null extends Terminal
 {
 	public static final Object value = null;
+	public String typeNode = "NULL";
 
-	public Pair<Boolean, String> accept(Visitor visitor)
+	public Boolean accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

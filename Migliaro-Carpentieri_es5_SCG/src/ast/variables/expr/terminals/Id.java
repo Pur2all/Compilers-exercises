@@ -1,10 +1,9 @@
 package ast.variables.expr.terminals;
 
-import ast.variables.Expression;
-import utils.Pair;
+import symbolTable.SymbolTable;
 import visitor.Visitor;
 
-public class Id implements Expression
+public class Id extends Terminal
 {
 	public String value;
 
@@ -13,7 +12,7 @@ public class Id implements Expression
 		this.value = value;
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor) throws Exception
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

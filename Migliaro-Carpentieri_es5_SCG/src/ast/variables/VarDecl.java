@@ -1,6 +1,5 @@
 package ast.variables;
 
-import utils.Pair;
 import visitor.Visitable;
 import visitor.Visitor;
 
@@ -8,6 +7,7 @@ public class VarDecl implements Visitable
 {
 	public String type;
 	public IdListInit idListInit;
+	public String typeNode = "VOID";
 
 	public VarDecl(String type, IdListInit idListInit)
 	{
@@ -15,7 +15,7 @@ public class VarDecl implements Visitable
 		this.idListInit = idListInit;
 	}
 
-	public Pair<Boolean, String> accept(Visitor visitor)
+	public Boolean accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}

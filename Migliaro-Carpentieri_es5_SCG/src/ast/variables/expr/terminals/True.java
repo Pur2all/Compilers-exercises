@@ -1,14 +1,13 @@
 package ast.variables.expr.terminals;
 
-import ast.variables.Expression;
-import utils.Pair;
 import visitor.Visitor;
 
-public class True implements Expression
+public class True extends Terminal
 {
 	public static final Boolean value = true;
+	public String typeNode = "BOOL";
 
-	public Pair<Boolean, String> accept(Visitor visitor)
+	public Boolean accept(Visitor visitor)
 	{
 		return visitor.visit(this);
 	}
