@@ -12,12 +12,12 @@ import symbolTable.SymbolTable;
 import symbolTable.SymbolTableNode;
 import symbolTable.SymbolTableRecord;
 
-public class VisitTree implements Visitor
+public class SemanticAnalyzer implements Visitor
 {
 	private SymbolTableNode root;
 	private SymbolTableNode currentSymbolTable;
 
-	public VisitTree()
+	public SemanticAnalyzer()
 	{
 		SymbolTable symbolTable = new SymbolTable("Globals");
 
@@ -124,7 +124,7 @@ public class VisitTree implements Visitor
 		SymbolTableRecord variableDeclaredInfo = currentSymbolTable.lookup(expression.value);
 
 		if(variableDeclaredInfo == null || variableDeclaredInfo.kind != Kind.VARIABLE)
-			throw new Exception("Variable" + expression.value + " not declared");
+			throw new Exception("Variable " + expression.value + " not declared");
 
 		// Assegnamo al nodo id il suo tipo ottenuto dalla tabella dei simboli
 		expression.typeNode = variableDeclaredInfo.type;
@@ -199,8 +199,8 @@ public class VisitTree implements Visitor
 			// Controlliamo se gli argomenti della funzione sono in corrispondenza con i parametri
 			for(int i = 0; i < callProc.arguments.size(); i++)
 			{
-				// Su ogni argomento invochiamo il metodo accept e salviamo i valori di ritorno
-				Boolean temp = callProc.arguments.get(i).accept(this);
+				// Su ogni argomento invochiamo il metodo accept
+				callProc.arguments.get(i).accept(this);
 				// Prendo il tipo del nodo dell'i-esimo argomento
 				String typeNode = callProc.arguments.get(i).typeNode;
 
@@ -325,7 +325,7 @@ public class VisitTree implements Visitor
 		// Controlliamo che l'expr sia corretta e che sia di tipo booleano
 		elif.expr.accept(this);
 		if(!elif.expr.typeNode.equals("BOOL"))
-			throw new Exception("Type mismatch, expression is not a if condition");
+			throw new Exception("Type mismatch, expression is not an if condition");
 
 		// Controllo che gli statament del elif siano corretti
 		for(Statement stat : elif.statements)
@@ -337,52 +337,239 @@ public class VisitTree implements Visitor
 	}
 
 	@Override
-	public Boolean visit(If anIf)
+	public Boolean visit(If anIf) throws Exception
 	{
-		// TODO
-		return null;
+		// Controlliamo che l'expr sia corretta e che sia di tipo booleano
+		anIf.expression.accept(this);
+		if(!anIf.expression.typeNode.equals("BOOL"))
+			throw new Exception("Type mismatch, expression is not an if condition");
+
+		// Controllo che gli statament dell'if siano corretti
+		for(Statement stat : anIf.statements)
+			stat.accept(this);
+
+		// Controllo che ogni elif dell'if sia corretto
+		for(Elif elif : anIf.elifList)
+			elif.accept(this);
+
+		// Controllo che l'else sia corretto.
+		anIf.anElse.accept(this);
+
+		// Elif non ha tipo
+
+		return true;
 	}
 
 	@Override
-	public Boolean visit(Else anElse)
+	public Boolean visit(Else anElse) throws Exception
 	{
-		// TODO
-		return null;
+		// Controllo che ogni statament sia corretto
+		for(Statement stat : anElse.statements)
+			stat.accept(this);
+
+		// L'else non ha tipo ed è settato di default a void
+		return true;
 	}
 
 	@Override
 	public Boolean visit(ParDecl parDecl)
 	{
-		// TODO
-		return null;
+		// Restituiamo true poiché qualsiasi tipo e lista di id è corretta e non è necessario fare alcun controllo sui tipi
+		return true;
 	}
 
 	@Override
-	public Boolean visit(IdListInit idListInit)
+	public Boolean visit(IdListInit idListInit) throws Exception
 	{
-		// TODO
-		return null;
+		for(Id id : idListInit.keySet())
+		{
+			// Controllo per ogni id se è presente un espressione.
+			AbstractExpression expr = idListInit.get(id);
+			// Se è presente l'espressione controllo che sia corretta
+			if(expr != null)
+			{
+				expr.accept(this);
+				// Controlliamo che l'espressione assegnata all'id sia di tipo corretto
+				// TODO Implementare le compatibilità di tipo, non è detto che l'assegnamento sia valido solo per tipi uguali
+				// Faccio l'accept di id per avere il tipo del nodo id
+				id.accept(this);
+				if(!id.typeNode.equals(expr.typeNode))
+					throw new Exception("Type mismatch, variable " + id.value + " of type " + id.typeNode + " assigned with type " + expr.typeNode);
+			}
+			// Se l'espressione è null vuol dire che non ci sono assegnamenti e non è necessario fare controlli
+		}
+
+		// Il nodo IdListInit non ha tipo e di default è settato a void
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(VarDecl varDecl)
 	{
-		// TODO: Dobbiamo semplicemente riempire la tabella dei simboli corrente con gli id
-		return null;
+		// Inserico gli id della lista nella tebella dei simboli corrente
+		for(Id id : varDecl.idListInit.keySet())
+			currentSymbolTable.symbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, varDecl.type, ""));
+
+		// Il nodo VarDecl non ha tipo e di default è void
+
+		return true;
 	}
 
 	@Override
-	public Boolean visit(Proc proc)
+	public Boolean visit(Proc proc) throws Exception
 	{
-		// TODO: Dobbiamo creare una nuova symtab e aggiornare quella corrente e il puntatore
-		return null;
+		StringBuilder type = new StringBuilder();
+
+		// Per ogni lista di parametri prendiamo il tipo degli identificatori e lo inseriamo nel buffer type
+		for(int i = 0; i < proc.params.size(); i++)
+		{
+			// Restiutisce sempre true
+			proc.params.get(i).accept(this);
+			// ParDecl  è fatto da un tipo e una lista di id, quindi per ogni id devo definire il tipo specificato
+			for(Id id : proc.params.get(i).idList)
+				type.append(proc.params.get(i).type).append(i == proc.params.size() - 1 ? " -> " : ", ");
+		}
+
+		// Appendiamo ai tipi dei parametri i tipi di ritorno
+		for(int i = 0; i < proc.resultTypeList.size(); i++)
+			type.append(proc.resultTypeList.get(i)).append(i == proc.resultTypeList.size() - 1 ? "" : ", ");
+
+		// Poiché proc crea un nuovo livello di scope creiamo una nuova tabella dei simboli identificata dal nome della procedura
+		SymbolTable newSymbolTable = new SymbolTable(proc.id);
+		// Creo un nuovo nodo per la tabella dei simboli che ha come padre la tabella dei simboli correnti
+		SymbolTableNode newSymbleTableNode = new SymbolTableNode(newSymbolTable, currentSymbolTable);
+		// Aggiungiamo ai figli della tabella corrente la nuova tabella creata.
+		currentSymbolTable.sons.add(newSymbleTableNode);
+		// Aggiorniamo la tabella dei simboli corrente
+		currentSymbolTable = newSymbleTableNode;
+
+		// Nella nuova tabella devo inserire i parametri formali della procedura
+		for(ParDecl parDecl : proc.params)
+			for(Id id : parDecl.idList)
+				newSymbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, parDecl.type, ""));
+
+		// Nella nuova tabelle inserisco le nuove variabili che sono state dichiarate
+		for(VarDecl varDecl : proc.varDeclList)
+		{
+			varDecl.idListInit.accept(this);
+			for(Id id : varDecl.idListInit.keySet())
+			{
+				// Se l'id è gia presente nella tabella corrente vuol dire che ho dichiarato una varaibile con lo stesso nome di un parametro formale e questo non può accadere
+				if(!newSymbolTable.containsKey(id.value))
+					newSymbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, varDecl.type, ""));
+				else
+					throw new Exception("Cannot declare variable with same identifier of a parameter");
+			}
+		}
+
+		// Controllo che gli statament della proc siano corrette
+		for(Statement stat : proc.statements)
+			stat.accept(this);
+
+		// Se il tipo di ritorno della proc è void devo controllare che la lista di espressioni di ritorno sia vuota
+		// se non è vuota lancio eccezione
+		if(proc.resultTypeList.get(0).equals("VOID") && proc.returnExprs.size() > 0)
+			throw new Exception("Cannot return a value if result type is void in function " + proc.id);
+
+		// Memorizzo il numero di tipi di ritorno della funzione
+		int numResultType = proc.resultTypeList.size();
+
+		for(int i = 0; i < proc.returnExprs.size(); i++)
+		{
+			AbstractExpression returnExpr = proc.returnExprs.get(i);
+			// Su ogni argomento invochiamo il metodo accept
+			returnExpr.accept(this);
+			// Prendo il tipo del nodo dell'i-esima espressione
+			String typeNode = returnExpr.typeNode;
+
+			// Se l'argomento è una funzione questa potrebbe ritornare più valori, quindi ha bisogno di ulteriori controlli
+			if(returnExpr instanceof CallProc)
+			{
+				// Costruiamo un array contenente i tipi dei valori di ritorno della funzione utilizzata come espressione
+				String[] returnTypesProc = typeNode.split(", ");
+
+				// Salviamo il numero di parametri ancora da matchare
+				int oldNRT = numResultType;
+
+				// Sottraiamo al numero di valori di ritorno il numero dei valori di ritorno della funzione che
+				// compare come espressione, e se tale valore diventa negativo vuol dire che sono stati dati troppi valori
+				// di ritorno alla funzione e quindi lanciamo eccezione
+				numResultType -= returnTypesProc.length;
+
+				if(numResultType < 0)
+					throw new Exception("Too much value to unpack in return expression for function " + proc.id);
+
+				// Se il numero di valori di ritorno è non negativo, per ogni valore di ritorno della funzione presente come espressione
+				//controlliamo se i tipi sono in corrispondenza con i tipi di ritorno effettivi della funzione
+				for(String returnTypeProc : returnTypesProc)
+					if(!returnTypeProc.equals(proc.resultTypeList.get(proc.resultTypeList.size() - oldNRT--)))
+						throw new Exception("Type mismatch in return of function " + proc.id);
+			}
+			else
+			{
+				// Se l'espressione non è una funzione e il suo tipo non corrisponde a quello richiesto dal tipo di ritorno
+				// lanciamo un'eccezione
+				if(!typeNode.equals(proc.resultTypeList.get(i)))
+					throw new Exception("Type mismatch in return of function " + proc.id);
+
+				// In questo caso abbiamo matchato una solo valore di ritorno
+				numResultType--;
+			}
+
+			// Se il numero di valori di ritorno è negativo vuol dire che sono stati dati troppi valori di ritorno alla funzione
+			// rispetto a quelli che si aspettava, quindi lanciamo eccezione
+			if(numResultType < 0)
+				throw new Exception("Too much return value given to the function " + proc.id);
+
+		}
+
+		// Il nodo Proc ha come tipo paramsType -> returnTypes
+		proc.typeNode = type.toString();
+
+		return true;
 	}
 
 	@Override
-	public Boolean visit(Program program)
+	public Boolean visit(Program program) throws Exception
 	{
 		// TODO: Dobbiamo creare una nuova symtab e aggiornare il puntatore alla corrente
-		return null;
+
+		// Program definisce un nuovo scope quindi creo una tabella dei simboli
+		SymbolTable newSymbolTable = new SymbolTable("Program");
+		// Creo un nuovo nodo per la tabella dei simboli che ha come padre la tabella dei simboli root
+		SymbolTableNode newSymbolTableNode = new SymbolTableNode(newSymbolTable, root);
+		// Inserisco come figlio di root la tabella dei simboli program appena creata
+		currentSymbolTable.sons.add(newSymbolTableNode);
+		// Setto come tabella corrente la nuova tabella
+		currentSymbolTable = newSymbolTableNode;
+
+
+		// Invoco accept su varDecl che riempirà la tabella dei simboli program con gli id delle variabili dichiarate
+		for(VarDecl varDecl : program.varDeclList)
+			varDecl.accept(this);
+
+		for(Proc proc : program.procList)
+		{
+			proc.accept(this);
+			// Se la tabella dei simboli globale contiene la procedura dichiarata allora lancio eccezione poiché
+			// non posso ridichiarare una funzione di libreria (readln o write).
+			if(!root.symbolTable.containsKey(proc.id))
+				// Se la tabella dei simboli corrente contiene l'id della procedura allora vuol dire che già esiste quell'identificatore
+				// e non posso riutilizzarlo
+				if(!newSymbolTable.containsKey(proc.id))
+					newSymbolTable.put(proc.id, new SymbolTableRecord(Kind.FUNCTION, proc.typeNode, ""));
+				else
+					throw new Exception("Function " + proc.id + "is already declared as " + (newSymbolTable.get(proc.id).kind == Kind.VARIABLE ? "variable" : "function"));
+			else
+				throw new Exception("Cannot redeclare library function " + proc.id);
+			// Quando finiamo di esaminare la procedura ritorniamo nuovamente nello scope di program
+			currentSymbolTable = currentSymbolTable.parent;
+		}
+
+		// Program non ha tipo di ritorno
+
+		return true;
 	}
 
 	// Serve per lanciare la visita dell'AST e creare le symbol tables

@@ -49,17 +49,17 @@ public interface Visitor
 
 	Boolean visit(Elif elif) throws Exception;
 
-	Boolean visit(If anIf);
+	Boolean visit(If anIf) throws Exception;
 
-	Boolean visit(Else anElse);
+	Boolean visit(Else anElse) throws Exception;
 
 	Boolean visit(ParDecl parDecl);
 
-	Boolean visit(IdListInit idListInit);
+	Boolean visit(IdListInit idListInit) throws Exception;
 
 	Boolean visit(VarDecl varDecl);
 
-	Boolean visit(Proc proc);
+	Boolean visit(Proc proc) throws Exception;
 
-	Boolean visit(Program program);
+	Boolean visit(Program program) throws Exception;
 }

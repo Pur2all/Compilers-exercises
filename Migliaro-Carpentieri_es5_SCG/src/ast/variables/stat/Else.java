@@ -16,7 +16,7 @@ public class Else implements Visitable
 		this.statements = statements != null ? statements : new ArrayList<>();
 	}
 
-	public Boolean accept(Visitor visitor)
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

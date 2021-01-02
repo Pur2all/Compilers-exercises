@@ -14,7 +14,7 @@ public class Proc implements Visitable
 	public ArrayList<VarDecl> varDeclList;
 	public ArrayList<Statement> statements;
 	public ArrayList<AbstractExpression> returnExprs;
-	public String typeNode = "VOID";
+	public String typeNode;
 
 	public Proc(String id, ArrayList<ParDecl> params, ArrayList<String> resultTypeList, ArrayList<VarDecl> varDeclList, ArrayList<Statement> statements, ArrayList<AbstractExpression> returnExprs)
 	{
@@ -44,7 +44,7 @@ public class Proc implements Visitable
 		this.returnExprs = returnExprs;
 	}
 
-	public Boolean accept(Visitor visitor)
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

@@ -17,7 +17,7 @@ public class Program implements Visitable
 		this.procList = procList;
 	}
 
-	public Boolean accept(Visitor visitor)
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}
