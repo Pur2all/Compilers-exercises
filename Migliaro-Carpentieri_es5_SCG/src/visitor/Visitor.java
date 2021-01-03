@@ -11,27 +11,27 @@ public interface Visitor
 	/* EXPRESSIONS */
 
 	// Binary operations
-	Boolean visit(AddExpr expression);
-	Boolean visit(AndExpr expression);
-	Boolean visit(DivExpr expression);
-	Boolean visit(EqExpr expression);
-	Boolean visit(GeExpr expression);
-	Boolean visit(GtExpr expression);
-	Boolean visit(LeExpr expression);
-	Boolean visit(LtExpr expression);
-	Boolean visit(MinExpr expression);
-	Boolean visit(NeExpr expression);
-	Boolean visit(OrExpr expression);
-	Boolean visit(TimesExpr expression);
+	Boolean visit(AddExpr expression) throws Exception;
+	Boolean visit(AndExpr expression) throws Exception;
+	Boolean visit(DivExpr expression) throws Exception;
+	Boolean visit(EqExpr expression) throws Exception;
+	Boolean visit(GeExpr expression) throws Exception;
+	Boolean visit(GtExpr expression) throws Exception;
+	Boolean visit(LeExpr expression) throws Exception;
+	Boolean visit(LtExpr expression) throws Exception;
+	Boolean visit(MinExpr expression) throws Exception;
+	Boolean visit(NeExpr expression) throws Exception;
+	Boolean visit(OrExpr expression) throws Exception;
+	Boolean visit(TimesExpr expression) throws Exception;
 
 	// Terminals
-	Boolean visit(False expression);
-	Boolean visit(FloatConst expression);
+	Boolean visit(False expression) throws Exception;
+	Boolean visit(FloatConst expression) throws Exception;
 	Boolean visit(Id expression) throws Exception;
-	Boolean visit(IntConst expression);
-	Boolean visit(Null expression);
-	Boolean visit(StringConst expression);
-	Boolean visit(True expression);
+	Boolean visit(IntConst expression) throws Exception;
+	Boolean visit(Null expression) throws Exception;
+	Boolean visit(StringConst expression) throws Exception;
+	Boolean visit(True expression) throws Exception;
 
 	// Unary operations
 	Boolean visit(NotExpr expression) throws Exception;
@@ -53,11 +53,11 @@ public interface Visitor
 
 	Boolean visit(Else anElse) throws Exception;
 
-	Boolean visit(ParDecl parDecl);
+	Boolean visit(ParDecl parDecl) throws Exception;
 
 	Boolean visit(IdListInit idListInit) throws Exception;
 
-	Boolean visit(VarDecl varDecl);
+	Boolean visit(VarDecl varDecl) throws Exception;
 
 	Boolean visit(Proc proc) throws Exception;
 

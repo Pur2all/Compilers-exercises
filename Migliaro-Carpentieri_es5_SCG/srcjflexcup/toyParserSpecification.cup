@@ -1,4 +1,5 @@
 import ast.variables.*;
+import ast.variables.expr.*;
 import ast.variables.expr.terminals.*;
 import ast.variables.expr.binary_operations.*;
 import ast.variables.expr.unary_operations.*;
@@ -18,9 +19,9 @@ terminal SEMI, COMMA, INT, STRING, FLOAT, BOOL, PROC, LPAR, RPAR, COLON, CORP, V
          EQ, NE, LT, LE, GT, GE, AND, OR, NOT, NULL, TRUE, FALSE, UMINUS, RETURN;
 
 // Non terminals
-nonterminal Expression Expr;
+nonterminal AbstractExpression Expr;
 nonterminal CallProc CallProc;
-nonterminal ArrayList<Expression> ExprList, ReturnExprs;
+nonterminal ArrayList<AbstractExpression> ExprList, ReturnExprs;
 nonterminal ArrayList<Id> IdList;
 nonterminal AssignStat AssignStat;
 nonterminal WriteStat WriteStat;
@@ -100,9 +101,9 @@ ResultConcreteTypesList ::= Type:type {: RESULT = new ArrayList<String>();
                                                                                                RESULT = resultConcreteTypesList; :};
 
 ReturnExprs::= RETURN ExprList:exprList {: RESULT = exprList; :}
-	         | /* empty */              {: RESULT = new ArrayList<Expression>(); :};
+	         | /* empty */              {: RESULT = new ArrayList<AbstractExpression>(); :};
 
-ExprList ::= Expr:e1                         {: RESULT = new ArrayList<Expression>();
+ExprList ::= Expr:e1                         {: RESULT = new ArrayList<AbstractExpression>();
                                                 RESULT.add(e1); :}
 	       | Expr:e1 COMMA ExprList:exprList {: exprList.add(0, e1);
 	                                            RESULT = exprList; :};

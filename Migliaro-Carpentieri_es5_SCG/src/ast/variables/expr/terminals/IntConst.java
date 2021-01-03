@@ -5,14 +5,14 @@ import visitor.Visitor;
 public class IntConst extends Terminal
 {
 	public Integer value;
-	public String typeNode = "INT";
 
 	public IntConst(Integer value)
 	{
+		this.typeNode = "INT";
 		this.value = value;
 	}
 
-	public Boolean accept(Visitor visitor)
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

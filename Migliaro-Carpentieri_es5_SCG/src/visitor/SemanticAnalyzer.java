@@ -34,73 +34,73 @@ public class SemanticAnalyzer implements Visitor
 	}
 
 	@Override
-	public Boolean visit(AddExpr expression)
+	public Boolean visit(AddExpr expression) throws Exception
 	{
 		return binaryExpr(expression, "AddOp");
 	}
 
 	@Override
-	public Boolean visit(AndExpr expression)
+	public Boolean visit(AndExpr expression) throws Exception
 	{
 		return binaryExpr(expression, "AndOp");
 	}
 
 	@Override
-	public Boolean visit(DivExpr expression)
+	public Boolean visit(DivExpr expression) throws Exception
 	{
 		return binaryExpr(expression, "DivOp");
 	}
 
 	@Override
-	public Boolean visit(EqExpr expression)
+	public Boolean visit(EqExpr expression) throws Exception
 	{
 		return binaryExpr(expression, "EqOp");
 	}
 
 	@Override
-	public Boolean visit(GeExpr expression)
+	public Boolean visit(GeExpr expression) throws Exception
 	{
 		return binaryExpr(expression, "GeOp");
 	}
 
 	@Override
-	public Boolean visit(GtExpr expression)
+	public Boolean visit(GtExpr expression) throws Exception
 	{
 		return binaryExpr(expression, "GtOp");
 	}
 
 	@Override
-	public Boolean visit(LeExpr expression)
+	public Boolean visit(LeExpr expression) throws Exception
 	{
 		return binaryExpr(expression, "LeOp");
 	}
 
 	@Override
-	public Boolean visit(LtExpr expression)
+	public Boolean visit(LtExpr expression) throws Exception
 	{
 		return binaryExpr(expression, "LtOp");
 	}
 
 	@Override
-	public Boolean visit(MinExpr expression)
+	public Boolean visit(MinExpr expression) throws Exception
 	{
 		return binaryExpr(expression, "MinOp");
 	}
 
 	@Override
-	public Boolean visit(NeExpr expression)
+	public Boolean visit(NeExpr expression) throws Exception
 	{
 		return binaryExpr(expression, "NeOp");
 	}
 
 	@Override
-	public Boolean visit(OrExpr expression)
+	public Boolean visit(OrExpr expression) throws Exception
 	{
 		return binaryExpr(expression, "OrOp");
 	}
 
 	@Override
-	public Boolean visit(TimesExpr expression)
+	public Boolean visit(TimesExpr expression) throws Exception
 	{
 		return binaryExpr(expression, "TimeOp");
 	}
@@ -159,14 +159,30 @@ public class SemanticAnalyzer implements Visitor
 	@Override
 	public Boolean visit(NotExpr expression) throws Exception
 	{
-		return expression.expression.accept(this);
+		expression.expression.accept(this);
+
+		if(opType("NotOp", expression.expression.typeNode, null).equals("ERR"))
+			throw new Exception("Incompatible types in operation " + "NotOp");
+
+		// TODO Decidere come gestire le operazioni tra funzioni con più valori di ritorno
+
+		// Il tipo di questa espressione è di default BOOL
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(UminExpr expression) throws Exception
 	{
+		expression.expression.accept(this);
+
+		if(opType("UminOp", expression.expression.typeNode, null).equals("ERR"))
+			throw new Exception("Incompatible types in operation " + "UminOp");
+
 		// Assegno all'espressione Umin il tipo dell'espressione figlia
 		expression.typeNode = expression.expression.typeNode;
+
+		// TODO Decidere come gestire le operazioni tra funzioni con più valori di ritorno
 
 		return expression.expression.accept(this);
 	}
@@ -225,7 +241,7 @@ public class SemanticAnalyzer implements Visitor
 					// Se il numero di parametri matchati è non negativo, per ogni valore di ritorno della funzione presa come
 					// argomento controlliamo se i tipi sono in corrispondenza con i parametri restanti
 					for(String returnTypeProc : returnTypesProc)
-						if(!returnTypeProc.equals(parametersTypes[parametersTypes.length - oldNOPT--]))
+						if(!returnTypeProc.equals(parametersTypes[parametersTypes.length - oldNOPT--])) // TODO Usare le compatibilità dei tipi
 							throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
 				}
 				else
@@ -427,8 +443,9 @@ public class SemanticAnalyzer implements Visitor
 			// Restiutisce sempre true
 			proc.params.get(i).accept(this);
 			// ParDecl  è fatto da un tipo e una lista di id, quindi per ogni id devo definire il tipo specificato
-			for(Id id : proc.params.get(i).idList)
-				type.append(proc.params.get(i).type).append(i == proc.params.size() - 1 ? " -> " : ", ");
+			for(int j = 0; j < proc.params.get(i).idList.size(); j++)
+				type.append(proc.params.get(i).type)
+						.append(j == proc.params.get(i).idList.size() - 1 ? " -> " : ", ");
 		}
 
 		// Appendiamo ai tipi dei parametri i tipi di ritorno
@@ -452,7 +469,6 @@ public class SemanticAnalyzer implements Visitor
 		// Nella nuova tabelle inserisco le nuove variabili che sono state dichiarate
 		for(VarDecl varDecl : proc.varDeclList)
 		{
-			varDecl.idListInit.accept(this);
 			for(Id id : varDecl.idListInit.keySet())
 			{
 				// Se l'id è gia presente nella tabella corrente vuol dire che ho dichiarato una varaibile con lo stesso nome di un parametro formale e questo non può accadere
@@ -503,7 +519,7 @@ public class SemanticAnalyzer implements Visitor
 				// Se il numero di valori di ritorno è non negativo, per ogni valore di ritorno della funzione presente come espressione
 				//controlliamo se i tipi sono in corrispondenza con i tipi di ritorno effettivi della funzione
 				for(String returnTypeProc : returnTypesProc)
-					if(!returnTypeProc.equals(proc.resultTypeList.get(proc.resultTypeList.size() - oldNRT--)))
+					if(!returnTypeProc.equals(proc.resultTypeList.get(proc.resultTypeList.size() - oldNRT--))) // TODO Usare le compatibilità dei tipi
 						throw new Exception("Type mismatch in return of function " + proc.id);
 			}
 			else
@@ -578,9 +594,97 @@ public class SemanticAnalyzer implements Visitor
 		visitable.accept(this);
 	}
 
-	private Boolean binaryExpr(BinaryOp expression, String nameOp)
+	private Boolean binaryExpr(BinaryOp expression, String nameOp) throws Exception
 	{
-		// TODO
-		return null;
+		expression.leftExpr.accept(this);
+		expression.rightExpr.accept(this);
+
+		String typeOp = opType(nameOp, expression.leftExpr.typeNode, expression.rightExpr.typeNode);
+
+		if(typeOp.equals("ERR"))
+			throw new Exception("Incompatible types in operation " + nameOp);
+
+		expression.typeNode = typeOp;
+
+		// TODO Decidere come gestire le operazioni tra funzioni con più valori di ritorno
+
+		return true;
+	}
+
+	private String opType(String op, String type1, String type2)
+	{
+		// Definiamo delle tabelle di compatibilità in cui le righe e le colonne sono i tipi (INT, FLOAT, STRING, BOOL)
+		// e le celle indicano il tipo del risultato dell'operazione tra quei due tipi specifici
+
+		String[][] addTable = {
+				{"INT", "FLOAT", "ERR", "ERR"},
+				{"FLOAT", "FLOAT", "ERR", "ERR"},
+				{"ERR", "ERR", "STRING", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR"}
+		};
+		// La minTable non la facciamo perché è uguale alla addTable in quanto è l'operazione inversa
+
+		String[][] timeTable = {
+				{"INT", "FLOAT", "ERR", "ERR"},
+				{"FLOAT", "FLOAT", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR"}
+		};
+		// La divTable non la facciamo perché è uguale alla timeTable in quanto è l'operazione inversa
+
+		// Questa tabella è usata sia per l'and che per l'or in quanto hanno la stessa definizione di compatibilità
+		String[][] logicBinaryOps = {
+				{"ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "BOOL"}
+		};
+
+		// Poiché il not è un operatore unario anziché avere una matrice per le compatibilità basta un array dove gli indici
+		// rappresentano il tipo dell'operando e il contenuto è il tipo del risultato dell'operazione
+		String[] notOp = {"ERR", "ERR", "ERR", "BOOL"};
+
+		// Poiché il not è un operatore unario anziché avere una matrice per le compatibilità basta un array dove gli indici
+		// rappresentano il tipo dell'operando e il contenuto è il tipo del risultato dell'operazione
+		String[] uminOp = {"INT", "FLOAT", "ERR", "ERR"};
+
+		String[][] relOps = {
+				{"BOOL", "BOOL", "ERR", "ERR"},
+				{"BOOL", "BOOL", "ERR", "ERR"},
+				{"ERR", "ERR", "BOOL", "ERR"},
+				{"ERR", "ERR", "ERR", "BOOL"}
+		};
+
+		// Utilizziamo la funzione getCoord per ottenere gli indici relativi ai tipi degli operandi passati come argomento
+		int x = getCoord(type1), y = -1;
+
+		// Questo controllo è fatto poiché nel caso di un operatore unario la variabile type2 non sarà settata
+		if(type2 != null)
+			y = getCoord(type2);
+
+		return switch(op)
+				{
+					case "AddOp", "MinOp" -> addTable[x][y];
+					case "TimeOp", "DivOp" -> timeTable[x][y];
+					case "AndOp", "OrOp" -> logicBinaryOps[x][y];
+					case "NotOp" -> notOp[x];
+					case "UminOp" -> uminOp[x];
+					case "EqOp", "GeOp", "GtOp", "LeOp", "LtOp", "NeOp" -> relOps[x][y];
+					default -> "ERR";
+				};
+	}
+
+	private int getCoord(String type)
+	{
+		final int INT = 0, FLOAT = 1, STRING = 2, BOOL = 3;
+
+		return switch(type)
+				{
+					case "INT" -> INT;
+					case "FLOAT" -> FLOAT;
+					case "STRING" -> STRING;
+					case "BOOL" -> BOOL;
+					default -> throw new IllegalStateException("Unexpected value: " + type);
+				};
 	}
 }

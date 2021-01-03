@@ -1,3 +1,11 @@
+proc add(float first, second) float:
+    -> first + second
+corp;
+
+proc mul(float first, second) float:
+    -> first * second
+corp;
+
 proc main() void:
 	string userInput := "";
     float firstNumber := 0, secondNumber := 0, result := 0;
@@ -30,12 +38,4 @@ proc main() void:
 
 		write("The result is: ", result);
 	od;
-corp;
-
-proc add(float first, second) float:
-    -> first + second
-corp;
-
-proc mul(float first, second) float:
-    -> first * second
 corp;

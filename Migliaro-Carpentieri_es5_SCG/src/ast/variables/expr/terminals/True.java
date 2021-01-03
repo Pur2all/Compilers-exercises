@@ -5,9 +5,13 @@ import visitor.Visitor;
 public class True extends Terminal
 {
 	public static final Boolean value = true;
-	public String typeNode = "BOOL";
 
-	public Boolean accept(Visitor visitor)
+	public True()
+	{
+		this.typeNode = "BOOL";
+	}
+
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

@@ -15,7 +15,7 @@ public class VarDecl implements Visitable
 		this.idListInit = idListInit;
 	}
 
-	public Boolean accept(Visitor visitor)
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

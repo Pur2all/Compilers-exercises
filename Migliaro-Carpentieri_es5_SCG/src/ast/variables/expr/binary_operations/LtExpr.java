@@ -12,7 +12,7 @@ public class LtExpr extends BinaryOp
 		super(leftExpr, rightExpr);
 	}
 
-	public Boolean accept(Visitor visitor)
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}

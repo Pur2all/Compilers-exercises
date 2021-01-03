@@ -5,14 +5,14 @@ import visitor.Visitor;
 public class FloatConst extends Terminal
 {
 	public Float value;
-	public String typeNode = "FLOAT";
 
 	public FloatConst(Float value)
 	{
+		this.typeNode = "FLOAT";
 		this.value = value;
 	}
 
-	public Boolean accept(Visitor visitor)
+	public Boolean accept(Visitor visitor) throws Exception
 	{
 		return visitor.visit(this);
 	}
