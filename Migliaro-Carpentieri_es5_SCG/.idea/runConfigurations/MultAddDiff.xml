@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="MultAddDiff" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="Tester" />
-    <module name="Migliaro-Carpentieri_es4_tlp" />
+    <module name="Migliaro-Carpentieri_es5_SCG" />
     <option name="PROGRAM_PARAMETERS" value="test_files/multAddDiff.toy" />
     <method v="2">
       <option name="Make" enabled="true" />

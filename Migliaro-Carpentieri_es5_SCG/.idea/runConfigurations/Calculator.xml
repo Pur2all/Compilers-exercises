@@ -1,9 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Calculator" type="Application" factoryName="Application">
-    <option name="ALTERNATIVE_JRE_PATH" value="15" />
-    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="MAIN_CLASS_NAME" value="Tester" />
-    <module name="Migliaro-Carpentieri_es4_tlp" />
+    <module name="Migliaro-Carpentieri_es5_SCG" />
     <option name="PROGRAM_PARAMETERS" value="test_files/calculator.toy" />
     <method v="2">
       <option name="Make" enabled="true" />
