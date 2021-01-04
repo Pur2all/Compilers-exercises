@@ -200,7 +200,8 @@ public class SemanticAnalyzer implements Visitor
 		String[] splittedType = functionDeclaredInfo.type.split(" -> ");
 
 		// Costruiamo un array di stringhe contenente i tipi dei parametri
-		String[] parametersTypes = splittedType[0].split(", ");
+		// Se la lista dei parametri è vuota costruiamo un array di 0 elementi altrimeni facendo lo split ci creerebbe un array con un solo elemento (la stringa vuota)
+		String[] parametersTypes = splittedType[0].equals("") ? new String[0] : splittedType[0].split(", ");
 
 		// Salviamo i tipi dei valori di ritorno della funzione
 		String returnTypes = splittedType[1];
@@ -448,9 +449,24 @@ public class SemanticAnalyzer implements Visitor
 						.append(j == proc.params.get(i).idList.size() - 1 ? " -> " : ", ");
 		}
 
+		if(proc.params.size() == 0)
+			type.append(" -> ");
+
 		// Appendiamo ai tipi dei parametri i tipi di ritorno
 		for(int i = 0; i < proc.resultTypeList.size(); i++)
 			type.append(proc.resultTypeList.get(i)).append(i == proc.resultTypeList.size() - 1 ? "" : ", ");
+
+		// Se la tabella dei simboli globale contiene la procedura dichiarata allora lancio eccezione poiché
+		// non posso ridichiarare una funzione di libreria (readln o write).
+		if(!root.symbolTable.containsKey(proc.id))
+			// Se la tabella dei simboli corrente contiene l'id della procedura allora vuol dire che già esiste quell'identificatore
+			// e non posso riutilizzarlo
+			if(!currentSymbolTable.symbolTable.containsKey(proc.id))
+				currentSymbolTable.symbolTable.put(proc.id, new SymbolTableRecord(Kind.FUNCTION, type.toString(), ""));
+			else
+				throw new Exception("Function " + proc.id + "is already declared as " + (currentSymbolTable.symbolTable.get(proc.id).kind == Kind.VARIABLE ? "variable" : "function"));
+		else
+			throw new Exception("Cannot redeclare library function " + proc.id);
 
 		// Poiché proc crea un nuovo livello di scope creiamo una nuova tabella dei simboli identificata dal nome della procedura
 		SymbolTable newSymbolTable = new SymbolTable(proc.id);
@@ -549,8 +565,6 @@ public class SemanticAnalyzer implements Visitor
 	@Override
 	public Boolean visit(Program program) throws Exception
 	{
-		// TODO: Dobbiamo creare una nuova symtab e aggiornare il puntatore alla corrente
-
 		// Program definisce un nuovo scope quindi creo una tabella dei simboli
 		SymbolTable newSymbolTable = new SymbolTable("Program");
 		// Creo un nuovo nodo per la tabella dei simboli che ha come padre la tabella dei simboli root
@@ -568,20 +582,13 @@ public class SemanticAnalyzer implements Visitor
 		for(Proc proc : program.procList)
 		{
 			proc.accept(this);
-			// Se la tabella dei simboli globale contiene la procedura dichiarata allora lancio eccezione poiché
-			// non posso ridichiarare una funzione di libreria (readln o write).
-			if(!root.symbolTable.containsKey(proc.id))
-				// Se la tabella dei simboli corrente contiene l'id della procedura allora vuol dire che già esiste quell'identificatore
-				// e non posso riutilizzarlo
-				if(!newSymbolTable.containsKey(proc.id))
-					newSymbolTable.put(proc.id, new SymbolTableRecord(Kind.FUNCTION, proc.typeNode, ""));
-				else
-					throw new Exception("Function " + proc.id + "is already declared as " + (newSymbolTable.get(proc.id).kind == Kind.VARIABLE ? "variable" : "function"));
-			else
-				throw new Exception("Cannot redeclare library function " + proc.id);
+
 			// Quando finiamo di esaminare la procedura ritorniamo nuovamente nello scope di program
 			currentSymbolTable = currentSymbolTable.parent;
 		}
+
+		if(currentSymbolTable.lookup("main") == null)
+			throw new Exception("Function main is not defined");
 
 		// Program non ha tipo di ritorno
 
@@ -660,8 +667,15 @@ public class SemanticAnalyzer implements Visitor
 
 		// Questo controllo è fatto poiché nel caso di un operatore unario la variabile type2 non sarà settata
 		if(type2 != null)
+		{
 			y = getCoord(type2);
 
+			// L'operazioni BOOL RELOP BOOL possiamo farla solo quando l'operazione è equal o not equal altrimenti non è definita
+			if(type1.equals("BOOL") && type2.equals("BOOL") && !(op.equals("EqOp") || op.equals("NeOp")))
+				return "ERR";
+		}
+
+		// Ritorniamo il tipo dell'operazione che effettuiamo in base all'operatore op ricevuto in input
 		return switch(op)
 				{
 					case "AddOp", "MinOp" -> addTable[x][y];
@@ -678,6 +692,7 @@ public class SemanticAnalyzer implements Visitor
 	{
 		final int INT = 0, FLOAT = 1, STRING = 2, BOOL = 3;
 
+		// Definiamo un associazione tra i tipi e degli interi che utilizziamo come indici di riga e colonna per accedere alle matrici di compatibiltià
 		return switch(type)
 				{
 					case "INT" -> INT;
