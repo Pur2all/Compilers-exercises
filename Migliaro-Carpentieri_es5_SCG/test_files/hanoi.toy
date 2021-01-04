@@ -2,8 +2,7 @@
  * hanoi.t - standard "Towers of Hanoi" in toy.
  */
 
-proc printPeg(int peg)void:
-
+proc printPeg(int peg) void:
     if peg = 1 then
         write("left");
     elif peg = 2 then
@@ -13,8 +12,7 @@ proc printPeg(int peg)void:
     fi;
 corp;
 
-proc hanoi(int n, fromPeg, usingPeg, toPeg)void:
-
+proc hanoi(int n, fromPeg, usingPeg, toPeg) void:
     if n <> 0 then
         hanoi(n - 1, fromPeg, toPeg, usingPeg);
         write("Move disk from ");
@@ -26,7 +24,7 @@ proc hanoi(int n, fromPeg, usingPeg, toPeg)void:
     fi;
 corp;
 
-proc main()void:
+proc main() void:
     int n := 0;
 
     write("How many pegs? ");

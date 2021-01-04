@@ -4,7 +4,7 @@
 
 string nome := "Michele";
 
-proc multAddDiff ()int, int, int :	
+proc multAddDiff() int, int, int :
 	int primo, secondo, mul, add, diff;
 	
 	write("Inserire il primo argomento:\n");
@@ -16,15 +16,15 @@ proc multAddDiff ()int, int, int :
 corp;
 
 
-proc writeNewLines(int n)void :
-	while n >0 do
+proc writeNewLines(int n) void :
+	while n > 0 do
 		write("\n");
 		n := n -1;
 	od;
 corp;
 
 
-proc main()void :
+proc main() void :
 	int a, b, c:=0;
 	a, b, c := multAddDiff();
 	write ("Ciao ", nome);
