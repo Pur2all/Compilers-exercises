@@ -245,10 +245,18 @@ public class SemanticAnalyzer implements Visitor
 				}
 				else
 				{
-					// Se l'argomento non è una funzione e il suo tipo non corrisponde a quello richiesto dal parametro
-					// lanciamo un'eccezione
-					if(!typeNode.equals(parametersTypes[i]))
-						throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
+					try
+					{
+						// Se l'argomento non è una funzione e il suo tipo non corrisponde a quello richiesto dal parametro
+						// lanciamo un'eccezione
+						if(!typeNode.equals(parametersTypes[i]))
+							throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
+					}
+					catch(IndexOutOfBoundsException indexOutOfBoundsException)
+					{
+						// Se il numero di parametri formali è minore di quelli attuali lanciamo eccezione
+						throw new Exception("Too much arguments given to the function " + callProc.id);
+					}
 
 					// In questo caso abbiamo matchato un solo parametro
 					numOfParametersType--;
@@ -275,15 +283,73 @@ public class SemanticAnalyzer implements Visitor
 	@Override
 	public Boolean visit(AssignStat assignStat) throws Exception
 	{
-		// Chiamo l'accept su id per controllare che gli id siano effettivamente dichiarati
-		for(Id id : assignStat.idList)
-			id.accept(this);
-		// TODO Dobbiamo controllare il tipo delle espressioni e che il numero di id corrisponde al numero di espressioni
-		//  (ricorda delle funzioni con più valroi di ritorno)
+		// Salviamo il numero di assegnamenti da effettuare basato sul numero di variabli
+		int numOfAssignment = assignStat.idList.size();
 
-		// Chiamo l'accept su expr per controllare la correttezza dell'expr
-		for(AbstractExpression expr : assignStat.exprList)
-			expr.accept(this);
+		for(int i = 0; i < assignStat.exprList.size(); i++)
+		{
+			Id tempId;
+			AbstractExpression tempExpr = assignStat.exprList.get(i);
+
+			// Se l'i-esimo id non è presente, a prescindere dalla natura dell'espressione, vuol dire che ci sono troppe
+			// espressioni da assegnare. Quindi abbiamo un numero minore di id rispetto a quello delle espressioni.
+			try
+			{
+				tempId = assignStat.idList.get(assignStat.idList.size() - numOfAssignment);
+			}
+			catch(IndexOutOfBoundsException indexOutOfBoundsException)
+			{
+				throw new Exception("Too many value to unpack");
+			}
+
+			// Chiamo l'accept su id per controllare che gli id siano effettivamente dichiarati
+			tempId.accept(this);
+			// Chiamo l'accept su expr per controllare la correttezza dell'expr
+			tempExpr.accept(this);
+
+			if(tempExpr instanceof CallProc)
+			{
+				// Otteniamo i tipi di ritorno della funzione chiamata
+				String[] returnTypes = tempExpr.typeNode.split(", ");
+
+				// Salviamo il numero di id che ci rimangono da leggere
+				int oldNOA = numOfAssignment;
+
+				numOfAssignment -= returnTypes.length;
+
+				if(numOfAssignment < 0)
+					throw new Exception("Too much value to unpack");
+
+				for(int j = 0; j < returnTypes.length; j++)
+				{
+					// Creo una nuova variabile temporanea soltanto per poter utilizzare il metodo di check che prende
+					// come input due oggetti di tipo sepcifico
+					Id tempVar = new Id("");
+					tempVar.typeNode = returnTypes[j];
+
+					Id internalId = assignStat.idList.get(assignStat.idList.size() - oldNOA--);
+					internalId.accept(this);
+
+					// Controllo che l'assegnazione sia corretta
+					checkAssignmentCompatibility(internalId, tempVar);
+				}
+			}
+			else
+			{
+				// Controlliamo che i tipi siano compatibili per l'assegnazione
+				checkAssignmentCompatibility(tempId, tempExpr);
+
+				// Decrementiamo il numero di assegnamenti da effettuare perché uno è stato controllato
+				numOfAssignment--;
+			}
+
+			// Se il numero di assegnamenti da effettuare diventa negativo vuol dire che ci sono più
+			if(numOfAssignment < 0)
+				throw new Exception("Too many value to unpack");
+		}
+
+		if(numOfAssignment > 0)
+			throw new Exception("Too few value to unpack");
 
 		// L'assignStat non ha tipo
 
@@ -404,16 +470,23 @@ public class SemanticAnalyzer implements Visitor
 		{
 			// Controllo per ogni id se è presente un espressione.
 			AbstractExpression expr = idListInit.get(id);
+
 			// Se è presente l'espressione controllo che sia corretta
 			if(expr != null)
 			{
-				expr.accept(this);
 				// Controlliamo che l'espressione assegnata all'id sia di tipo corretto
-				// TODO Implementare le compatibilità di tipo, non è detto che l'assegnamento sia valido solo per tipi uguali
+				expr.accept(this);
+
+				// Se l'espressione è una chiamata a funzione controlliamo che questa torni al massimo un solo valore
+				if(expr instanceof CallProc)
+					if(expr.typeNode.split(", ").length != 1)
+						throw new Exception("Cannot assign multiple values to a single variable");
+
 				// Faccio l'accept di id per avere il tipo del nodo id
 				id.accept(this);
-				if(!id.typeNode.equals(expr.typeNode))
-					throw new Exception("Type mismatch, variable " + id.value + " of type " + id.typeNode + " assigned with type " + expr.typeNode);
+
+				// Controlliamo se i tipi sono compatibili
+				checkAssignmentCompatibility(id, expr);
 			}
 			// Se l'espressione è null vuol dire che non ci sono assegnamenti e non è necessario fare controlli
 		}
@@ -429,18 +502,22 @@ public class SemanticAnalyzer implements Visitor
 		// Inserico gli id della lista nella tebella dei simboli corrente
 		for(Id id : varDecl.idListInit.keySet())
 		{
-			//TODO aggiustare lo scope delle funzioni
-			if(!currentSymbolTable.symbolTable.containsKey(id.value) )
+			if(!currentSymbolTable.symbolTable.containsKey(id.value))
 				currentSymbolTable.symbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, varDecl.type, ""));
 			else
 			{
 				String properties = currentSymbolTable.symbolTable.get(id.value).properties;
+
 				if(properties.equals(""))
 					throw new Exception("Variable " + id.value + " is alredy declared in this scope");
 				else
 					throw new Exception("Cannot declare variable with same identifier of a parameter");
 			}
 		}
+
+		// Controlliamo che le assegnazioni siano corrette e rispettano il tipo
+		varDecl.idListInit.accept(this);
+
 		// Il nodo VarDecl non ha tipo e di default è void
 
 		return true;
@@ -542,10 +619,18 @@ public class SemanticAnalyzer implements Visitor
 			}
 			else
 			{
-				// Se l'espressione non è una funzione e il suo tipo non corrisponde a quello richiesto dal tipo di ritorno
-				// lanciamo un'eccezione
-				if(!typeNode.equals(proc.resultTypeList.get(i)))
-					throw new Exception("Type mismatch in return of function " + proc.id);
+				try
+				{
+					// Se l'espressione non è una funzione e il suo tipo non corrisponde a quello richiesto dal tipo di ritorno
+					// lanciamo un'eccezione
+					if(!typeNode.equals(proc.resultTypeList.get(i)))
+						throw new Exception("Type mismatch in return of function " + proc.id);
+				}
+				catch(IndexOutOfBoundsException indexOutOfBoundsException)
+				{
+					// Se il numero di valori di ritorno della funzione sono maggiori rispetto a quelli dichiarati è un errore
+					throw new Exception("Function " + proc.id + " returns too much values than those declared");
+				}
 
 				// In questo caso abbiamo matchato una solo valore di ritorno
 				numResultType--;
@@ -622,6 +707,8 @@ public class SemanticAnalyzer implements Visitor
 
 	private String opType(String op, String type1, String type2)
 	{
+		// TODO Definire operazioni sulle stringhe
+
 		// Definiamo delle tabelle di compatibilità in cui le righe e le colonne sono i tipi (INT, FLOAT, STRING, BOOL)
 		// e le celle indicano il tipo del risultato dell'operazione tra quei due tipi specifici
 
@@ -639,7 +726,13 @@ public class SemanticAnalyzer implements Visitor
 				{"ERR", "ERR", "ERR", "ERR"},
 				{"ERR", "ERR", "ERR", "ERR"}
 		};
-		// La divTable non la facciamo perché è uguale alla timeTable in quanto è l'operazione inversa
+
+		String[][] divTable = {
+				{"FLOAT", "FLOAT", "ERR", "ERR"},
+				{"FLOAT", "FLOAT", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR"}
+		};
 
 		// Questa tabella è usata sia per l'and che per l'or in quanto hanno la stessa definizione di compatibilità
 		String[][] logicBinaryOps = {
@@ -681,7 +774,8 @@ public class SemanticAnalyzer implements Visitor
 		return switch(op)
 				{
 					case "AddOp", "MinOp" -> addTable[x][y];
-					case "TimeOp", "DivOp" -> timeTable[x][y];
+					case "TimeOp" -> timeTable[x][y];
+					case "DivOp" -> divTable[x][y];
 					case "AndOp", "OrOp" -> logicBinaryOps[x][y];
 					case "NotOp" -> notOp[x];
 					case "UminOp" -> uminOp[x];
@@ -703,5 +797,13 @@ public class SemanticAnalyzer implements Visitor
 					case "BOOL" -> BOOL;
 					default -> throw new IllegalStateException("Unexpected value: " + type);
 				};
+	}
+
+	private void checkAssignmentCompatibility(Id id, AbstractExpression expression) throws Exception
+	{
+		// Se i tipi sono diversi lanciamo eccezione, a meno che non stiamo assegnando un INT ad un FLOAT, che è permesso
+		if(!id.typeNode.equals(expression.typeNode))
+			if(!(id.typeNode.equals("FLOAT") && expression.typeNode.equals("INT")))
+				throw new Exception("Type mismatch, variable " + id.value + " of type " + id.typeNode + " assigned with type " + expression.typeNode);
 	}
 }
