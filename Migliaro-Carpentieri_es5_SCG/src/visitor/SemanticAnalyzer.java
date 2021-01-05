@@ -194,15 +194,13 @@ public class SemanticAnalyzer implements Visitor
 
 		// Controlliamo se la funzione chiamata è stata definita
 		if(functionDeclaredInfo == null || functionDeclaredInfo.kind != Kind.FUNCTION)
-			throw new Exception("Function " + callProc.id + " not declared");
+			throw new Exception("Function " + callProc.id + " is not declared");
 
 		// Otteniamo un array di due stringhe rappresentanti i tipi dei parametri della funzione e i tipi dei valori di ritorno
 		String[] splittedType = functionDeclaredInfo.type.split(" -> ");
-
 		// Costruiamo un array di stringhe contenente i tipi dei parametri
 		// Se la lista dei parametri è vuota costruiamo un array di 0 elementi altrimeni facendo lo split ci creerebbe un array con un solo elemento (la stringa vuota)
 		String[] parametersTypes = splittedType[0].equals("") ? new String[0] : splittedType[0].split(", ");
-
 		// Salviamo i tipi dei valori di ritorno della funzione
 		String returnTypes = splittedType[1];
 
@@ -268,6 +266,7 @@ public class SemanticAnalyzer implements Visitor
 				throw new Exception("Too few arguments given to the function " + callProc.id);
 		}
 
+		// Setto come tipo del nodo callProc i tipi di ritorno della procedura
 		callProc.typeNode = returnTypes;
 
 		return true;
@@ -391,7 +390,10 @@ public class SemanticAnalyzer implements Visitor
 	@Override
 	public Boolean visit(ParDecl parDecl)
 	{
-		// Restituiamo true poiché qualsiasi tipo e lista di id è corretta e non è necessario fare alcun controllo sui tipi
+		// ParDecl è usato solo per dichiarare i parametri della funzione
+		for(Id id : parDecl.idList)
+			currentSymbolTable.symbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, parDecl.type, "parameter"));
+
 		return true;
 	}
 
@@ -422,12 +424,23 @@ public class SemanticAnalyzer implements Visitor
 	}
 
 	@Override
-	public Boolean visit(VarDecl varDecl)
+	public Boolean visit(VarDecl varDecl) throws Exception
 	{
 		// Inserico gli id della lista nella tebella dei simboli corrente
 		for(Id id : varDecl.idListInit.keySet())
-			currentSymbolTable.symbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, varDecl.type, ""));
-
+		{
+			//TODO aggiustare lo scope delle funzioni
+			if(!currentSymbolTable.symbolTable.containsKey(id.value) )
+				currentSymbolTable.symbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, varDecl.type, ""));
+			else
+			{
+				String properties = currentSymbolTable.symbolTable.get(id.value).properties;
+				if(properties.equals(""))
+					throw new Exception("Variable " + id.value + " is alredy declared in this scope");
+				else
+					throw new Exception("Cannot declare variable with same identifier of a parameter");
+			}
+		}
 		// Il nodo VarDecl non ha tipo e di default è void
 
 		return true;
@@ -441,14 +454,13 @@ public class SemanticAnalyzer implements Visitor
 		// Per ogni lista di parametri prendiamo il tipo degli identificatori e lo inseriamo nel buffer type
 		for(int i = 0; i < proc.params.size(); i++)
 		{
-			// Restiutisce sempre true
-			proc.params.get(i).accept(this);
-			// ParDecl  è fatto da un tipo e una lista di id, quindi per ogni id devo definire il tipo specificato
+			// ParDecl è fatto da un tipo e una lista di id, quindi per ogni id devo definire il tipo specificato
 			for(int j = 0; j < proc.params.get(i).idList.size(); j++)
 				type.append(proc.params.get(i).type)
-						.append(j == proc.params.get(i).idList.size() - 1 ? " -> " : ", ");
+						.append(j == proc.params.get(i).idList.size() - 1 && i == proc.params.size() - 1 ? " -> " : ", ");
 		}
 
+		// Anche se la lista dei parametri è vuota dobbiamo mettere la freccia come separatore
 		if(proc.params.size() == 0)
 			type.append(" -> ");
 
@@ -464,7 +476,7 @@ public class SemanticAnalyzer implements Visitor
 			if(!currentSymbolTable.symbolTable.containsKey(proc.id))
 				currentSymbolTable.symbolTable.put(proc.id, new SymbolTableRecord(Kind.FUNCTION, type.toString(), ""));
 			else
-				throw new Exception("Function " + proc.id + "is already declared as " + (currentSymbolTable.symbolTable.get(proc.id).kind == Kind.VARIABLE ? "variable" : "function"));
+				throw new Exception("Function " + proc.id + " is already declared as " + (currentSymbolTable.symbolTable.get(proc.id).kind == Kind.VARIABLE ? "variable" : "function"));
 		else
 			throw new Exception("Cannot redeclare library function " + proc.id);
 
@@ -479,21 +491,11 @@ public class SemanticAnalyzer implements Visitor
 
 		// Nella nuova tabella devo inserire i parametri formali della procedura
 		for(ParDecl parDecl : proc.params)
-			for(Id id : parDecl.idList)
-				newSymbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, parDecl.type, ""));
+			parDecl.accept(this);
 
-		// Nella nuova tabelle inserisco le nuove variabili che sono state dichiarate
+		// Facciamo l'accept su varDecl per inserire le dichiarazioni delle varibili nella tabella dei simboli
 		for(VarDecl varDecl : proc.varDeclList)
-		{
-			for(Id id : varDecl.idListInit.keySet())
-			{
-				// Se l'id è gia presente nella tabella corrente vuol dire che ho dichiarato una varaibile con lo stesso nome di un parametro formale e questo non può accadere
-				if(!newSymbolTable.containsKey(id.value))
-					newSymbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, varDecl.type, ""));
-				else
-					throw new Exception("Cannot declare variable with same identifier of a parameter");
-			}
-		}
+			varDecl.accept(this);
 
 		// Controllo che gli statament della proc siano corrette
 		for(Statement stat : proc.statements)

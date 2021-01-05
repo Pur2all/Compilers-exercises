@@ -3,10 +3,8 @@
 */ 
 
 string nome := "Michele";
-
 proc multAddDiff() int, int, int :
 	int primo, secondo, mul, add, diff;
-	
 	write("Inserire il primo argomento:\n");
 	readln(primo);
 	write("Inserire il secondo argomento:\n");
