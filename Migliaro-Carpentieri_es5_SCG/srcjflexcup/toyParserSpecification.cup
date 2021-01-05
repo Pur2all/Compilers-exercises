@@ -1,3 +1,5 @@
+package parser;
+
 import ast.variables.*;
 import ast.variables.expr.*;
 import ast.variables.expr.terminals.*;

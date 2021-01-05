@@ -1,3 +1,7 @@
+package lexer;
+
+import parser.*;
+
 import java.util.HashMap;
 import java_cup.runtime.*;
 
@@ -7,6 +11,7 @@ import java_cup.runtime.*;
 %%
 
 %class Lexer
+%public
 %unicode
 %cup
 
@@ -37,7 +42,7 @@ private Symbol installID(String lexeme)
     }
     else
     {
-        token = new Symbol(ParserSym.ID, lexeme);
+        token = new Symbol(parser.ParserSym.ID, lexeme);
         stringTable.put(lexeme, token);
 
         return token;
@@ -50,26 +55,26 @@ private Symbol installID(String lexeme)
     stringTable = new HashMap<String, Symbol>();
     string = new StringBuffer();
 
-    stringTable.put("if", new Symbol(ParserSym.IF));
-    stringTable.put("then", new Symbol(ParserSym.THEN));
-    stringTable.put("elif", new Symbol(ParserSym.ELIF));
-    stringTable.put("else", new Symbol(ParserSym.ELSE));
-    stringTable.put("fi", new Symbol(ParserSym.FI));
-    stringTable.put("while", new Symbol(ParserSym.WHILE));
-    stringTable.put("do", new Symbol(ParserSym.DO));
-    stringTable.put("od", new Symbol(ParserSym.OD));
-    stringTable.put("int", new Symbol(ParserSym.INT));
-    stringTable.put("float", new Symbol(ParserSym.FLOAT));
-    stringTable.put("string", new Symbol(ParserSym.STRING));
-    stringTable.put("bool", new Symbol(ParserSym.BOOL));
-    stringTable.put("proc", new Symbol(ParserSym.PROC));
-    stringTable.put("corp", new Symbol(ParserSym.CORP));
-    stringTable.put("void", new Symbol(ParserSym.VOID));
-    stringTable.put("readln", new Symbol(ParserSym.READ));
-    stringTable.put("write", new Symbol(ParserSym.WRITE));
-    stringTable.put("null", new Symbol(ParserSym.NULL));
-    stringTable.put("true", new Symbol(ParserSym.TRUE));
-    stringTable.put("false", new Symbol(ParserSym.FALSE));
+    stringTable.put("if", new Symbol(parser.ParserSym.IF));
+    stringTable.put("then", new Symbol(parser.ParserSym.THEN));
+    stringTable.put("elif", new Symbol(parser.ParserSym.ELIF));
+    stringTable.put("else", new Symbol(parser.ParserSym.ELSE));
+    stringTable.put("fi", new Symbol(parser.ParserSym.FI));
+    stringTable.put("while", new Symbol(parser.ParserSym.WHILE));
+    stringTable.put("do", new Symbol(parser.ParserSym.DO));
+    stringTable.put("od", new Symbol(parser.ParserSym.OD));
+    stringTable.put("int", new Symbol(parser.ParserSym.INT));
+    stringTable.put("float", new Symbol(parser.ParserSym.FLOAT));
+    stringTable.put("string", new Symbol(parser.ParserSym.STRING));
+    stringTable.put("bool", new Symbol(parser.ParserSym.BOOL));
+    stringTable.put("proc", new Symbol(parser.ParserSym.PROC));
+    stringTable.put("corp", new Symbol(parser.ParserSym.CORP));
+    stringTable.put("void", new Symbol(parser.ParserSym.VOID));
+    stringTable.put("readln", new Symbol(parser.ParserSym.READ));
+    stringTable.put("write", new Symbol(parser.ParserSym.WRITE));
+    stringTable.put("null", new Symbol(parser.ParserSym.NULL));
+    stringTable.put("true", new Symbol(parser.ParserSym.TRUE));
+    stringTable.put("false", new Symbol(parser.ParserSym.FALSE));
 %init}
 
 // DELIMITERS

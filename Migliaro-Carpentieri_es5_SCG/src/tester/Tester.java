@@ -1,4 +1,8 @@
+package tester;
+
 import ast.variables.Program;
+import lexer.Lexer;
+import parser.Parser;
 import visitor.SemanticAnalyzer;
 
 import java.io.FileReader;
