@@ -69,7 +69,7 @@
   </path>
   
   <path id="migliaro-carpentieri_es5_scg.module.production.classpath">
-    <pathelement location="${basedir}/../../../../../../../../../../CUP/java-cup-11b-runtime.jar"/>
+    <pathelement location="${basedir}/tools/java-cup-11b-runtime.jar"/>
   </path>
   
   <patternset id="excluded.from.module.migliaro-carpentieri_es5_scg">
@@ -88,8 +88,8 @@
 
   <property name="toolssrc" location="srcjflexcup"/>
   <property name="src" location="src"/>
-  <property name="lexer" location="src"/>
-  <property name="parser" location="src"/>
+  <property name="lexer" location="src/lexer"/>
+  <property name="parser" location="src/parser"/>
   <property name="tools" location="tools"/>
 
   <taskdef name="jflex" classname="jflex.anttask.JFlexTask" classpath="${tools}/jflex-full-1.8.2.jar"/>
@@ -103,12 +103,12 @@
 
   <target name="lexer" depends="clear">
     <jflex file="${toolssrc}/toyLexerSpecification.flex"
-           destdir="${lexer}"/>
+           destdir="${src}"/>
   </target>
 
   <target name="parser" depends="lexer">
     <cup srcfile="${toolssrc}/toyParserSpecification.cup"
-         destdir="${parser}"
+         destdir="${src}"
          locations="false"
          parser="Parser"
          symbols="ParserSym"
