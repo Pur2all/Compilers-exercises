@@ -240,7 +240,7 @@ public class SemanticAnalyzer implements Visitor
 					// Se il numero di parametri matchati è non negativo, per ogni valore di ritorno della funzione presa come
 					// argomento controlliamo se i tipi sono in corrispondenza con i parametri restanti
 					for(String returnTypeProc : returnTypesProc)
-						if(!returnTypeProc.equals(parametersTypes[parametersTypes.length - oldNOPT--])) // TODO Usare le compatibilità dei tipi
+						if(!returnTypeProc.equals(parametersTypes[parametersTypes.length - oldNOPT--]))
 							throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
 				}
 				else
@@ -288,7 +288,9 @@ public class SemanticAnalyzer implements Visitor
 
 		for(int i = 0; i < assignStat.exprList.size(); i++)
 		{
+			// L'id a cui assegnare l'expr
 			Id tempId;
+			// l'i-esima espressione
 			AbstractExpression tempExpr = assignStat.exprList.get(i);
 
 			// Se l'i-esimo id non è presente, a prescindere dalla natura dell'espressione, vuol dire che ci sono troppe
@@ -306,15 +308,13 @@ public class SemanticAnalyzer implements Visitor
 			tempId.accept(this);
 			// Chiamo l'accept su expr per controllare la correttezza dell'expr
 			tempExpr.accept(this);
+			// Salviamo il numero di id che ci rimangono da leggere
+			int oldNOA = numOfAssignment;
 
 			if(tempExpr instanceof CallProc)
 			{
 				// Otteniamo i tipi di ritorno della funzione chiamata
 				String[] returnTypes = tempExpr.typeNode.split(", ");
-
-				// Salviamo il numero di id che ci rimangono da leggere
-				int oldNOA = numOfAssignment;
-
 				numOfAssignment -= returnTypes.length;
 
 				if(numOfAssignment < 0)
@@ -336,11 +336,33 @@ public class SemanticAnalyzer implements Visitor
 			}
 			else
 			{
-				// Controlliamo che i tipi siano compatibili per l'assegnazione
-				checkAssignmentCompatibility(tempId, tempExpr);
+				// Se contiene la , vuol dire che l'espressione potrebbe essere un operazione tra funzioni con più tipi di ritorno
+				if(tempExpr.typeNode.contains(","))
+				{
+					String[] tempReturnTypes = tempExpr.typeNode.split(", ");
+					for(int j = 0; j < tempReturnTypes.length; j++)
+					{
+						// Creo una nuova variabile temporanea soltanto per poter utilizzare il metodo di check che prende
+						// come input due oggetti di tipo sepcifico
+						Id tempVar = new Id("");
+						tempVar.typeNode = tempReturnTypes[j];
 
-				// Decrementiamo il numero di assegnamenti da effettuare perché uno è stato controllato
-				numOfAssignment--;
+						numOfAssignment--;
+						Id internalId = assignStat.idList.get(assignStat.idList.size() - oldNOA--);
+						internalId.accept(this);
+
+						// Controllo che l'assegnazione sia corretta
+						checkAssignmentCompatibility(internalId, tempVar);
+					}
+				}
+				else
+				{
+					// Controlliamo che i tipi siano compatibili per l'assegnazione
+					checkAssignmentCompatibility(tempId, tempExpr);
+
+					// Decrementiamo il numero di assegnamenti da effettuare perché uno è stato controllato
+					numOfAssignment--;
+				}
 			}
 
 			// Se il numero di assegnamenti da effettuare diventa negativo vuol dire che ci sono più
@@ -586,6 +608,9 @@ public class SemanticAnalyzer implements Visitor
 		// Memorizzo il numero di tipi di ritorno della funzione
 		int numResultType = proc.resultTypeList.size();
 
+		if(proc.returnExprs.size() == 0 && !proc.resultTypeList.get(0).equals("VOID"))
+			throw new Exception("You must return some values in function " + proc.id);
+
 		for(int i = 0; i < proc.returnExprs.size(); i++)
 		{
 			AbstractExpression returnExpr = proc.returnExprs.get(i);
@@ -614,7 +639,7 @@ public class SemanticAnalyzer implements Visitor
 				// Se il numero di valori di ritorno è non negativo, per ogni valore di ritorno della funzione presente come espressione
 				//controlliamo se i tipi sono in corrispondenza con i tipi di ritorno effettivi della funzione
 				for(String returnTypeProc : returnTypesProc)
-					if(!returnTypeProc.equals(proc.resultTypeList.get(proc.resultTypeList.size() - oldNRT--))) // TODO Usare le compatibilità dei tipi
+					if(!returnTypeProc.equals(proc.resultTypeList.get(proc.resultTypeList.size() - oldNRT--)))
 						throw new Exception("Type mismatch in return of function " + proc.id);
 			}
 			else
@@ -692,23 +717,61 @@ public class SemanticAnalyzer implements Visitor
 	{
 		expression.leftExpr.accept(this);
 		expression.rightExpr.accept(this);
+		String typeOp;
 
-		String typeOp = opType(nameOp, expression.leftExpr.typeNode, expression.rightExpr.typeNode);
+		// Se entrambe le espressioni sono funzioni facciamo devi controlli specifici per gestire le funzioni con più tipi di ritorno
+		if(expression.leftExpr.typeNode.contains(",") || expression.rightExpr.typeNode.contains(","))
+			// Se le espressioni sono funzioni chiamiamo la funzione opTypeFunction per stabilire se i tipi sono corretti
+			typeOp = opTypeFunction(nameOp, expression.leftExpr.typeNode, expression.rightExpr.typeNode);
+		else
+		{
+			// Chiamo la funzione opType per stabilire se le espressioni che compaiono come operandi sono del tipo corretto
+			typeOp = opType(nameOp, expression.leftExpr.typeNode, expression.rightExpr.typeNode);
+			// Se il tipo ritornato da opType è ERR allora vuol dire che si è verificato un errore di tipo
+			if(typeOp.equals("ERR"))
+				throw new Exception("Type mismatch in operation " + expression.leftExpr.typeNode + " " + nameOp + " " + expression.rightExpr.typeNode);
+		}
 
-		if(typeOp.equals("ERR"))
-			throw new Exception("Incompatible types in operation " + nameOp);
-
+		// Settiamo il tipo dell'espressione
 		expression.typeNode = typeOp;
 
-		// TODO Decidere come gestire le operazioni tra funzioni con più valori di ritorno
+		// TODO operazioni unarie con funzione
 
 		return true;
 	}
 
+	private String opTypeFunction(String op, String type1, String type2) throws Exception
+	{
+		// COstruisco due array contenenti i tipi di ritorno delle due funzioni
+		String[] returnTypes1 = type1.split(", ");
+		String[] returnTypes2 = type2.split(", ");
+		// Stringa utilizzata per memorizzare il tipo dell'espressione risultante
+		StringBuilder returnTypeExpr = new StringBuilder();
+		// Prendiamo l'array di stringhe con taglia più piccola per  poter iterare e effettuare i controllo dei tipi
+		String [] stringsMin = returnTypes1.length < returnTypes2.length ? returnTypes1 : returnTypes2;
+		// Prendiamo l'array con tagli più grande per poter inserire alla fine i tipi restanti
+		String [] stringsMax = returnTypes1.length > returnTypes2.length ? returnTypes1 : returnTypes2;
+
+		// Ciclo per controllare i tipi
+		for(int i = 0; i < stringsMin.length; i++)
+		{
+			// Assegnamo a temp il tipo restituitio dall'operazione tra i due tipi
+			String temp = opType(op, returnTypes1[i], returnTypes2[i]);
+			// Se l'operazione tra i tipi non è definita allora lanciamo eccezione
+			if(temp.equals("ERR"))
+				throw new Exception("Type mismatch in operation function: cannot do " + returnTypes1[i] + " " + op + " " + returnTypes2[i]);
+			returnTypeExpr.append(temp).append(i == stringsMin.length - 1 ? "" : ", ");
+		}
+
+		// Appendo i tipi restanti ai tipi di ritorno dell'espressione per gestire operazioni tra funzioni che ritornano un numero diverso di valori
+		for(int i = stringsMin.length; i < stringsMax.length ; i++)
+			returnTypeExpr.append(", ").append(stringsMax[i]);
+
+		return returnTypeExpr.toString();
+	}
+
 	private String opType(String op, String type1, String type2)
 	{
-		// TODO Definire operazioni sulle stringhe
-
 		// Definiamo delle tabelle di compatibilità in cui le righe e le colonne sono i tipi (INT, FLOAT, STRING, BOOL)
 		// e le celle indicano il tipo del risultato dell'operazione tra quei due tipi specifici
 
@@ -721,16 +784,16 @@ public class SemanticAnalyzer implements Visitor
 		// La minTable non la facciamo perché è uguale alla addTable in quanto è l'operazione inversa
 
 		String[][] timeTable = {
-				{"INT", "FLOAT", "ERR", "ERR"},
+				{"INT", "FLOAT", "STRING", "ERR"},
 				{"FLOAT", "FLOAT", "ERR", "ERR"},
-				{"ERR", "ERR", "ERR", "ERR"},
+				{"STRING", "ERR", "ERR", "ERR"},
 				{"ERR", "ERR", "ERR", "ERR"}
 		};
 
 		String[][] divTable = {
 				{"FLOAT", "FLOAT", "ERR", "ERR"},
 				{"FLOAT", "FLOAT", "ERR", "ERR"},
-				{"ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "INT", "ERR"},
 				{"ERR", "ERR", "ERR", "ERR"}
 		};
 

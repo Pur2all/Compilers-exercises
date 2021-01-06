@@ -2,6 +2,7 @@
  * Calcolo di moltiplicazione, somma e differenza
 */ 
 
+
 string nome := "Michele";
 proc multAddDiff() int, int, int :
 	int primo, secondo, mul, add, diff;
@@ -21,9 +22,21 @@ proc writeNewLines(int n) void :
 	od;
 corp;
 
+proc f1() int, int :
+    -> 2, 2
+corp;
 
+proc f2() int, int:
+    -> 3, 3
+corp;
+
+proc f() int, float:
+    -> 3, 4.0
+corp;
 proc main() void :
-	int a, b, c:=0;
+	float a, b, c;
+	b, c := f1() + f2() + f();
+
 	a, b, c := multAddDiff();
 	write ("Ciao ", nome);
 	writeNewLines(2);
