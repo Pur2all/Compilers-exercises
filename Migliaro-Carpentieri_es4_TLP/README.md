@@ -150,10 +150,9 @@
         STRING_CONST any string between "
   ```
 ## Note
-La grammatica del lingauggio Toy è stata modificata per risovere i conflitti. Nonostante ciò il linguaggio
+La grammatica del lingauggio Toy è stata modificata per risolvere i conflitti. Nonostante ciò il linguaggio
 generato dalla grammatica modificata è invariato ad eccezione del simbolo di return (->) per i valori di 
-ritorno delle funzioni.
-
- 
-
-   
+ritorno delle funzioni.  
+Un'altra modifica che abbiamo apportato alla grammatica è
+relativa alle procedure. In una procedura il tipo di ritorno o è VOID, oppure una qualsiasi altra lista di tipi che non contenga VOID, di conseguenza
+una dichiarazione del tipo `proc f() int, void: ...` è considerata come errore di tipo sintattico.
