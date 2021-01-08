@@ -6,6 +6,7 @@ import ast.variables.expr.binary_operations.*;
 import ast.variables.expr.terminals.*;
 import ast.variables.expr.unary_operations.NotExpr;
 import ast.variables.expr.unary_operations.UminExpr;
+import ast.variables.expr.unary_operations.UnaryOp;
 import ast.variables.stat.*;
 import symbolTable.Kind;
 import symbolTable.SymbolTable;
@@ -159,32 +160,13 @@ public class SemanticAnalyzer implements Visitor
 	@Override
 	public Boolean visit(NotExpr expression) throws Exception
 	{
-		expression.expression.accept(this);
-
-		if(opType("NotOp", expression.expression.typeNode, null).equals("ERR"))
-			throw new Exception("Incompatible types in operation " + "NotOp");
-
-		// TODO Decidere come gestire le operazioni tra funzioni con più valori di ritorno
-
-		// Il tipo di questa espressione è di default BOOL
-
-		return true;
+		return unaryExpr(expression, "NotOp");
 	}
 
 	@Override
 	public Boolean visit(UminExpr expression) throws Exception
 	{
-		expression.expression.accept(this);
-
-		if(opType("UminOp", expression.expression.typeNode, null).equals("ERR"))
-			throw new Exception("Incompatible types in operation " + "UminOp");
-
-		// Assegno all'espressione Umin il tipo dell'espressione figlia
-		expression.typeNode = expression.expression.typeNode;
-
-		// TODO Decidere come gestire le operazioni tra funzioni con più valori di ritorno
-
-		return expression.expression.accept(this);
+		return unaryExpr(expression, "UminOp");
 	}
 
 	@Override
@@ -417,7 +399,7 @@ public class SemanticAnalyzer implements Visitor
 
 		// Controllo che il tipo dell'espressione sia boolean
 		if(!whileStat.expr.typeNode.equals("BOOL"))
-			throw new Exception("Type mismatch, expression in while is not boolean");
+			throw new Exception("Type mismatch: expression in while condition is not of type BOOL, but " + whileStat.expr.typeNode);
 
 		return true;
 	}
@@ -446,7 +428,7 @@ public class SemanticAnalyzer implements Visitor
 		// Controlliamo che l'expr sia corretta e che sia di tipo booleano
 		anIf.expression.accept(this);
 		if(!anIf.expression.typeNode.equals("BOOL"))
-			throw new Exception("Type mismatch, expression is not an if condition");
+			throw new Exception("Type mismatch: expression in if condition is not of type BOOL but " + anIf.expression.typeNode);
 
 		// Controllo che gli statament dell'if siano corretti
 		for(Statement stat : anIf.statements)
@@ -713,13 +695,38 @@ public class SemanticAnalyzer implements Visitor
 		visitable.accept(this);
 	}
 
+	private Boolean unaryExpr(UnaryOp expression, String nameOp) throws Exception
+	{
+		expression.expression.accept(this);
+
+		String typeOp;
+
+		// Se l'espressione è una funzione che torna più valori facciamo dei controlli specifici per gestirla
+		if(expression.expression.typeNode.contains(","))
+			// Se l'espressione è una funzione chiamiamo la funzione opTypeFunction per stabilire se i tipi sono corretti
+			typeOp = opTypeFunction(nameOp, expression.expression.typeNode, null);
+		else
+		{
+			// Chiamo la funzione opType per stabilire se l'espressione che compaie come operando è del tipo corretto
+			typeOp = opType(nameOp, expression.expression.typeNode, null);
+			// Se il tipo ritornato da opType è ERR allora vuol dire che si è verificato un errore di tipo
+			if(typeOp.equals("ERR"))
+				throw new Exception("Type mismatch in operation " + nameOp + " " + expression.expression.typeNode);
+		}
+
+		// Settiamo il tipo dell'espressione
+		expression.typeNode = typeOp;
+
+		return true;
+	}
+
 	private Boolean binaryExpr(BinaryOp expression, String nameOp) throws Exception
 	{
 		expression.leftExpr.accept(this);
 		expression.rightExpr.accept(this);
 		String typeOp;
 
-		// Se entrambe le espressioni sono funzioni facciamo devi controlli specifici per gestire le funzioni con più tipi di ritorno
+		// Se entrambe le espressioni sono funzioni con più valori di ritorno facciamo dei controlli specifici per gestirle
 		if(expression.leftExpr.typeNode.contains(",") || expression.rightExpr.typeNode.contains(","))
 			// Se le espressioni sono funzioni chiamiamo la funzione opTypeFunction per stabilire se i tipi sono corretti
 			typeOp = opTypeFunction(nameOp, expression.leftExpr.typeNode, expression.rightExpr.typeNode);
@@ -735,37 +742,57 @@ public class SemanticAnalyzer implements Visitor
 		// Settiamo il tipo dell'espressione
 		expression.typeNode = typeOp;
 
-		// TODO operazioni unarie con funzione
-
 		return true;
 	}
 
 	private String opTypeFunction(String op, String type1, String type2) throws Exception
 	{
-		// COstruisco due array contenenti i tipi di ritorno delle due funzioni
-		String[] returnTypes1 = type1.split(", ");
-		String[] returnTypes2 = type2.split(", ");
 		// Stringa utilizzata per memorizzare il tipo dell'espressione risultante
 		StringBuilder returnTypeExpr = new StringBuilder();
-		// Prendiamo l'array di stringhe con taglia più piccola per  poter iterare e effettuare i controllo dei tipi
-		String [] stringsMin = returnTypes1.length < returnTypes2.length ? returnTypes1 : returnTypes2;
-		// Prendiamo l'array con tagli più grande per poter inserire alla fine i tipi restanti
-		String [] stringsMax = returnTypes1.length > returnTypes2.length ? returnTypes1 : returnTypes2;
 
-		// Ciclo per controllare i tipi
-		for(int i = 0; i < stringsMin.length; i++)
+		if(type2 != null)
 		{
-			// Assegnamo a temp il tipo restituitio dall'operazione tra i due tipi
-			String temp = opType(op, returnTypes1[i], returnTypes2[i]);
-			// Se l'operazione tra i tipi non è definita allora lanciamo eccezione
-			if(temp.equals("ERR"))
-				throw new Exception("Type mismatch in operation function: cannot do " + returnTypes1[i] + " " + op + " " + returnTypes2[i]);
-			returnTypeExpr.append(temp).append(i == stringsMin.length - 1 ? "" : ", ");
-		}
+			// Costruisco due array contenenti i tipi di ritorno delle due funzioni
+			String[] returnTypes1 = type1.split(", ");
+			String[] returnTypes2 = type2.split(", ");
 
-		// Appendo i tipi restanti ai tipi di ritorno dell'espressione per gestire operazioni tra funzioni che ritornano un numero diverso di valori
-		for(int i = stringsMin.length; i < stringsMax.length ; i++)
-			returnTypeExpr.append(", ").append(stringsMax[i]);
+			// Prendiamo l'array di stringhe con taglia più piccola per  poter iterare e effettuare i controllo dei tipi
+			String[] stringsMin = returnTypes1.length < returnTypes2.length ? returnTypes1 : returnTypes2;
+			// Prendiamo l'array con tagli più grande per poter inserire alla fine i tipi restanti
+			String[] stringsMax = returnTypes1.length > returnTypes2.length ? returnTypes1 : returnTypes2;
+
+			// Ciclo per controllare i tipi
+			for(int i = 0; i < stringsMin.length; i++)
+			{
+				// Assegnamo a temp il tipo restituitio dall'operazione tra i due tipi
+				String temp = opType(op, returnTypes1[i], returnTypes2[i]);
+				// Se l'operazione tra i tipi non è definita allora lanciamo eccezione
+				if(temp.equals("ERR"))
+					throw new Exception("Type mismatch in operation function: cannot do " + returnTypes1[i] + " " + op + " " + returnTypes2[i]);
+
+				returnTypeExpr.append(temp).append(i == stringsMin.length - 1 ? "" : ", ");
+			}
+
+			// Appendo i tipi restanti ai tipi di ritorno dell'espressione per gestire operazioni tra funzioni che ritornano un numero diverso di valori
+			for(int i = stringsMin.length; i < stringsMax.length; i++)
+				returnTypeExpr.append(", ").append(stringsMax[i]);
+		}
+		else
+		{
+			// Costruisco un array contenente i tipi di ritorno della funzione
+			String[] returnTypes = type1.split(", ");
+
+			for(int i = 0; i < returnTypes.length; i++)
+			{
+				// Assegnamo a temp il tipo restituitio dall'operazione sul tipo
+				String temp = opType(op, returnTypes[i], null);
+				// Se l'operazione non è definita allora lanciamo eccezione
+				if(temp.equals("ERR"))
+					throw new Exception("Type mismatch in operation function: cannot do " + op + " " + returnTypes[i]);
+
+				returnTypeExpr.append(temp).append(i == returnTypes.length - 1 ? "" : ", ");
+			}
+		}
 
 		return returnTypeExpr.toString();
 	}
@@ -830,7 +857,8 @@ public class SemanticAnalyzer implements Visitor
 
 			// L'operazioni BOOL RELOP BOOL possiamo farla solo quando l'operazione è equal o not equal altrimenti non è definita
 			if(type1.equals("BOOL") && type2.equals("BOOL") && !(op.equals("EqOp") || op.equals("NeOp")))
-				return "ERR";
+				if(!op.equals("AndOp") && !op.equals("OrOp"))
+					return "ERR";
 		}
 
 		// Ritorniamo il tipo dell'operazione che effettuiamo in base all'operatore op ricevuto in input
