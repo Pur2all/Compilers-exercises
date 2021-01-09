@@ -850,11 +850,17 @@ public class SemanticAnalyzer implements Visitor
 		// Utilizziamo la funzione getCoord per ottenere gli indici relativi ai tipi degli operandi passati come argomento
 		int x = getCoord(type1), y = -1;
 
+		// Se getCoord restiuisce -1 allora vuol dire che sto facendo un'operazione che include il tipo null
+		if(x == -1)
+			return "ERR";
+
 		// Questo controllo è fatto poiché nel caso di un operatore unario la variabile type2 non sarà settata
 		if(type2 != null)
 		{
 			y = getCoord(type2);
-
+			// Se getCoord restituisce -1 allora vuol dire che stiamo facendo un'operazione non valida con null
+			if(y == -1)
+				return "ERR";
 			// L'operazioni BOOL RELOP BOOL possiamo farla solo quando l'operazione è equal o not equal altrimenti non è definita
 			if(type1.equals("BOOL") && type2.equals("BOOL") && !(op.equals("EqOp") || op.equals("NeOp")))
 				if(!op.equals("AndOp") && !op.equals("OrOp"))
@@ -886,15 +892,17 @@ public class SemanticAnalyzer implements Visitor
 					case "FLOAT" -> FLOAT;
 					case "STRING" -> STRING;
 					case "BOOL" -> BOOL;
-					default -> throw new IllegalStateException("Unexpected value: " + type);
+					default -> -1;
 				};
 	}
 
 	private void checkAssignmentCompatibility(Id id, AbstractExpression expression) throws Exception
 	{
-		// Se i tipi sono diversi lanciamo eccezione, a meno che non stiamo assegnando un INT ad un FLOAT, che è permesso
-		if(!id.typeNode.equals(expression.typeNode))
-			if(!(id.typeNode.equals("FLOAT") && expression.typeNode.equals("INT")))
-				throw new Exception("Type mismatch, variable " + id.value + " of type " + id.typeNode + " assigned with type " + expression.typeNode);
+		// L'espressione null può essere assegnata a qualsiasi tipo
+		if(!expression.typeNode.equals("NULL"))
+			// Se i tipi sono diversi lanciamo eccezione, a meno che non stiamo assegnando un INT ad un FLOAT, che è permesso
+			if(!id.typeNode.equals(expression.typeNode))
+				if(!(id.typeNode.equals("FLOAT") && expression.typeNode.equals("INT")))
+					throw new Exception("Type mismatch, variable " + id.value + " of type " + id.typeNode + " assigned with type " + expression.typeNode);
 	}
 }
