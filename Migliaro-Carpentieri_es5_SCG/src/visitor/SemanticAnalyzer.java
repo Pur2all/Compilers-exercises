@@ -690,9 +690,10 @@ public class SemanticAnalyzer implements Visitor
 	}
 
 	// Serve per lanciare la visita dell'AST e creare le symbol tables
-	public void visitAST(Visitable visitable) throws Exception
+	public SymbolTableNode visitAST(Visitable visitable) throws Exception
 	{
 		visitable.accept(this);
+		return root;
 	}
 
 	private Boolean unaryExpr(UnaryOp expression, String nameOp) throws Exception
