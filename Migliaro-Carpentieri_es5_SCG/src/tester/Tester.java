@@ -18,6 +18,6 @@ public class Tester
 		SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
 		SymbolTableNode rootSymbolTableTree = semanticAnalyzer.visitAST(root);
 		CCodeGenerator codeGenerator = new CCodeGenerator(rootSymbolTableTree);
-		System.out.println(codeGenerator.generateCodeC(root));
+		System.out.println(codeGenerator.generateCCode(root));
 	}
 }

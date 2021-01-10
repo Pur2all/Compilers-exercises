@@ -10,7 +10,6 @@ import ast.variables.stat.*;
 import symbolTable.SymbolTableNode;
 
 import java.util.ArrayList;
-import java.util.Set;
 
 public class CCodeGenerator implements Visitor
 {
@@ -27,73 +26,97 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Boolean visit(AddExpr expression) throws Exception
 	{
-		return null;
+		generateBinaryExpr("+", expression.leftExpr, expression.rightExpr);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(AndExpr expression) throws Exception
 	{
-		return null;
+		generateBinaryExpr("&&", expression.leftExpr, expression.rightExpr);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(DivExpr expression) throws Exception
 	{
-		return null;
+		generateBinaryExpr("/", expression.leftExpr, expression.rightExpr);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(EqExpr expression) throws Exception
 	{
-		return null;
+		generateBinaryExpr("==", expression.leftExpr, expression.rightExpr);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(GeExpr expression) throws Exception
 	{
-		return null;
+		generateBinaryExpr(">=", expression.leftExpr, expression.rightExpr);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(GtExpr expression) throws Exception
 	{
-		return null;
+		generateBinaryExpr(">", expression.leftExpr, expression.rightExpr);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(LeExpr expression) throws Exception
 	{
-		return null;
+		generateBinaryExpr("<=", expression.leftExpr, expression.rightExpr);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(LtExpr expression) throws Exception
 	{
-		return null;
+		generateBinaryExpr("<", expression.leftExpr, expression.rightExpr);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(MinExpr expression) throws Exception
 	{
-		return null;
+		generateBinaryExpr("-", expression.leftExpr, expression.rightExpr);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(NeExpr expression) throws Exception
 	{
-		return null;
+		generateBinaryExpr("!=", expression.leftExpr, expression.rightExpr);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(OrExpr expression) throws Exception
 	{
-		return null;
+		generateBinaryExpr("||", expression.leftExpr, expression.rightExpr);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(TimesExpr expression) throws Exception
 	{
-		return null;
+		generateBinaryExpr("*", expression.leftExpr, expression.rightExpr);
+
+		return true;
 	}
 
 	@Override
@@ -162,13 +185,17 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Boolean visit(NotExpr expression) throws Exception
 	{
-		return null;
+		generateUnaryExpr("!", expression);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(UminExpr expression) throws Exception
 	{
-		return null;
+		generateUnaryExpr("-", expression);
+
+		return true;
 	}
 
 	@Override
@@ -186,13 +213,68 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Boolean visit(ReadlnStat readlnStat) throws Exception
 	{
-		return null;
+		StringBuilder placeholders = new StringBuilder();
+		int numOfIds = readlnStat.idList.size();
+
+		// Calcoliamo la stringa dei placeholder da usare nella chiamata a scanf
+		for(int i = 0; i < numOfIds; i++)
+		{
+			switch(readlnStat.idList.get(i).typeNode)
+			{
+				case "INT", "BOOL" -> placeholders.append("%d");
+				case "FLOAT" -> placeholders.append("%f");
+				case "STRING" -> placeholders.append("%s");
+			}
+			placeholders.append(i == numOfIds - 1 ? "" : ", ");
+		}
+
+		generatedCode.append("scanf(")
+				.append("\"")
+				.append(placeholders.toString())
+				.append("\", ");
+
+		// Aggiungiamo gli altri parametri alla chiamata
+		for(int i = 0; i < numOfIds; i++)
+		{
+			generatedCode.append("&");
+			readlnStat.idList.get(i).accept(this);
+			generatedCode.append(i == numOfIds - 1 ? ");\n" : ", ");
+		}
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(WriteStat writeStat) throws Exception
 	{
-		return null;
+		StringBuilder placeholders = new StringBuilder();
+		int numOfExprs = writeStat.exprList.size();
+
+		// Calcoliamo la stringa dei placeholder da usare nella chiamata a printf
+		for(int i = 0; i < numOfExprs; i++)
+		{
+			switch(writeStat.exprList.get(i).typeNode)
+			{
+				case "INT", "NULL" -> placeholders.append("%d");
+				case "FLOAT" -> placeholders.append("%f");
+				case "STRING", "BOOL" -> placeholders.append("%s");
+			}
+			placeholders.append(i == numOfExprs - 1 ? "" : ", ");
+		}
+
+		generatedCode.append("printf(")
+				.append("\"")
+				.append(placeholders.toString())
+				.append("\", ");
+
+		// Aggiungiamo gli altri parametri alla chiamata
+		for(int i = 0; i < numOfExprs; i++)
+		{
+			writeStat.exprList.get(i).accept(this);
+			generatedCode.append(i == numOfExprs - 1 ? ");\n" : ", ");
+		}
+
+		return true;
 	}
 
 	@Override
@@ -204,32 +286,68 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Boolean visit(Elif elif) throws Exception
 	{
-		return null;
+		generatedCode.append("else if(");
+		elif.expr.accept(this);
+		generatedCode.append(")\n").append("{\n");
+		for(Statement statement : elif.statements)
+			statement.accept(this);
+		generatedCode.append("}\n");
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(If anIf) throws Exception
 	{
-		return null;
+		generatedCode.append("if(");
+		anIf.expression.accept(this);
+		generatedCode.append(")\n").append("{\n");
+		for(Statement statement : anIf.statements)
+			statement.accept(this);
+		generatedCode.append("}\n");
+		for(Elif elif : anIf.elifList)
+			elif.accept(this);
+		anIf.anElse.accept(this);
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(Else anElse) throws Exception
 	{
-		return null;
+		if(!anElse.statements.isEmpty())
+		{
+			generatedCode.append("else\n").append("{\n");
+			for(Statement statement : anElse.statements)
+				statement.accept(this);
+			generatedCode.append("}\n");
+		}
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(ParDecl parDecl) throws Exception
 	{
-		return null;
+		int numOfIds = parDecl.idList.size();
+
+		// Per ogni parametro genero il codice corrispondente
+		for(int i = 0; i < numOfIds; i++)
+		{
+			generatedCode.append(parDecl.type).append(" ");
+			parDecl.idList.get(i).accept(this);
+			generatedCode.append(i == numOfIds - 1 ? "" : ", ");
+		}
+
+		return true;
 	}
 
 	@Override
 	public Boolean visit(IdListInit idListInit) throws Exception
 	{
 		// Otteniamo l'array di id dell'IdListInit
-		ArrayList<Id> setId = new ArrayList<> (idListInit.keySet());
+		ArrayList<Id> setId = new ArrayList<>(idListInit.keySet());
+
 		for(int i = 0; i < setId.size(); i++)
 		{
 			// Invochiamo l'accept su id che generarà il codice per l'id
@@ -272,13 +390,14 @@ public class CCodeGenerator implements Visitor
 	{
 		// All'inizio del programma dobbiamo generare il codice per l'import delle librerie
 		generatedCode.append("#include <stdio.h>\n");
-		generatedCode.append("#include <string.h>\n");
+		generatedCode.append("#include <string.h>\n\n");
 		generatedCode.append("#define BOOL int\n");
 		generatedCode.append("#define STRING char*\n");
 		generatedCode.append("#define INT int\n");
 		generatedCode.append("#define FLOAT float\n");
 		generatedCode.append("#define true 1\n");
-		generatedCode.append("#define false 0\n");
+		generatedCode.append("#define false 0\n\n");
+		generatedCode.append("char* deleteSubstring(char*, char*);\n");
 
 		// Invoco su ogni elemento di varDeclList l'accept
 		for(VarDecl varDecl : program.varDeclList)
@@ -292,11 +411,103 @@ public class CCodeGenerator implements Visitor
 	}
 
 	// Esegue il visit sulla radice dell'AST e  restituisce il codice C generato
-	public String generateCodeC(Program root) throws Exception
+	public String generateCCode(Program root) throws Exception
 	{
 		root.accept(this);
 
+		// Inserisco una funzione di libreria
+		generatedCode.append(CCodeString.deleteSubstring);
+
 		// Restituisco il codice C generato
 		return generatedCode.toString();
+	}
+
+	private void generateBinaryExpr(String op, AbstractExpression first, AbstractExpression second) throws Exception
+	{
+		switch(op)
+		{
+			case "+" -> add(first, second);
+			case "-" -> min(first, second);
+			case "*" -> mul(first, second);
+			case "/" -> div(first, second);
+			case "&&" -> generateSimpleExpr("&&", first, second);
+			case "||" -> generateSimpleExpr("||", first, second);
+			case "<", "<=", ">", ">=", "==", "!=" -> relop(op, first, second);
+		}
+	}
+
+	private void generateUnaryExpr(String op, AbstractExpression expression) throws Exception
+	{
+		switch(op)
+		{
+			case "!" -> generateSimpleExpr("!", expression, null);
+			case "-" -> generateSimpleExpr("-", expression, null);
+		}
+	}
+
+	private void generateSimpleExpr(String op, AbstractExpression first, AbstractExpression second) throws Exception
+	{
+		first.accept(this);
+		generatedCode.append(" ").append(op);
+		if(second != null)
+		{
+			generatedCode.append(" ");
+			second.accept(this);
+		}
+	}
+
+	private void generateSimpleLibFuncCall(String funcName, AbstractExpression first, AbstractExpression second) throws Exception
+	{
+		generatedCode.append(funcName).append("(");
+		first.accept(this);
+		generatedCode.append(", ");
+		second.accept(this);
+		generatedCode.append(");\n");
+	}
+
+	private void add(AbstractExpression first, AbstractExpression second) throws Exception
+	{
+		// Se il tipo delle espressioni è STRING bisogna effettuare la concatenazione delle due stringhe
+		if(first.typeNode.equals("STRING") && second.typeNode.equals("STRING"))
+			generateSimpleLibFuncCall("strcat", first, second);
+		else
+			generateSimpleExpr("+", first, second);
+	}
+
+	private void min(AbstractExpression first, AbstractExpression second) throws Exception
+	{
+		// Se il tipo delle espressioni è STRING bisogna togliere l'occorrenza della seconda stringa dalla prima se c'è
+		if(first.typeNode.equals("STRING") && second.typeNode.equals("STRING"))
+			generateSimpleLibFuncCall("deleteSubstring", first, second);
+		else
+			generateSimpleExpr("-", first, second);
+	}
+
+	private void mul(AbstractExpression first, AbstractExpression second) throws Exception
+	{
+		// Se l'operazione è effettuata tra un INT e un STRING allora si deve effettuare l'operazione di ripetizione della stringa
+		if(first.typeNode.equals("INT") && second.typeNode.equals("STRING") ||
+				first.typeNode.equals("STRING") && second.typeNode.equals("INT"))
+			generateSimpleLibFuncCall("repeatString", first.typeNode.equals("STRING") ? first : second, second.typeNode.equals("INT") ? second : first);
+		else
+			generateSimpleExpr("*", first, second);
+	}
+
+	private void div(AbstractExpression first, AbstractExpression second) throws Exception
+	{
+		// Se il tipo delle espressioni è STRING bisogna tornare il numero di occorrenze della seconda stringa nella prima
+		if(first.typeNode.equals("STRING") && second.typeNode.equals("STRING"))
+			generateSimpleLibFuncCall("numOccurrences", first, second);
+		else
+			generateSimpleExpr("/", first, second);
+	}
+
+	private void relop(String op, AbstractExpression first, AbstractExpression second) throws Exception
+	{
+		// Se il tipo delle espressione è STRING bisogna effettuare una string compare
+		if(first.typeNode.equals("STRING") && second.typeNode.equals("STRING"))
+			generateSimpleLibFuncCall("strcmp", first, second);
+		else
+			generateSimpleExpr(op, first, second);
 	}
 }
