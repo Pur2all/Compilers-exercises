@@ -11,6 +11,8 @@ import symbolTable.SymbolTableNode;
 
 import java.util.ArrayList;
 
+//TODO Gestire l'allocazione dinamica delle stringhe quando faccio una cosa del tipo userName :=""; e poi uso userName in C esplode tutto perché non ho allocato la memoria per userName
+
 public class CCodeGenerator implements Visitor
 {
 	private StringBuilder generatedCode;
@@ -141,7 +143,7 @@ public class CCodeGenerator implements Visitor
 	public Boolean visit(Id expression) throws Exception
 	{
 		// Generiamo il codice per un identificatore
-		generatedCode.append(expression.value);
+		generatedCode.append(expression.value).append("_toy");
 
 		return true;
 	}
@@ -207,7 +209,9 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Boolean visit(AssignStat assignStat) throws Exception
 	{
-		return null;
+
+
+		return true;
 	}
 
 	@Override
@@ -236,7 +240,10 @@ public class CCodeGenerator implements Visitor
 		// Aggiungiamo gli altri parametri alla chiamata
 		for(int i = 0; i < numOfIds; i++)
 		{
-			generatedCode.append("&");
+			// Se l'id è di tipo stringa allora sarà un char * in C e non è necessario usare la &
+			if(!readlnStat.idList.get(i).typeNode.equals("STRING"))
+				generatedCode.append("&");
+
 			readlnStat.idList.get(i).accept(this);
 			generatedCode.append(i == numOfIds - 1 ? ");\n" : ", ");
 		}
@@ -280,7 +287,29 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Boolean visit(WhileStat whileStat) throws Exception
 	{
-		return null;
+		// Per poter gestire il while del linguaggio toy che permette di avere stataments prima della condizione del while procediamo come segue:
+		// Appendiamo al codice generato fino a questo momento gli statment prima della condizione e poi li appendiamo anche alla fine nel corpo del while
+		// In questo modo simuliamo in C il while di toy.
+
+		// Appendo gli stataments prima della condizione del while al codice generato finora facendo l'accept
+		for(Statement condStat : whileStat.condStatements)
+			condStat.accept(this);
+
+		generatedCode.append("\nwhile(");
+		// Appendo al codice la condizione del while
+		whileStat.expr.accept(this);
+		generatedCode.append(")\n{\n");
+
+		// Appendo il corpo del while al codice generato
+		for(Statement bodyStat : whileStat.bodyStatements)
+			bodyStat.accept(this);
+		// Appendo gli stataments della condizione dopo il corpo del while al codice generato finora facendo l'accept
+		for(Statement condStat : whileStat.condStatements)
+			condStat.accept(this);
+		// Chiudo il while
+		generatedCode.append("}\n");
+
+		return true;
 	}
 
 	@Override
@@ -350,6 +379,10 @@ public class CCodeGenerator implements Visitor
 
 		for(int i = 0; i < setId.size(); i++)
 		{
+			// Se l'id è una stringa vuol dire che in C il tipo sarà un char *. In C char* a, b, c fa sì che solo a sia un puntatore a char mentre noi vogliamo che lo siano tutti
+			// cioè vogliamo char *a, *b, *c;
+			if(setId.get(i).typeNode.equals("STRING"))
+				generatedCode.append("*");
 			// Invochiamo l'accept su id che generarà il codice per l'id
 			setId.get(i).accept(this);
 			// Prendiamo l'espressione nell'hashMap con chiave id
@@ -382,7 +415,103 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Boolean visit(Proc proc) throws Exception
 	{
-		return null;
+		// Per gestire le funzioni con più valori di ritorno creiamo della funzioni con tipo di ritorno void e usiamo dei punatori per memorizzare i risultati
+		// Aggiungiamo inoltre un numero di parametri alla funzione pari al numero di valori di ritorno.
+
+		// Se la lista di tipi di ritorno ha più di un valore allora è un funzione con più valori di ritorno e appendiamo void
+		if(proc.resultTypeList.size() > 1)
+			generatedCode.append("VOID");
+		else
+			generatedCode.append(proc.resultTypeList.get(0));
+
+		// Creiamo il codice per la funzione appendendo l'id con aggunta di _toy alla fine per evitare conflitti con funzioni già dichiarate in C
+		generatedCode.append(" ").append(proc.id).append("_toy(");
+
+		for(ParDecl param : proc.params)
+			param.accept(this);
+
+		if(proc.resultTypeList.size() > 1)
+			// Agginugiamo i parametri per gestire le funzioni con più valori di ritorno
+			for(int i = 0; i < proc.resultTypeList.size(); i++)
+			{
+				// Aggiungo come parametri i punatori che conterrano i valori di ritorno
+				generatedCode.append(proc.resultTypeList.get(i)).append(" *");
+				generatedCode.append("r").append(i);
+				generatedCode.append(i == proc.resultTypeList.size() - 1 ? "" : ", ");
+			}
+		//Alla fine dei parametri chiudo la parentesi e metto la graffa
+		generatedCode.append(")\n{\n");
+
+		for(VarDecl varDecl: proc.varDeclList)
+			varDecl.accept(this);
+
+		for(Statement stat : proc.statements)
+			stat.accept(this);
+
+		// Se la funzione ha più valori di ritorno gestisco i risultati  utilizzando i puntatori
+		if(proc.resultTypeList.size() > 1)
+		{
+			for(int i = 0; i < proc.returnExprs.size(); i++)
+			{
+				AbstractExpression expr = proc.returnExprs.get(i);
+				// Se l'espressione di ritorno è una funzione devo assegnare ai parametri ri, creati per contenere i valori di ritorno, i valori di ritorno della funzione chiamata
+				// Chiamiamo i valori restituiti da CallProc con il nome r_nomeDellaFunzionei
+				if(expr instanceof CallProc)
+				{
+					String[] resultTypes = expr.typeNode.split(", ");
+
+					// Se una funzione ritorna un solo valore l'accept su CallProc genera come codice solo la chiamata a funzione senza creare altre variabili temporanee
+					// Quindi dobbiamo assegnare al parametro ri la funzione in questo modo ri = f();
+					// Quando abbiamo una funzione con più valori di ritorno Call proc genera del codice per mantenere i valori e tali valori vanno assegnati ad ri
+					if(resultTypes.length > 1)
+					{
+						// Invochiamo l'accept su CallProc che genera il codice
+						expr.accept(this);
+						for(int j = 0; j < resultTypes.length; j++)
+							generatedCode.append(resultTypes[i].equals("STRING") ? "" : "*").append("r").append(i)
+									.append(" = ")
+									.append(resultTypes[i].equals("STRING") ? "" : "*").append("r_").append(((CallProc) expr).id).append(i).append(";\n");
+					}
+					else
+					{
+						// Se l'espressione non è una STRING dobbiamo mettere lo * altriemnti non ci vuole
+						if(!expr.typeNode.equals("STRING"))
+							generatedCode.append("*");
+
+						generatedCode.append("r").append(i).append(" = ");
+
+						expr.accept(this);
+						generatedCode.append(";\n");
+					}
+				}
+				// Se l'espressione di ritorno non è una funzione assegniamo al puntatore ri il valore dell'espressione
+				else
+				{
+					// Se l'espressione non è una STRING dobbiamo mettere lo * altriemnti non ci vuole
+					if(!expr.typeNode.equals("STRING"))
+						generatedCode.append("*");
+
+					generatedCode.append("r").append(i).append(" = ");
+
+					expr.accept(this);
+					generatedCode.append(";\n");
+				}
+
+			}
+		}
+		// Se la funzione ha un solo valore di ritorno la gestiamo normalmente come avviene in C
+		else
+		{
+			if(!proc.returnExprs.isEmpty())
+			{
+				generatedCode.append("return ");
+				proc.returnExprs.get(0).accept(this);
+				generatedCode.append(";\n");
+			}
+		}
+		generatedCode.append("}\n");
+
+		return true;
 	}
 
 	@Override
@@ -392,9 +521,10 @@ public class CCodeGenerator implements Visitor
 		generatedCode.append("#include <stdio.h>\n");
 		generatedCode.append("#include <string.h>\n\n");
 		generatedCode.append("#define BOOL int\n");
-		generatedCode.append("#define STRING char*\n");
+		generatedCode.append("#define STRING char\n");
 		generatedCode.append("#define INT int\n");
 		generatedCode.append("#define FLOAT float\n");
+		generatedCode.append("#define VOID void\n");
 		generatedCode.append("#define true 1\n");
 		generatedCode.append("#define false 0\n\n");
 		generatedCode.append("char* deleteSubstring(char*, char*);\n");
@@ -405,7 +535,10 @@ public class CCodeGenerator implements Visitor
 
 		// Invoco su ogni elemento di ProcList l'accept
 		for(Proc proc : program.procList)
+		{
 			proc.accept(this);
+			generatedCode.append("\n");
+		}
 
 		return true;
 	}
@@ -447,12 +580,18 @@ public class CCodeGenerator implements Visitor
 
 	private void generateSimpleExpr(String op, AbstractExpression first, AbstractExpression second) throws Exception
 	{
-		first.accept(this);
-		generatedCode.append(" ").append(op);
+		//Se second è null allora ho un'operazione unaria
 		if(second != null)
 		{
+			first.accept(this);
+			generatedCode.append(" ").append(op);
 			generatedCode.append(" ");
 			second.accept(this);
+		}
+		else
+		{
+			generatedCode.append(op);
+			first.accept(this);
 		}
 	}
 
@@ -462,7 +601,7 @@ public class CCodeGenerator implements Visitor
 		first.accept(this);
 		generatedCode.append(", ");
 		second.accept(this);
-		generatedCode.append(");\n");
+		generatedCode.append(")");
 	}
 
 	private void add(AbstractExpression first, AbstractExpression second) throws Exception
@@ -506,7 +645,18 @@ public class CCodeGenerator implements Visitor
 	{
 		// Se il tipo delle espressione è STRING bisogna effettuare una string compare
 		if(first.typeNode.equals("STRING") && second.typeNode.equals("STRING"))
+		{
 			generateSimpleLibFuncCall("strcmp", first, second);
+			switch(op)
+			{
+				case "==" -> generatedCode.append(" == 0");
+				case "!=" -> generatedCode.append(" != 0");
+				case "<" -> generatedCode.append(" < 0");
+				case ">" -> generatedCode.append(" > 0");
+				case "<=" -> generatedCode.append(" <= 0");
+				case ">=" -> generatedCode.append(" >= 0");
+			}
+		}
 		else
 			generateSimpleExpr(op, first, second);
 	}

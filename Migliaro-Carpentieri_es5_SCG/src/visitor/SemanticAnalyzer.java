@@ -507,7 +507,11 @@ public class SemanticAnalyzer implements Visitor
 		for(Id id : varDecl.idListInit.keySet())
 		{
 			if(!currentSymbolTable.symbolTable.containsKey(id.value))
+			{
 				currentSymbolTable.symbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, varDecl.type, ""));
+				// Chiamiamo accept id per settare il type node di id
+				id.accept(this);
+			}
 			else
 			{
 				String properties = currentSymbolTable.symbolTable.get(id.value).properties;
