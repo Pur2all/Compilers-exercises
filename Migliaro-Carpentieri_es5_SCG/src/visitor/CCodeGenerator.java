@@ -17,6 +17,7 @@ public class CCodeGenerator implements Visitor
 {
 	private StringBuilder generatedCode;
 	private SymbolTableNode rootSymbolTableTree;
+	private long variableIndex;
 
 	public CCodeGenerator(SymbolTableNode rootSymbolTableTree)
 	{
@@ -203,7 +204,12 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Boolean visit(CallProc callProc) throws Exception
 	{
-		return null;
+		String newFuncName = callProc.id + "_toy";
+
+		// Generiamo il codice per la chiamata a funzione
+		generatedCode.append(newFuncName).append("(");
+
+		return true;
 	}
 
 	@Override
@@ -229,7 +235,6 @@ public class CCodeGenerator implements Visitor
 				case "FLOAT" -> placeholders.append("%f");
 				case "STRING" -> placeholders.append("%s");
 			}
-			placeholders.append(i == numOfIds - 1 ? "" : ", ");
 		}
 
 		generatedCode.append("scanf(")
@@ -266,12 +271,12 @@ public class CCodeGenerator implements Visitor
 				case "FLOAT" -> placeholders.append("%f");
 				case "STRING", "BOOL" -> placeholders.append("%s");
 			}
-			placeholders.append(i == numOfExprs - 1 ? "" : ", ");
 		}
 
 		generatedCode.append("printf(")
 				.append("\"")
 				.append(placeholders.toString())
+				.append("\\n")
 				.append("\", ");
 
 		// Aggiungiamo gli altri parametri alla chiamata
@@ -418,6 +423,12 @@ public class CCodeGenerator implements Visitor
 		// Per gestire le funzioni con più valori di ritorno creiamo della funzioni con tipo di ritorno void e usiamo dei punatori per memorizzare i risultati
 		// Aggiungiamo inoltre un numero di parametri alla funzione pari al numero di valori di ritorno.
 
+		String newFuncName = proc.id + "_toy";
+		int numVar = 0;
+		if(proc.resultTypeList.size() > 1)
+			for(String type : proc.resultTypeList)
+				generatedCode.append(type).append(" ").append("*r_").append(newFuncName).append(numVar++).append(";\n");
+
 		// Se la lista di tipi di ritorno ha più di un valore allora è un funzione con più valori di ritorno e appendiamo void
 		if(proc.resultTypeList.size() > 1)
 			generatedCode.append("VOID");
@@ -425,24 +436,15 @@ public class CCodeGenerator implements Visitor
 			generatedCode.append(proc.resultTypeList.get(0));
 
 		// Creiamo il codice per la funzione appendendo l'id con aggunta di _toy alla fine per evitare conflitti con funzioni già dichiarate in C
-		generatedCode.append(" ").append(proc.id).append("_toy(");
+		generatedCode.append(" ").append(newFuncName).append("(");
 
 		for(ParDecl param : proc.params)
 			param.accept(this);
 
-		if(proc.resultTypeList.size() > 1)
-			// Agginugiamo i parametri per gestire le funzioni con più valori di ritorno
-			for(int i = 0; i < proc.resultTypeList.size(); i++)
-			{
-				// Aggiungo come parametri i punatori che conterrano i valori di ritorno
-				generatedCode.append(proc.resultTypeList.get(i)).append(" *");
-				generatedCode.append("r").append(i);
-				generatedCode.append(i == proc.resultTypeList.size() - 1 ? "" : ", ");
-			}
 		//Alla fine dei parametri chiudo la parentesi e metto la graffa
 		generatedCode.append(")\n{\n");
 
-		for(VarDecl varDecl: proc.varDeclList)
+		for(VarDecl varDecl : proc.varDeclList)
 			varDecl.accept(this);
 
 		for(Statement stat : proc.statements)
@@ -451,6 +453,8 @@ public class CCodeGenerator implements Visitor
 		// Se la funzione ha più valori di ritorno gestisco i risultati  utilizzando i puntatori
 		if(proc.resultTypeList.size() > 1)
 		{
+			int rIndex = 0;
+
 			for(int i = 0; i < proc.returnExprs.size(); i++)
 			{
 				AbstractExpression expr = proc.returnExprs.get(i);
@@ -468,17 +472,17 @@ public class CCodeGenerator implements Visitor
 						// Invochiamo l'accept su CallProc che genera il codice
 						expr.accept(this);
 						for(int j = 0; j < resultTypes.length; j++)
-							generatedCode.append(resultTypes[i].equals("STRING") ? "" : "*").append("r").append(i)
+							generatedCode.append(resultTypes[j].equals("STRING") ? "" : "*").append("r_").append(newFuncName).append(rIndex++)
 									.append(" = ")
-									.append(resultTypes[i].equals("STRING") ? "" : "*").append("r_").append(((CallProc) expr).id).append(i).append(";\n");
+									.append(resultTypes[j].equals("STRING") ? "" : "*").append("r_").append(((CallProc) expr).id).append("_toy").append(j).append(";\n");
 					}
 					else
 					{
-						// Se l'espressione non è una STRING dobbiamo mettere lo * altriemnti non ci vuole
+						// Se l'espressione non è una STRING dobbiamo mettere lo * altrimenti non ci vuole
 						if(!expr.typeNode.equals("STRING"))
 							generatedCode.append("*");
 
-						generatedCode.append("r").append(i).append(" = ");
+						generatedCode.append("r_").append(newFuncName).append(rIndex++).append(" = ");
 
 						expr.accept(this);
 						generatedCode.append(";\n");
@@ -491,12 +495,11 @@ public class CCodeGenerator implements Visitor
 					if(!expr.typeNode.equals("STRING"))
 						generatedCode.append("*");
 
-					generatedCode.append("r").append(i).append(" = ");
+					generatedCode.append("r_").append(newFuncName).append(rIndex++).append(" = ");
 
 					expr.accept(this);
 					generatedCode.append(";\n");
 				}
-
 			}
 		}
 		// Se la funzione ha un solo valore di ritorno la gestiamo normalmente come avviene in C

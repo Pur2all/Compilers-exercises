@@ -229,10 +229,30 @@ public class SemanticAnalyzer implements Visitor
 				{
 					try
 					{
-						// Se l'argomento non è una funzione e il suo tipo non corrisponde a quello richiesto dal parametro
-						// lanciamo un'eccezione
-						if(!typeNode.equals(parametersTypes[i]))
-							throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
+						String[] typeNodeSplitted = typeNode.split(", ");
+
+						// Controlliamo se il numero di valori di ritorno dell'espressione è maggiore di 1 poiché se lo è
+						// dobbiamo controllare che i tipi dei valori dell'espressione siano corretti rispetto a quelli definiti
+						// nel ritorno della funzione
+						if(typeNodeSplitted.length > 1)
+						{
+							for(String s : typeNodeSplitted)
+							{
+								if(!s.equals(parametersTypes[i++]))
+									throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + (i - 1));
+								numOfParametersType--;
+							}
+
+							i--;
+							numOfParametersType++;
+						}
+						else
+						{
+							// Se l'argomento non è una funzione e il suo tipo non corrisponde a quello richiesto dal parametro
+							// lanciamo un'eccezione
+							if(!typeNode.equals(parametersTypes[i]))
+								throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
+						}
 					}
 					catch(IndexOutOfBoundsException indexOutOfBoundsException)
 					{
@@ -632,10 +652,30 @@ public class SemanticAnalyzer implements Visitor
 			{
 				try
 				{
-					// Se l'espressione non è una funzione e il suo tipo non corrisponde a quello richiesto dal tipo di ritorno
-					// lanciamo un'eccezione
-					if(!typeNode.equals(proc.resultTypeList.get(i)))
-						throw new Exception("Type mismatch in return of function " + proc.id);
+					String[] typeNodeSplitted = typeNode.split(", ");
+
+					// Controlliamo se il numero di valori di ritorno dell'espressione è maggiore di 1 poiché se lo è
+					// dobbiamo controllare che i tipi dei valori dell'espressione siano corretti rispetto a quelli definiti
+					// nel ritorno della funzione
+					if(typeNodeSplitted.length > 1)
+					{
+						for(String s : typeNodeSplitted)
+						{
+							if(!s.equals(proc.resultTypeList.get(i++)))
+								throw new Exception("Type mismatch in return of function " + proc.id);
+							numResultType--;
+						}
+
+						i--;
+						numResultType++;
+					}
+					else
+					{
+						// Se l'espressione non è una funzione e il suo tipo non corrisponde a quello richiesto dal tipo di ritorno
+						// lanciamo un'eccezione
+						if(!typeNode.equals(proc.resultTypeList.get(i)))
+							throw new Exception("Type mismatch in return of function " + proc.id);
+					}
 				}
 				catch(IndexOutOfBoundsException indexOutOfBoundsException)
 				{
@@ -651,8 +691,13 @@ public class SemanticAnalyzer implements Visitor
 			// rispetto a quelli che si aspettava, quindi lanciamo eccezione
 			if(numResultType < 0)
 				throw new Exception("Too much return value given to the function " + proc.id);
-
 		}
+
+		if(!proc.resultTypeList.get(0).equals("VOID"))
+			// Se il numero di valori di ritorno è almeno 1 vuol dire che non tutti i valori sono stati matchati e che quindi
+			// sono stati dati pochi valori di ritorno al return rispetto a quelli che si aspettava, quindi lanciamo eccezione
+			if(numResultType > 0)
+				throw new Exception("Too few return value given to the function " + proc.id);
 
 		// Il nodo Proc ha come tipo paramsType -> returnTypes
 		proc.typeNode = type.toString();
