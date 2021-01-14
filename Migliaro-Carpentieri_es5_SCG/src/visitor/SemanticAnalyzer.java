@@ -242,7 +242,7 @@ public class SemanticAnalyzer implements Visitor
 									throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + (i - 1));
 								numOfParametersType--;
 							}
-
+							// Quando termina il ciclo avazo di una poszione in più sia per i che per numOfParametersType
 							i--;
 							numOfParametersType++;
 						}
@@ -666,6 +666,7 @@ public class SemanticAnalyzer implements Visitor
 							numResultType--;
 						}
 
+						// Quando termina il ciclo avazo di una poszione in più sia per i che per numResultType
 						i--;
 						numResultType++;
 					}
