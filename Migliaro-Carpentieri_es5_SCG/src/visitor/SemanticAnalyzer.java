@@ -192,15 +192,14 @@ public class SemanticAnalyzer implements Visitor
 		{
 			// Memorizziamo il numero di parametri della funzione
 			int numOfParametersType = parametersTypes.length;
-
 			// Controlliamo se gli argomenti della funzione sono in corrispondenza con i parametri
 			for(int i = 0; i < callProc.arguments.size(); i++)
 			{
 				// Su ogni argomento invochiamo il metodo accept
 				callProc.arguments.get(i).accept(this);
+				System.out.println(callProc.arguments.get(i).typeNode);
 				// Prendo il tipo del nodo dell'i-esimo argomento
 				String typeNode = callProc.arguments.get(i).typeNode;
-
 				// Se l'argomento è una funzione questa potrebbe ritornare più valori, quindi ha bisogno di ulteriori controlli
 				if(callProc.arguments.get(i) instanceof CallProc)
 				{
@@ -242,9 +241,8 @@ public class SemanticAnalyzer implements Visitor
 									throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + (i - 1));
 								numOfParametersType--;
 							}
-							// Quando termina il ciclo avazo di una poszione in più sia per i che per numOfParametersType
-							i--;
-							numOfParametersType++;
+							// Devo ripristinare l'indice i perché itero sul numero di argomenti
+							i -= typeNodeSplitted.length;
 						}
 						else
 						{
@@ -252,6 +250,8 @@ public class SemanticAnalyzer implements Visitor
 							// lanciamo un'eccezione
 							if(!typeNode.equals(parametersTypes[i]))
 								throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
+							// In questo caso abbiamo matchato un solo parametro
+							numOfParametersType--;
 						}
 					}
 					catch(IndexOutOfBoundsException indexOutOfBoundsException)
@@ -260,8 +260,7 @@ public class SemanticAnalyzer implements Visitor
 						throw new Exception("Too much arguments given to the function " + callProc.id);
 					}
 
-					// In questo caso abbiamo matchato un solo parametro
-					numOfParametersType--;
+
 				}
 
 				// Se il numero di parametri è negativo vuol dire che sono stati dati troppi argomenti alla funzione
@@ -666,8 +665,8 @@ public class SemanticAnalyzer implements Visitor
 							numResultType--;
 						}
 
-						// Quando termina il ciclo avazo di una poszione in più sia per i che per numResultType
-						i--;
+						// Devo ripristinare l'indice poichè itero su numero di espressioni di ritorno e non sul numero di tipi
+						i -= typeNodeSplitted.length;
 						numResultType++;
 					}
 					else
