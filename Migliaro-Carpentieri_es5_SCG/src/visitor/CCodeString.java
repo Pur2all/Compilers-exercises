@@ -27,4 +27,18 @@ public final class CCodeString
 												 "	  \n" +
 												 "    return result;\n" +
 												 "}";
+
+	public static final String countOccurrences = "int countOccurrences(char* string, char* substring)\n" +
+												  "{\n" +
+												  "    int substringLen = strlen(substring);\n" +
+												  "    int count = 0;\n" +
+												  "    char *tmp = string;\n" +
+												  "    \n" +
+												  "    if (substringLen) \n" +
+												  "        while ((tmp = strstr(tmp, substring))) \n" +
+												  "        {\n" +
+												  "            tmp += substringLen;\n" +
+												  "            count++;\n" +
+												  "        }\n" +
+												  "}";
 }

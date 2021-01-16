@@ -197,7 +197,7 @@ public class SemanticAnalyzer implements Visitor
 			{
 				// Su ogni argomento invochiamo il metodo accept
 				callProc.arguments.get(i).accept(this);
-				System.out.println(callProc.arguments.get(i).typeNode);
+
 				// Prendo il tipo del nodo dell'i-esimo argomento
 				String typeNode = callProc.arguments.get(i).typeNode;
 				// Se l'argomento è una funzione questa potrebbe ritornare più valori, quindi ha bisogno di ulteriori controlli

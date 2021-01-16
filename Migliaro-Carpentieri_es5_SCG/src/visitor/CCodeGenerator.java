@@ -14,6 +14,8 @@ import java.util.ArrayList;
 
 //TODO Gestire l'allocazione dinamica delle stringhe quando faccio una cosa del tipo userName :=""; e poi uso userName in C esplode tutto perché non ho allocato la memoria per userName
 //TODO Gestire anche l'allocazione dei puntatori con una Malloc
+// TODO Scrivere una nostra strcat che crei un nuovo puntatore a ogni chiamata e lo restituisca
+// TODO Scrivere una funzione per prendere in input le stringhe di lunghezza variabile
 public class CCodeGenerator implements Visitor
 {
 	private StringBuilder generatedCode;
@@ -193,7 +195,7 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Boolean visit(NotExpr expression) throws Exception
 	{
-		generateUnaryExpr("!", expression);
+		generateUnaryExpr("!", expression.expression);
 
 		return true;
 	}
@@ -201,7 +203,7 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Boolean visit(UminExpr expression) throws Exception
 	{
-		generateUnaryExpr("-", expression);
+		generateUnaryExpr("-", expression.expression);
 
 		return true;
 	}
@@ -242,7 +244,6 @@ public class CCodeGenerator implements Visitor
 			}
 			// Gestiamo le espressioni con più valori di ritorno creando le temporanee
 			else
-				//TODO Testare epsressioni in cui si sommmano funzinoi con più valori di ritorno
 				if(expr.typeNode.contains(", "))
 				{
 					// Con questo accept avrò generato il codice dell'espressione e la varaibile temporanea che contiene il primo valore dell'espressione
@@ -280,6 +281,46 @@ public class CCodeGenerator implements Visitor
 	public Boolean visit(AssignStat assignStat) throws Exception
 	{
 
+		int idAssigned = 0;
+
+		for(int i = 0; i < assignStat.exprList.size(); i++)
+		{
+			AbstractExpression expr = assignStat.exprList.get(i);
+
+			if(expr.typeNode.contains(", "))
+			{
+				String[] returnTypes = expr.typeNode.split(", ");
+				int numOfValues = returnTypes.length;
+
+				expr.accept(this);
+
+				if(expr instanceof CallProc)
+				{
+					generatedCode.append(";\n");
+					for(int j = 0; j < numOfValues; j++)
+					{
+						generatedCode.append(returnTypes[j]).append(returnTypes[j].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+								.append(" = ")
+								.append(returnTypes[j].equals("STRING") ? "" : "*").append("r_").append(((CallProc) expr).id).append(j).append(";\n");
+					}
+				}
+
+				for(int j = 0; j < numOfValues; j++)
+				{
+					assignStat.idList.get(idAssigned++).accept(this);
+					generatedCode.append(" = ")
+							.append("t_").append(variableIndex - numOfValues + j)
+							.append(";\n");
+				}
+			}
+			else
+			{
+				assignStat.idList.get(idAssigned++).accept(this);
+				generatedCode.append(" = ");
+				expr.accept(this);
+				generatedCode.append(";\n");
+			}
+		}
 
 		return true;
 	}
@@ -331,9 +372,9 @@ public class CCodeGenerator implements Visitor
 		{
 			switch(writeStat.exprList.get(i).typeNode)
 			{
-				case "INT", "NULL" -> placeholders.append("%d");
+				case "INT", "NULL", "BOOL" -> placeholders.append("%d");
 				case "FLOAT" -> placeholders.append("%f");
-				case "STRING", "BOOL" -> placeholders.append("%s");
+				case "STRING" -> placeholders.append("%s");
 			}
 		}
 
@@ -514,13 +555,15 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Boolean visit(Proc proc) throws Exception
 	{
-		// Per gestire le funzioni con più valori di ritorno creiamo della funzioni con tipo di ritorno void e usiamo dei punatori per memorizzare i risultati
-		// Aggiungiamo inoltre un numero di parametri alla funzione pari al numero di valori di ritorno.
+		// Per gestire le funzioni con più valori di ritorno creiamo della funzioni con tipo di ritorno void e usiamo dei
+		// punatori per memorizzare i risultati
 
+		// Dichiaramo i puntatori che indicano i valori di ritorno delle funzioni
 		int numVar = 0;
 		if(proc.resultTypeList.size() > 1)
 			for(String type : proc.resultTypeList)
-				generatedCode.append(type).append(" ").append("*r_").append(proc.id).append(numVar++).append(";\n");
+				generatedCode.append(type).append(" ").append("*r_").append(proc.id).append(numVar++)
+						.append(" = NULL;\n");
 
 		// Se la lista di tipi di ritorno ha più di un valore allora è un funzione con più valori di ritorno e appendiamo void
 		if(proc.resultTypeList.size() > 1)
@@ -528,14 +571,27 @@ public class CCodeGenerator implements Visitor
 		else
 			generatedCode.append(proc.resultTypeList.get(0));
 
-		// Creiamo il codice per la funzione appendendo l'id con aggunta di _toy alla fine per evitare conflitti con funzioni già dichiarate in C
-		generatedCode.append(" ").append(proc.id).append("_toy").append("(");
+		// Creiamo il codice per la funzione appendendo l'id con aggunta di _toy alla fine per evitare conflitti con funzioni
+		// già dichiarate in C
+		generatedCode.append(" ").append(proc.id).append(proc.id.equals("main") ? "" : "_toy").append("(");
 
 		for(ParDecl param : proc.params)
 			param.accept(this);
 
 		//Alla fine dei parametri chiudo la parentesi e metto la graffa
 		generatedCode.append(")\n{\n");
+
+
+		// Allochiamo la memoria necessaria per i puntatori ai valori di ritorno della funzione
+		// Non possiamo allocarli alla dichirazione in quanto variabili globali che vengono allocate in memoria statica
+		numVar = 0;
+		if(proc.resultTypeList.size() > 1)
+			for(String type : proc.resultTypeList)
+				generatedCode.append("r_").append(proc.id).append(numVar)
+						.append(" = ")
+						.append("r_").append(proc.id).append(numVar).append(" == NULL ? ")
+						.append("(").append(type).append("*)").append(" malloc(sizeof(").append(type).append("))")
+						.append(" : ").append("r_").append(proc.id).append(numVar++).append(";\n");
 
 		for(VarDecl varDecl : proc.varDeclList)
 			varDecl.accept(this);
@@ -620,6 +676,7 @@ public class CCodeGenerator implements Visitor
 	{
 		// All'inizio del programma dobbiamo generare il codice per l'import delle librerie
 		generatedCode.append("#include <stdio.h>\n");
+		generatedCode.append("#include <stdlib.h>\n");
 		generatedCode.append("#include <string.h>\n\n");
 		generatedCode.append("#define BOOL int\n");
 		generatedCode.append("#define STRING char\n");
@@ -628,7 +685,6 @@ public class CCodeGenerator implements Visitor
 		generatedCode.append("#define VOID void\n");
 		generatedCode.append("#define true 1\n");
 		generatedCode.append("#define false 0\n\n");
-		generatedCode.append("char* deleteSubstring(char*, char*);\n");
 
 		// Invoco su ogni elemento di varDeclList l'accept
 		for(VarDecl varDecl : program.varDeclList)
@@ -651,6 +707,8 @@ public class CCodeGenerator implements Visitor
 
 		// Inserisco una funzione di libreria
 		generatedCode.append(CCodeString.deleteSubstring);
+		generatedCode.append("\n");
+		generatedCode.append(CCodeString.countOccurrences);
 
 		// Restituisco il codice C generato
 		return generatedCode.toString();
@@ -700,9 +758,10 @@ public class CCodeGenerator implements Visitor
 				// Ottengo i valori di ritorno di first e second
 				String[] returnTypeFirst = first.typeNode.split(", ");
 				String[] returnTypeSecond = second.typeNode.split(", ");
-				// Temporanea che mi serve per calcolare correttamente il variabili temporanee da assegnare. Contiene il numero di temporanee create.
+				// Temporanea che mi serve per calcolare correttamente le variabili temporanee da assegnare.
+				// Contiene il numero di temporanee create.
 				int tempVariableIndex = 0;
-				// Questo if è necessario per gestireil caso in cui ho due CallProc oppure il caso in cui ho una CallProc e un expr che ritorna solo un valore
+				// Questo if è necessario per gestire il caso in cui ho due CallProc oppure il caso in cui ho una CallProc e un expr che ritorna solo un valore
 				if((first instanceof CallProc && numOfSecondExprValue == 1) || (second instanceof CallProc && numOfFirstExprValue == 1) || (first instanceof CallProc && second instanceof CallProc))
 				{
 					// Se first e second sono delle CallProc allora genero il codice per chiamarle
@@ -725,10 +784,9 @@ public class CCodeGenerator implements Visitor
 							generatedCode.append(";\n");
 							for(int i = 0; i < numOfFirstExprValue; i++)
 							{
-								// TODO mettere a posto le stringhe le parentesi al condizionale
 								generatedCode.append(returnTypeFirst[i]).append(returnTypeFirst[i].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
 										.append(" = ")
-										.append((returnTypeFirst[i].equals("STRING") ? "" : "*") + "r_" + ((CallProc) first).id + i).append(";\n");
+										.append(returnTypeFirst[i].equals("STRING") ? "" : "*").append("r_").append(((CallProc) first).id).append(i).append(";\n");
 								tempVariableIndex++;
 							}
 						}
@@ -754,12 +812,11 @@ public class CCodeGenerator implements Visitor
 							{
 								generatedCode.append(returnTypeSecond[i]).append(returnTypeSecond[i].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
 										.append(" = ")
-										.append(returnTypeSecond[i].equals("STRING") ? "" : "*" + "r_" + ((CallProc) second).id + i).append(";\n");
+										.append(returnTypeSecond[i].equals("STRING") ? "" : "*").append("r_").append(((CallProc) second).id).append(i).append(";\n");
 								tempVariableIndex++;
 							}
 						}
 					}
-					//TODO gestire il layout e fare le prove
 
 					for(int i = 0; i < minValue; i++)
 					{
@@ -789,9 +846,9 @@ public class CCodeGenerator implements Visitor
 					// In questo ciclo nel caso in cui uno dei due abbia più valori andiamo a creare temporanee anche per quelli
 					for(int i = minValue; i < maxValue; i++)
 					{
-						long temp = 0;
+						long temp;
 						if(numOfFirstExprValue < numOfSecondExprValue)
-							temp = variableIndex -  numOfSecondExprValue;
+							temp = variableIndex - numOfSecondExprValue;
 						else
 							temp = variableIndex - numOfFirstExprValue - numOfSecondExprValue;
 						// genero la variabile temporane che mantine il risultato dell'operazione
@@ -803,9 +860,10 @@ public class CCodeGenerator implements Visitor
 				// Nell'else gestisco il caso in cui ho un expr che ritorna più valori e non è una funzione
 				else
 				{
-					// PRIMO E ULTIMO CASO  una delle expr tra first e second è una CallProc e l'altra è un expr con più valori di ritorno
+					// PRIMO CASO  una delle expr tra first e second è una CallProc e l'altra è un expr con più valori di ritorno
 					// Non possiamo avere due espressioni che ritornano più valori perchè non abbiamo le parentesi e l'associatività è sempre a sinistra
-					// Quindi possiamo avere solo una cosa del tipo expr con più valori di ritorno e Call proc ma non expr con più valori di ritorno e expr con più valori di ritorno.
+					// Quindi possiamo avere solo una cosa del tipo expr con più valori di ritorno e Call proc ma non expr con più valori di ritorno e
+					// expr con più valori di ritorno.
 					if(first instanceof CallProc || second instanceof CallProc)
 					{
 
@@ -823,7 +881,7 @@ public class CCodeGenerator implements Visitor
 							{
 								generatedCode.append(returnTypeFirst[i]).append(returnTypeFirst[i].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
 										.append(" = ")
-										.append(returnTypeFirst[i].equals("STRING") ? "" : "*" + "r_" + ((CallProc) first).id + i).append(";\n");
+										.append(returnTypeFirst[i].equals("STRING") ? "" : "*").append("r_").append(((CallProc) first).id).append(i).append(";\n");
 								tempVariableIndex++;
 							}
 						}
@@ -836,7 +894,7 @@ public class CCodeGenerator implements Visitor
 							{
 								generatedCode.append(returnTypeSecond[i]).append(returnTypeSecond[i].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
 										.append(" = ")
-										.append(returnTypeSecond[i].equals("STRING") ? "" : "*" + "r_" + ((CallProc) second).id + i).append(";\n");
+										.append(returnTypeSecond[i].equals("STRING") ? "" : "*").append("r_").append(((CallProc) second).id).append(i).append(";\n");
 								tempVariableIndex++;
 							}
 						}
@@ -859,9 +917,9 @@ public class CCodeGenerator implements Visitor
 						for(int i = minValue; i < maxValue; i++)
 						{
 							// Variabile necessaria per poter accedere alla varaibile temporanea corretta
-							long temp = 0;
+							long temp;
 							if(numOfFirstExprValue < numOfSecondExprValue)
-								temp = variableIndex -  numOfSecondExprValue;
+								temp = variableIndex - numOfSecondExprValue;
 							else
 								temp = variableIndex - numOfFirstExprValue - numOfSecondExprValue;
 
@@ -871,8 +929,61 @@ public class CCodeGenerator implements Visitor
 									.append("t_").append(temp).append(";\n");
 						}
 					}
+					// In questo caso almeno una delle espressioni ha più valori ma nessuna delle due è un CallProc
+					else
+					{
+						first.accept(this);
+						// Numero di variabili temporanee totali dopo aver eseguito l'accept su first
+						long firstTempVariableIndex = variableIndex;
+
+						second.accept(this);
+						// Numero di variabili temporanee totali dopo aver eseguito l'accept su second
+						long secondTempVariableIndex = variableIndex;
+
+						// Numero della temporanea che indica il primo valore dell'espressione a sinistra
+						long firstValueToSubtract = firstTempVariableIndex - numOfFirstExprValue;
+						// Numero della temporanea che indica il primo valore dell'espressione a destra
+						long secondValueToSubtract = secondTempVariableIndex - numOfSecondExprValue;
+
+						for(int i = 0; i < minValue; i++)
+						{
+							// Genero la variabile temporane che mantine il risultato dell'operazione
+							generatedCode.append(minTypeSplitted[i]).append(minTypeSplitted[i].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+									.append(" = ");
+							// Genero gli id per first e second da passare a generateBinaryExpr che genera il codice
+							Temp newFirst = new Temp("t_" + (firstValueToSubtract + i));
+							Temp newSecond = new Temp("t_" + (secondValueToSubtract + i));
+							newFirst.typeNode = minTypeSplitted[i];
+							newSecond.typeNode = minTypeSplitted[i];
+							generateBinaryExpr(op, newFirst, newSecond);
+							generatedCode.append(";\n");
+						}
+
+						for(int i = minValue; i < maxValue; i++)
+						{
+							long temp;
+							// Se la prima espressione ritorna meno valori della seconda espressione allora le temporanee che dobbiamo
+							// appendere sono quelle che si trovano più vicino a variableIndex
+							if(numOfFirstExprValue < numOfSecondExprValue)
+								// Partendo dal primo valore di ritorno dell'espressione e aggiungendo i ottengo il numero della
+								// temporanea che contiene l'espressione che mi serve
+								temp = secondValueToSubtract + i;
+							// Se invece la prima espressione ritorna più valori della seconda allora le temporanee che dobbiamo
+							// appendere sono quelle relative ai valori di ritorno della prima espressione
+							else
+								// Partendo dal primo valore di ritorno dell'espressione e aggiungendo i ottengo il numero della
+								// temporanea che contiene l'espressione che mi serve
+								temp = firstValueToSubtract + i;
+
+							// Genero la variabile temporane che mantine il risultato dell'operazione
+							generatedCode.append(maxTypeSplitted[i]).append(maxTypeSplitted[i].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+									.append(" = ")
+									.append("t_").append(temp).append(";\n");
+						}
+					}
 				}
 			}
+			// In questo caso l'espressione ha un solo valore di ritorno e quindi generiamo semplicemente il codice per l'operazione
 			else
 			{
 				first.accept(this);
@@ -881,15 +992,34 @@ public class CCodeGenerator implements Visitor
 				second.accept(this);
 			}
 		}
-		// TODO gestire l'operatore unario con le funzioni
-		// se second è null allora abbiamo un operazione unaria
+		// Se second è null allora abbiamo un operazione unaria
 		else
-
 		{
-			generatedCode.append(op);
-			first.accept(this);
-		}
+			// Nel caso l'espressione abbia più valori di ritorno essa può essere solo una chiamata a funzione, in quanto in
+			// un'espressione del tipo -f() * f() l'operatore unario ha la precedenza
+			if(first instanceof CallProc)
+			{
+				String[] resultTypes = first.typeNode.split(", ");
+				int numOfResultTypes = resultTypes.length;
 
+				// Facciamo generare il codice alla funzione
+				first.accept(this);
+				generatedCode.append(";\n");
+
+				for(int i = 0; i < numOfResultTypes; i++)
+				{
+					generatedCode.append(resultTypes[i]).append(" t_").append(variableIndex++)
+							.append(" = ")
+							.append(op).append("*r_").append(((CallProc) first).id).append(i).append(";\n");
+				}
+			}
+			// In questo caso l'espressione ha un solo valore di ritorno e quindi generiamo semplicemente il codice per l'operazione
+			else
+			{
+				generatedCode.append(op);
+				first.accept(this);
+			}
+		}
 	}
 
 	private void generateSimpleLibFuncCall(String funcName, AbstractExpression first, AbstractExpression second) throws Exception
@@ -933,7 +1063,7 @@ public class CCodeGenerator implements Visitor
 	{
 		// Se il tipo delle espressioni è STRING bisogna tornare il numero di occorrenze della seconda stringa nella prima
 		if(first.typeNode.equals("STRING") && second.typeNode.equals("STRING"))
-			generateSimpleLibFuncCall("numOccurrences", first, second);
+			generateSimpleLibFuncCall("countOccurrences", first, second);
 		else
 			generateSimpleExpr("/", first, second);
 	}
