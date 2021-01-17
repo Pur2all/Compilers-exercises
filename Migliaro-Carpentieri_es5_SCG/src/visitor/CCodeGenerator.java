@@ -370,13 +370,43 @@ public class CCodeGenerator implements Visitor
 		// Calcoliamo la stringa dei placeholder da usare nella chiamata a printf
 		for(int i = 0; i < numOfExprs; i++)
 		{
-			switch(writeStat.exprList.get(i).typeNode)
-			{
-				case "INT", "NULL", "BOOL" -> placeholders.append("%d");
-				case "FLOAT" -> placeholders.append("%f");
-				case "STRING" -> placeholders.append("%s");
-			}
+			String[] types = writeStat.exprList.get(i).typeNode.split(", ");
+
+			// Questo ciclo viene fatto per gestire le espressioni composte da più valori
+			for(String type : types)
+				switch(type)
+				{
+					case "INT", "NULL", "BOOL" -> placeholders.append("%d");
+					case "FLOAT" -> placeholders.append("%f");
+					case "STRING" -> placeholders.append("%s");
+				}
 		}
+
+		// Lista dove salviamo le temporanee generate dall'uso delle espressioni con più valori
+		ArrayList<String> temps = new ArrayList<>();
+		// Generiamo il codice delle espressioni con più valori definendo le temporanee che utilizziamo nella chiamata a printf
+		for(AbstractExpression expr : writeStat.exprList)
+			if(expr.typeNode.contains(", "))
+			{
+				String[] types = expr.typeNode.split(", ");
+				expr.accept(this);
+
+				if(expr instanceof CallProc)
+				{
+					generatedCode.append(";\n");
+
+					// j è l'indice che viene utilizzato per riferirsi al valore di ritorno della funzione
+					int j = 0;
+					for(String type : types)
+						generatedCode.append(type).append(type.equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+								.append(" = ")
+								.append(type.equals("STRING") ? "" : "*").append("r_").append(((CallProc) expr).id).append(j++).append(";\n");
+				}
+				// Aggiungiamo alla lista le temporanee generate
+				// L'espressione (variableIndex - types.length + i) indica la temporanea a cui ci dobbiamo riferire
+				for(int i = 0; i < types.length; i++)
+					temps.add("t_" + (variableIndex - types.length + i));
+			}
 
 		generatedCode.append("printf(")
 				.append("\"")
@@ -385,9 +415,16 @@ public class CCodeGenerator implements Visitor
 				.append("\", ");
 
 		// Aggiungiamo gli altri parametri alla chiamata
-		for(int i = 0; i < numOfExprs; i++)
+		for(int i = 0, j = 0; i < numOfExprs; i++)
 		{
-			writeStat.exprList.get(i).accept(this);
+			if(!writeStat.exprList.get(i).typeNode.contains(", "))
+				writeStat.exprList.get(i).accept(this);
+			else
+				for(int k = 0; k < writeStat.exprList.get(i).typeNode.split(", ").length; k++)
+				{
+					generatedCode.append(temps.get(j++));
+					generatedCode.append(k == numOfExprs - 1 ? "" : ", ");
+				}
 			generatedCode.append(i == numOfExprs - 1 ? ");\n" : ", ");
 		}
 
@@ -625,6 +662,7 @@ public class CCodeGenerator implements Visitor
 					{
 						// Invochiamo l'accept su CallProc che genera il codice
 						expr.accept(this);
+						generatedCode.append(";\n");
 						for(int j = 0; j < resultTypes.length; j++)
 							generatedCode.append(resultTypes[j].equals("STRING") ? "" : "*").append("r_").append(proc.id).append(rIndex++)
 									.append(" = ")
@@ -678,6 +716,7 @@ public class CCodeGenerator implements Visitor
 		generatedCode.append("#include <stdio.h>\n");
 		generatedCode.append("#include <stdlib.h>\n");
 		generatedCode.append("#include <string.h>\n\n");
+		// Poi generiamo il codice per le direttive del preprocessore
 		generatedCode.append("#define BOOL int\n");
 		generatedCode.append("#define STRING char\n");
 		generatedCode.append("#define INT int\n");
@@ -685,10 +724,15 @@ public class CCodeGenerator implements Visitor
 		generatedCode.append("#define VOID void\n");
 		generatedCode.append("#define true 1\n");
 		generatedCode.append("#define false 0\n\n");
+		// Infine generiamo il codice delle firme dei metodi di libreria
+		generatedCode.append("char* deleteSubstring(char* str, char* sub);\n");
+		generatedCode.append("int countOccurrences(char* string, char* substring);\n\n");
 
 		// Invoco su ogni elemento di varDeclList l'accept
 		for(VarDecl varDecl : program.varDeclList)
 			varDecl.accept(this);
+
+		generatedCode.append("\n");
 
 		// Invoco su ogni elemento di ProcList l'accept
 		for(Proc proc : program.procList)
@@ -705,7 +749,7 @@ public class CCodeGenerator implements Visitor
 	{
 		root.accept(this);
 
-		// Inserisco una funzione di libreria
+		// Inserisco le funzioni di libreria
 		generatedCode.append(CCodeString.deleteSubstring);
 		generatedCode.append("\n");
 		generatedCode.append(CCodeString.countOccurrences);
@@ -932,53 +976,85 @@ public class CCodeGenerator implements Visitor
 					// In questo caso almeno una delle espressioni ha più valori ma nessuna delle due è un CallProc
 					else
 					{
-						first.accept(this);
-						// Numero di variabili temporanee totali dopo aver eseguito l'accept su first
-						long firstTempVariableIndex = variableIndex;
-
-						second.accept(this);
-						// Numero di variabili temporanee totali dopo aver eseguito l'accept su second
-						long secondTempVariableIndex = variableIndex;
-
-						// Numero della temporanea che indica il primo valore dell'espressione a sinistra
-						long firstValueToSubtract = firstTempVariableIndex - numOfFirstExprValue;
-						// Numero della temporanea che indica il primo valore dell'espressione a destra
-						long secondValueToSubtract = secondTempVariableIndex - numOfSecondExprValue;
-
-						for(int i = 0; i < minValue; i++)
+						// In questo caso sicuramente first o second hanno un solo valore e l'altra ne avrà di più
+						if(numOfFirstExprValue == 1 || numOfSecondExprValue == 1)
 						{
+							// TODO REFACTORING
+							exprMax.accept(this);
+							long firstTempVariableIndex = variableIndex;
+							System.out.println(firstTempVariableIndex);
+							// Numero della temporanea che indica il primo valore dell'espressione a sinistra
+							long firstValueToSubtract = firstTempVariableIndex - maxValue;
+
 							// Genero la variabile temporane che mantine il risultato dell'operazione
-							generatedCode.append(minTypeSplitted[i]).append(minTypeSplitted[i].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+							generatedCode.append(minTypeSplitted[0]).append(minTypeSplitted[0].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
 									.append(" = ");
 							// Genero gli id per first e second da passare a generateBinaryExpr che genera il codice
-							Temp newFirst = new Temp("t_" + (firstValueToSubtract + i));
-							Temp newSecond = new Temp("t_" + (secondValueToSubtract + i));
-							newFirst.typeNode = minTypeSplitted[i];
-							newSecond.typeNode = minTypeSplitted[i];
-							generateBinaryExpr(op, newFirst, newSecond);
+							Temp newFirst = new Temp("t_" + firstValueToSubtract);
+							newFirst.typeNode = minTypeSplitted[0];
+							generateBinaryExpr(op, newFirst, first != exprMax ? first : second);
 							generatedCode.append(";\n");
+
+							for(int i = minValue; i < maxValue; i++)
+							{
+								long temp = firstValueToSubtract + i;
+
+								// Genero la variabile temporane che mantine il risultato dell'operazione
+								generatedCode.append(maxTypeSplitted[i]).append(maxTypeSplitted[i].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+										.append(" = ")
+										.append("t_").append(temp).append(";\n");
+							}
 						}
-
-						for(int i = minValue; i < maxValue; i++)
+						else
 						{
-							long temp;
-							// Se la prima espressione ritorna meno valori della seconda espressione allora le temporanee che dobbiamo
-							// appendere sono quelle che si trovano più vicino a variableIndex
-							if(numOfFirstExprValue < numOfSecondExprValue)
-								// Partendo dal primo valore di ritorno dell'espressione e aggiungendo i ottengo il numero della
-								// temporanea che contiene l'espressione che mi serve
-								temp = secondValueToSubtract + i;
-							// Se invece la prima espressione ritorna più valori della seconda allora le temporanee che dobbiamo
-							// appendere sono quelle relative ai valori di ritorno della prima espressione
-							else
-								// Partendo dal primo valore di ritorno dell'espressione e aggiungendo i ottengo il numero della
-								// temporanea che contiene l'espressione che mi serve
-								temp = firstValueToSubtract + i;
+							first.accept(this);
+							// Numero di variabili temporanee totali dopo aver eseguito l'accept su first
+							long firstTempVariableIndex = variableIndex;
 
-							// Genero la variabile temporane che mantine il risultato dell'operazione
-							generatedCode.append(maxTypeSplitted[i]).append(maxTypeSplitted[i].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
-									.append(" = ")
-									.append("t_").append(temp).append(";\n");
+							second.accept(this);
+							// Numero di variabili temporanee totali dopo aver eseguito l'accept su second
+							long secondTempVariableIndex = variableIndex;
+
+							// Numero della temporanea che indica il primo valore dell'espressione a sinistra
+							long firstValueToSubtract = firstTempVariableIndex - numOfFirstExprValue;
+							// Numero della temporanea che indica il primo valore dell'espressione a destra
+							long secondValueToSubtract = secondTempVariableIndex - numOfSecondExprValue;
+
+							for(int i = 0; i < minValue; i++)
+							{
+								// Genero la variabile temporane che mantine il risultato dell'operazione
+								generatedCode.append(minTypeSplitted[i]).append(minTypeSplitted[i].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+										.append(" = ");
+								// Genero gli id per first e second da passare a generateBinaryExpr che genera il codice
+								Temp newFirst = new Temp("t_" + (firstValueToSubtract + i));
+								Temp newSecond = new Temp("t_" + (secondValueToSubtract + i));
+								newFirst.typeNode = minTypeSplitted[i];
+								newSecond.typeNode = minTypeSplitted[i];
+								generateBinaryExpr(op, newFirst, newSecond);
+								generatedCode.append(";\n");
+							}
+
+							for(int i = minValue; i < maxValue; i++)
+							{
+								long temp;
+								// Se la prima espressione ritorna meno valori della seconda espressione allora le temporanee che dobbiamo
+								// appendere sono quelle che si trovano più vicino a variableIndex
+								if(numOfFirstExprValue < numOfSecondExprValue)
+									// Partendo dal primo valore di ritorno dell'espressione e aggiungendo i ottengo il numero della
+									// temporanea che contiene l'espressione che mi serve
+									temp = secondValueToSubtract + i;
+									// Se invece la prima espressione ritorna più valori della seconda allora le temporanee che dobbiamo
+									// appendere sono quelle relative ai valori di ritorno della prima espressione
+								else
+									// Partendo dal primo valore di ritorno dell'espressione e aggiungendo i ottengo il numero della
+									// temporanea che contiene l'espressione che mi serve
+									temp = firstValueToSubtract + i;
+
+								// Genero la variabile temporane che mantine il risultato dell'operazione
+								generatedCode.append(maxTypeSplitted[i]).append(maxTypeSplitted[i].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+										.append(" = ")
+										.append("t_").append(temp).append(";\n");
+							}
 						}
 					}
 				}
