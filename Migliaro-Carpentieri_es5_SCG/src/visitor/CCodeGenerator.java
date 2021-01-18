@@ -12,10 +12,7 @@ import utils.Temp;
 
 import java.util.ArrayList;
 
-//TODO Gestire l'allocazione dinamica delle stringhe quando faccio una cosa del tipo userName :=""; e poi uso userName in C esplode tutto perché non ho allocato la memoria per userName
-//TODO Gestire anche l'allocazione dei puntatori con una Malloc
-// TODO Scrivere una nostra strcat che crei un nuovo puntatore a ogni chiamata e lo restituisca
-// TODO Scrivere una funzione per prendere in input le stringhe di lunghezza variabile
+// TODO Controlla inputString nel programma calculator
 public class CCodeGenerator implements Visitor
 {
 	private StringBuilder generatedCode;
@@ -328,7 +325,7 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Boolean visit(ReadlnStat readlnStat) throws Exception
 	{
-		StringBuilder placeholders = new StringBuilder();
+		ArrayList<String> placeholders = new ArrayList<>();
 		int numOfIds = readlnStat.idList.size();
 
 		// Calcoliamo la stringa dei placeholder da usare nella chiamata a scanf
@@ -336,26 +333,34 @@ public class CCodeGenerator implements Visitor
 		{
 			switch(readlnStat.idList.get(i).typeNode)
 			{
-				case "INT", "BOOL" -> placeholders.append("%d");
-				case "FLOAT" -> placeholders.append("%f");
-				case "STRING" -> placeholders.append("%s");
+				case "INT", "BOOL" -> placeholders.add("%d");
+				case "FLOAT" -> placeholders.add("%f");
+				case "STRING" -> placeholders.add("%s");
 			}
 		}
 
-		generatedCode.append("scanf(")
-				.append("\"")
-				.append(placeholders.toString())
-				.append("\", ");
-
-		// Aggiungiamo gli altri parametri alla chiamata
+		// Per ogni id genero una scanf che inserisce l'input preso da terminale nella varibiale definita
+		// Nel caso di una stringa indicata da %s utilizzo la funzione input string che mi permette di allocare
+		// memoria necessaria per la stringa
 		for(int i = 0; i < numOfIds; i++)
 		{
-			// Se l'id è di tipo stringa allora sarà un char * in C e non è necessario usare la &
-			if(!readlnStat.idList.get(i).typeNode.equals("STRING"))
-				generatedCode.append("&");
-
-			readlnStat.idList.get(i).accept(this);
-			generatedCode.append(i == numOfIds - 1 ? ");\n" : ", ");
+			// Se la il segnaposto non è un %s allora siamo nel caso di un intero o di un bool o di un float
+			if(!placeholders.get(i).equals("%s"))
+			{
+				generatedCode.append("scanf(")
+						.append("\"")
+						.append(placeholders.get(i))
+						.append("\", &");
+				readlnStat.idList.get(i).accept(this);
+				generatedCode.append(");\n");
+			}
+			else
+			// In questo caso stiamo leggendo una stringa dobbiamo quindi assegnare il puntatore generato da inputStringa
+			// alla variabile presa in input dalla readln
+			{
+				readlnStat.idList.get(i).accept(this);
+				generatedCode.append(" = ").append("inputString();\n");
+			}
 		}
 
 		return true;
@@ -726,7 +731,10 @@ public class CCodeGenerator implements Visitor
 		generatedCode.append("#define false 0\n\n");
 		// Infine generiamo il codice delle firme dei metodi di libreria
 		generatedCode.append("char* deleteSubstring(char* str, char* sub);\n");
-		generatedCode.append("int countOccurrences(char* string, char* substring);\n\n");
+		generatedCode.append("int countOccurrences(char* string, char* substring);\n");
+		generatedCode.append("char* concatString(char* str1, char* str2);\n");
+		generatedCode.append("char* repeatString(char *str, int n);\n");
+		generatedCode.append("char* inputString();\n\n");
 
 		// Invoco su ogni elemento di varDeclList l'accept
 		for(VarDecl varDecl : program.varDeclList)
@@ -753,6 +761,13 @@ public class CCodeGenerator implements Visitor
 		generatedCode.append(CCodeString.deleteSubstring);
 		generatedCode.append("\n");
 		generatedCode.append(CCodeString.countOccurrences);
+		generatedCode.append("\n");
+		generatedCode.append(CCodeString.concatString);
+		generatedCode.append("\n");
+		generatedCode.append(CCodeString.repeatString);
+		generatedCode.append("\n");
+		generatedCode.append(CCodeString.inputString);
+		generatedCode.append("\n");
 
 		// Restituisco il codice C generato
 		return generatedCode.toString();
@@ -979,25 +994,24 @@ public class CCodeGenerator implements Visitor
 						// In questo caso sicuramente first o second hanno un solo valore e l'altra ne avrà di più
 						if(numOfFirstExprValue == 1 || numOfSecondExprValue == 1)
 						{
-							// TODO REFACTORING
 							exprMax.accept(this);
-							long firstTempVariableIndex = variableIndex;
-							System.out.println(firstTempVariableIndex);
-							// Numero della temporanea che indica il primo valore dell'espressione a sinistra
-							long firstValueToSubtract = firstTempVariableIndex - maxValue;
+							long maxTempVariableIndex = variableIndex;
+							System.out.println(maxTempVariableIndex);
+							// Numero della temporanea che indica il primo valore dell'espressione con più valori di ritorno
+							long maxValueToSubtract = maxTempVariableIndex - maxValue;
 
 							// Genero la variabile temporane che mantine il risultato dell'operazione
 							generatedCode.append(minTypeSplitted[0]).append(minTypeSplitted[0].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
 									.append(" = ");
 							// Genero gli id per first e second da passare a generateBinaryExpr che genera il codice
-							Temp newFirst = new Temp("t_" + firstValueToSubtract);
+							Temp newFirst = new Temp("t_" + maxValueToSubtract);
 							newFirst.typeNode = minTypeSplitted[0];
 							generateBinaryExpr(op, newFirst, first != exprMax ? first : second);
 							generatedCode.append(";\n");
 
 							for(int i = minValue; i < maxValue; i++)
 							{
-								long temp = firstValueToSubtract + i;
+								long temp = maxValueToSubtract + i;
 
 								// Genero la variabile temporane che mantine il risultato dell'operazione
 								generatedCode.append(maxTypeSplitted[i]).append(maxTypeSplitted[i].equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
@@ -1111,7 +1125,7 @@ public class CCodeGenerator implements Visitor
 	{
 		// Se il tipo delle espressioni è STRING bisogna effettuare la concatenazione delle due stringhe
 		if(first.typeNode.equals("STRING") && second.typeNode.equals("STRING"))
-			generateSimpleLibFuncCall("strcat", first, second);
+			generateSimpleLibFuncCall("concatString", first, second);
 		else
 			generateSimpleExpr("+", first, second);
 	}
