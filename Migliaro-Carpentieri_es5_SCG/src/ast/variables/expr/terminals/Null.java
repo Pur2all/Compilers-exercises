@@ -11,8 +11,8 @@ public class Null extends Terminal
 		this.typeNode = "NULL";
 	}
 
-	public Boolean accept(Visitor visitor) throws Exception
+	public void accept(Visitor visitor) throws Exception
 	{
-		return visitor.visit(this);
+		visitor.visit(this);
 	}
 }

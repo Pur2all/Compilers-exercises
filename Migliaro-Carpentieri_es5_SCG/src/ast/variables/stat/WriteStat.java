@@ -16,8 +16,8 @@ public class WriteStat implements Statement
 		this.exprList = exprList;
 	}
 
-	public Boolean accept(Visitor visitor) throws Exception
+	public void accept(Visitor visitor) throws Exception
 	{
-		return visitor.visit(this);
+		visitor.visit(this);
 	}
 }

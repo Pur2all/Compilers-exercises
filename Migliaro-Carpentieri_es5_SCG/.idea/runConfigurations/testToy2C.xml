@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="MultAddDiff" type="Application" factoryName="Application">
+  <configuration default="false" name="testToy2C" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="tester.Toy" />
     <module name="Migliaro-Carpentieri_es5_SCG" />
-    <option name="PROGRAM_PARAMETERS" value="test_files/multAddDiff.toy" />
+    <option name="PROGRAM_PARAMETERS" value="test_files/testToy2C.toy" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

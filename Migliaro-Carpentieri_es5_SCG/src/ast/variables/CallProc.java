@@ -23,8 +23,8 @@ public class CallProc extends AbstractExpression implements Statement
 		this.arguments = new ArrayList<>();
 	}
 
-	public Boolean accept(Visitor visitor) throws Exception
+	public void accept(Visitor visitor) throws Exception
 	{
-		return visitor.visit(this);
+		visitor.visit(this);
 	}
 }

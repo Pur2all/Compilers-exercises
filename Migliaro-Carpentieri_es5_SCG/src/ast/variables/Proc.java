@@ -49,8 +49,8 @@ public class Proc implements Visitable
 		this.statements = new ArrayList<>();
 	}
 
-	public Boolean accept(Visitor visitor) throws Exception
+	public void accept(Visitor visitor) throws Exception
 	{
-		return visitor.visit(this);
+		visitor.visit(this);
 	}
 }

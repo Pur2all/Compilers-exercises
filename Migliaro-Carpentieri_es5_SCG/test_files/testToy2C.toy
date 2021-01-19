@@ -1,0 +1,116 @@
+/*
+Per testare Toy2C, oltre ad utilizzare il programma sviluppato nell'esercizio 4, si sviluppi e compili anche il programma
+Toy che svolga (a richiesta tramite menu)
+1. la somma di due numeri
+2. la moltiplicazione di due numeri utilizzando la somma
+3. la divisione intera fra due numeri positivi
+4. l’elevamento a potenza
+5. la successione di Fibonacci
+*/
+
+proc add(float first, second) float:
+    -> first + second
+corp;
+
+proc mul(float first, second) float:
+    float result := 0;
+    int counter := 0;
+
+    while counter < second do
+        result := add(result, first);
+        counter := counter + 1;
+    od;
+
+    -> result
+corp;
+
+proc intDiv(float first, second) int:
+    int result := 0;
+
+    while first <= 0 || second <= 0 do
+        write("Almeno uno dei due valori inseriti non sono positivi, reinserire i valori:");
+        readln(first, second);
+    od;
+
+    while first - second >= 0 do
+        result := result + 1;
+        first := first - second;
+    od;
+
+    -> result
+corp;
+
+proc exp(float base; int exponent) float:
+    float result := base;
+    int counter := 0;
+
+    while counter < exponent - 1 do
+        result := result * base;
+        counter := counter + 1;
+    od;
+
+    -> result
+corp;
+
+proc fib(int n) int:
+    int result := 0;
+
+    if n = 0 || n = 1 then
+        result := n;
+    else
+        result := fib(n - 1) + fib(n - 2);
+    fi;
+
+    -> result
+corp;
+
+proc menu() void:
+    write("Quale operazione vuoi effettuare?");
+    write("1. la somma di due numeri");
+    write("2. la moltiplicazione di due numeri utilizzando la somma");
+    write("3. la divisione intera fra due numeri positivi");
+    write("4. l’elevamento a potenza");
+    write("5. la successione di Fibonacci");
+corp;
+
+proc main() int:
+    float first, second, result;
+    int choose, fibn, exponent;
+
+    menu();
+    readln(choose);
+
+    if choose = 1 then
+        write("Inserisci il primo numero: ");
+        readln(first);
+        write("Inserisci il secondo numero: ");
+        readln(second);
+        result := add(first, second);
+    elif choose = 2 then
+        write("Inserisci il primo numero: ");
+        readln(first);
+        write("Inserisci il secondo numero: ");
+        readln(second);
+        result := mul(first, second);
+    elif choose = 3 then
+        write("Inserisci il primo numero: ");
+        readln(first);
+        write("Inserisci il secondo numero: ");
+        readln(second);
+        result := intDiv(first, second);
+    elif choose = 4 then
+        write("Inserisci la base: ");
+        readln(first);
+        write("Inserisci l'esponente: ");
+        readln(exponent);
+        result := exp(first, exponent);
+    else
+        write("Inserisci il numero: ");
+        readln(fibn);
+        result := fib(fibn);
+    fi;
+
+    write("Il risultato dell'operazione è: ", result);
+
+    -> 0
+corp;

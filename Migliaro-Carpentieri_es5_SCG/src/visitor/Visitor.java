@@ -11,55 +11,55 @@ public interface Visitor
 	/* EXPRESSIONS */
 
 	// Binary operations
-	Boolean visit(AddExpr expression) throws Exception;
-	Boolean visit(AndExpr expression) throws Exception;
-	Boolean visit(DivExpr expression) throws Exception;
-	Boolean visit(EqExpr expression) throws Exception;
-	Boolean visit(GeExpr expression) throws Exception;
-	Boolean visit(GtExpr expression) throws Exception;
-	Boolean visit(LeExpr expression) throws Exception;
-	Boolean visit(LtExpr expression) throws Exception;
-	Boolean visit(MinExpr expression) throws Exception;
-	Boolean visit(NeExpr expression) throws Exception;
-	Boolean visit(OrExpr expression) throws Exception;
-	Boolean visit(TimesExpr expression) throws Exception;
+	void visit(AddExpr expression) throws Exception;
+	void visit(AndExpr expression) throws Exception;
+	void visit(DivExpr expression) throws Exception;
+	void visit(EqExpr expression) throws Exception;
+	void visit(GeExpr expression) throws Exception;
+	void visit(GtExpr expression) throws Exception;
+	void visit(LeExpr expression) throws Exception;
+	void visit(LtExpr expression) throws Exception;
+	void visit(MinExpr expression) throws Exception;
+	void visit(NeExpr expression) throws Exception;
+	void visit(OrExpr expression) throws Exception;
+	void visit(TimesExpr expression) throws Exception;
 
 	// Terminals
-	Boolean visit(False expression) throws Exception;
-	Boolean visit(FloatConst expression) throws Exception;
-	Boolean visit(Id expression) throws Exception;
-	Boolean visit(IntConst expression) throws Exception;
-	Boolean visit(Null expression) throws Exception;
-	Boolean visit(StringConst expression) throws Exception;
-	Boolean visit(True expression) throws Exception;
+	void visit(False expression) throws Exception;
+	void visit(FloatConst expression) throws Exception;
+	void visit(Id expression) throws Exception;
+	void visit(IntConst expression) throws Exception;
+	void visit(Null expression) throws Exception;
+	void visit(StringConst expression) throws Exception;
+	void visit(True expression) throws Exception;
 
 	// Unary operations
-	Boolean visit(NotExpr expression) throws Exception;
-	Boolean visit(UminExpr expression) throws Exception;
+	void visit(NotExpr expression) throws Exception;
+	void visit(UminExpr expression) throws Exception;
 
-	Boolean visit(CallProc callProc) throws Exception;
+	void visit(CallProc callProc) throws Exception;
 
-	Boolean visit(AssignStat assignStat) throws Exception;
+	void visit(AssignStat assignStat) throws Exception;
 
-	Boolean visit(ReadlnStat readlnStat) throws Exception;
+	void visit(ReadlnStat readlnStat) throws Exception;
 
-	Boolean visit(WriteStat writeStat) throws Exception;
+	void visit(WriteStat writeStat) throws Exception;
 
-	Boolean visit(WhileStat whileStat) throws Exception;
+	void visit(WhileStat whileStat) throws Exception;
 
-	Boolean visit(Elif elif) throws Exception;
+	void visit(Elif elif) throws Exception;
 
-	Boolean visit(If anIf) throws Exception;
+	void visit(If anIf) throws Exception;
 
-	Boolean visit(Else anElse) throws Exception;
+	void visit(Else anElse) throws Exception;
 
-	Boolean visit(ParDecl parDecl) throws Exception;
+	void visit(ParDecl parDecl) throws Exception;
 
-	Boolean visit(IdListInit idListInit) throws Exception;
+	void visit(IdListInit idListInit) throws Exception;
 
-	Boolean visit(VarDecl varDecl) throws Exception;
+	void visit(VarDecl varDecl) throws Exception;
 
-	Boolean visit(Proc proc) throws Exception;
+	void visit(Proc proc) throws Exception;
 
-	Boolean visit(Program program) throws Exception;
+	void visit(Program program) throws Exception;
 }

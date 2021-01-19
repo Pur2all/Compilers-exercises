@@ -13,14 +13,14 @@ public class AssignStat implements Statement
 	public ArrayList<AbstractExpression> exprList;
 	public String typeNode = "VOID";
 
-	public AssignStat(ArrayList<Id> idList, ArrayList<AbstractExpression> exprList) throws Exception
+	public AssignStat(ArrayList<Id> idList, ArrayList<AbstractExpression> exprList)
 	{
 		this.idList = idList;
 		this.exprList = exprList;
 	}
 
-	public Boolean accept(Visitor visitor) throws Exception
+	public void accept(Visitor visitor) throws Exception
 	{
-		return visitor.visit(this);
+		visitor.visit(this);
 	}
 }

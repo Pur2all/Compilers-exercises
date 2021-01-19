@@ -12,8 +12,8 @@ public class LeExpr extends BinaryOp
 		super(leftExpr, rightExpr);
 	}
 
-	public Boolean accept(Visitor visitor) throws Exception
+	public void accept(Visitor visitor) throws Exception
 	{
-		return visitor.visit(this);
+		visitor.visit(this);
 	}
 }

@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Calculator" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="tester.Tester" />
+    <option name="MAIN_CLASS_NAME" value="tester.Toy" />
     <module name="Migliaro-Carpentieri_es5_SCG" />
     <option name="PROGRAM_PARAMETERS" value="test_files/calculator.toy" />
     <method v="2">

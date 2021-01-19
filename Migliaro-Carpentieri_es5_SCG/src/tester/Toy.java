@@ -7,9 +7,9 @@ import symbolTable.SymbolTableNode;
 import visitor.CCodeGenerator;
 import visitor.SemanticAnalyzer;
 
-import java.io.FileReader;
+import java.io.*;
 
-public class Tester
+public class Toy
 {
 	public static void main(String[] args) throws Exception
 	{
@@ -18,6 +18,8 @@ public class Tester
 		SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
 		SymbolTableNode rootSymbolTableTree = semanticAnalyzer.visitAST(root);
 		CCodeGenerator codeGenerator = new CCodeGenerator(rootSymbolTableTree);
-		System.out.println(codeGenerator.generateCCode(root));
+		PrintWriter printWriter = new PrintWriter(args[0].replace(".toy", ".c"));
+		printWriter.print(codeGenerator.generateCCode(root));
+		printWriter.close();
 	}
 }

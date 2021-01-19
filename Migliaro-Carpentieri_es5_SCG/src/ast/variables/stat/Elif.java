@@ -23,8 +23,8 @@ public class Elif implements Statement
 		this.expr = expr;
 	}
 
-	public Boolean accept(Visitor visitor) throws Exception
+	public void accept(Visitor visitor) throws Exception
 	{
-		return visitor.visit(this);
+		visitor.visit(this);
 	}
 }

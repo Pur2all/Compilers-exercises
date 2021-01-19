@@ -12,7 +12,6 @@ import utils.Temp;
 
 import java.util.ArrayList;
 
-// TODO Controlla inputString nel programma calculator
 public class CCodeGenerator implements Visitor
 {
 	private StringBuilder generatedCode;
@@ -29,184 +28,143 @@ public class CCodeGenerator implements Visitor
 	}
 
 	@Override
-	public Boolean visit(AddExpr expression) throws Exception
+	public void visit(AddExpr expression) throws Exception
 	{
 		generateBinaryExpr("+", expression.leftExpr, expression.rightExpr);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(AndExpr expression) throws Exception
+	public void visit(AndExpr expression) throws Exception
 	{
 		generateBinaryExpr("&&", expression.leftExpr, expression.rightExpr);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(DivExpr expression) throws Exception
+	public void visit(DivExpr expression) throws Exception
 	{
 		generateBinaryExpr("/", expression.leftExpr, expression.rightExpr);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(EqExpr expression) throws Exception
+	public void visit(EqExpr expression) throws Exception
 	{
 		generateBinaryExpr("==", expression.leftExpr, expression.rightExpr);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(GeExpr expression) throws Exception
+	public void visit(GeExpr expression) throws Exception
 	{
 		generateBinaryExpr(">=", expression.leftExpr, expression.rightExpr);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(GtExpr expression) throws Exception
+	public void visit(GtExpr expression) throws Exception
 	{
 		generateBinaryExpr(">", expression.leftExpr, expression.rightExpr);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(LeExpr expression) throws Exception
+	public void visit(LeExpr expression) throws Exception
 	{
 		generateBinaryExpr("<=", expression.leftExpr, expression.rightExpr);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(LtExpr expression) throws Exception
+	public void visit(LtExpr expression) throws Exception
 	{
 		generateBinaryExpr("<", expression.leftExpr, expression.rightExpr);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(MinExpr expression) throws Exception
+	public void visit(MinExpr expression) throws Exception
 	{
 		generateBinaryExpr("-", expression.leftExpr, expression.rightExpr);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(NeExpr expression) throws Exception
+	public void visit(NeExpr expression) throws Exception
 	{
 		generateBinaryExpr("!=", expression.leftExpr, expression.rightExpr);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(OrExpr expression) throws Exception
+	public void visit(OrExpr expression) throws Exception
 	{
 		generateBinaryExpr("||", expression.leftExpr, expression.rightExpr);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(TimesExpr expression) throws Exception
+	public void visit(TimesExpr expression) throws Exception
 	{
 		generateBinaryExpr("*", expression.leftExpr, expression.rightExpr);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(False expression) throws Exception
+	public void visit(False expression) throws Exception
 	{
 		// Generiamo il codice per false che in C abbiamo definito come macro FALSE 0
 		generatedCode.append("false");
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(FloatConst expression) throws Exception
+	public void visit(FloatConst expression) throws Exception
 	{
 		// Generiamo il codice per una costante float
 		generatedCode.append(expression.value);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(Id expression) throws Exception
+	public void visit(Id expression) throws Exception
 	{
 		// In ogni caso dobbiamo creare il codice con il lessema dell'id sia che sia un Temp che un Id
 		generatedCode.append(expression.value);
 		// Generiamo il codice per un identificatore
 		if(!(expression instanceof Temp))
 			generatedCode.append("_toy");
-		return true;
 	}
 
 	@Override
-	public Boolean visit(IntConst expression) throws Exception
+	public void visit(IntConst expression) throws Exception
 	{
 		// Generiamo il codice per una costante
 		generatedCode.append(expression.value);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(Null expression) throws Exception
+	public void visit(Null expression) throws Exception
 	{
 		// Generiamo il codice per null
 		generatedCode.append("NULL");
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(StringConst expression) throws Exception
+	public void visit(StringConst expression) throws Exception
 	{
 		// Generiamo il codice per una costante
 		generatedCode.append("\"").append(expression.value).append("\"");
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(True expression) throws Exception
+	public void visit(True expression) throws Exception
 	{
 		// Generiamo il codice per true che in C abbiamo definito come macro TRUE 1
 		generatedCode.append("true");
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(NotExpr expression) throws Exception
+	public void visit(NotExpr expression) throws Exception
 	{
 		generateUnaryExpr("!", expression.expression);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(UminExpr expression) throws Exception
+	public void visit(UminExpr expression) throws Exception
 	{
 		generateUnaryExpr("-", expression.expression);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(CallProc callProc) throws Exception
+	public void visit(CallProc callProc) throws Exception
 	{
 		String newFuncName = callProc.id + "_toy";
 		ArrayList<AbstractExpression> parameterList = new ArrayList<>();
@@ -270,12 +228,10 @@ public class CCodeGenerator implements Visitor
 		}
 
 		generatedCode.append(")");
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(AssignStat assignStat) throws Exception
+	public void visit(AssignStat assignStat) throws Exception
 	{
 
 		int idAssigned = 0;
@@ -318,12 +274,10 @@ public class CCodeGenerator implements Visitor
 				generatedCode.append(";\n");
 			}
 		}
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(ReadlnStat readlnStat) throws Exception
+	public void visit(ReadlnStat readlnStat) throws Exception
 	{
 		ArrayList<String> placeholders = new ArrayList<>();
 		int numOfIds = readlnStat.idList.size();
@@ -353,6 +307,9 @@ public class CCodeGenerator implements Visitor
 						.append("\", &");
 				readlnStat.idList.get(i).accept(this);
 				generatedCode.append(");\n");
+				// Aggiungiamo questa chiamata a funzione per eliminare il carattere \n dal buffer lasciato all'interno
+				// dalla scanf
+				generatedCode.append("getchar();\n");
 			}
 			else
 			// In questo caso stiamo leggendo una stringa dobbiamo quindi assegnare il puntatore generato da inputStringa
@@ -362,12 +319,10 @@ public class CCodeGenerator implements Visitor
 				generatedCode.append(" = ").append("inputString();\n");
 			}
 		}
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(WriteStat writeStat) throws Exception
+	public void visit(WriteStat writeStat) throws Exception
 	{
 		StringBuilder placeholders = new StringBuilder();
 		int numOfExprs = writeStat.exprList.size();
@@ -377,14 +332,21 @@ public class CCodeGenerator implements Visitor
 		{
 			String[] types = writeStat.exprList.get(i).typeNode.split(", ");
 
+			int k = 0;
 			// Questo ciclo viene fatto per gestire le espressioni composte da più valori
 			for(String type : types)
+			{
 				switch(type)
 				{
 					case "INT", "NULL", "BOOL" -> placeholders.append("%d");
 					case "FLOAT" -> placeholders.append("%f");
 					case "STRING" -> placeholders.append("%s");
 				}
+				// Aggiungiamo uno spazio tra i placeholders dell'espressione se essa è composta da più valori
+				if(types.length > 1)
+					placeholders.append(k == types.length - 1 ? "" : " ");
+				k++;
+			}
 		}
 
 		// Lista dove salviamo le temporanee generate dall'uso delle espressioni con più valori
@@ -432,12 +394,10 @@ public class CCodeGenerator implements Visitor
 				}
 			generatedCode.append(i == numOfExprs - 1 ? ");\n" : ", ");
 		}
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(WhileStat whileStat) throws Exception
+	public void visit(WhileStat whileStat) throws Exception
 	{
 		// Per poter gestire il while del linguaggio toy che permette di avere stataments prima della condizione del while procediamo come segue:
 		// Appendiamo al codice generato fino a questo momento gli statment prima della condizione e poi li appendiamo anche alla fine nel corpo del while
@@ -475,12 +435,10 @@ public class CCodeGenerator implements Visitor
 		}
 		// Chiudo il while
 		generatedCode.append("}\n");
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(Elif elif) throws Exception
+	public void visit(Elif elif) throws Exception
 	{
 		generatedCode.append("else if(");
 		elif.expr.accept(this);
@@ -493,12 +451,10 @@ public class CCodeGenerator implements Visitor
 				generatedCode.append(";\n");
 		}
 		generatedCode.append("}\n");
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(If anIf) throws Exception
+	public void visit(If anIf) throws Exception
 	{
 		generatedCode.append("if(");
 		anIf.expression.accept(this);
@@ -514,12 +470,10 @@ public class CCodeGenerator implements Visitor
 		for(Elif elif : anIf.elifList)
 			elif.accept(this);
 		anIf.anElse.accept(this);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(Else anElse) throws Exception
+	public void visit(Else anElse) throws Exception
 	{
 		if(!anElse.statements.isEmpty())
 		{
@@ -533,12 +487,10 @@ public class CCodeGenerator implements Visitor
 			}
 			generatedCode.append("}\n");
 		}
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(ParDecl parDecl) throws Exception
+	public void visit(ParDecl parDecl) throws Exception
 	{
 		int numOfIds = parDecl.idList.size();
 
@@ -549,12 +501,10 @@ public class CCodeGenerator implements Visitor
 			parDecl.idList.get(i).accept(this);
 			generatedCode.append(i == numOfIds - 1 ? "" : ", ");
 		}
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(IdListInit idListInit) throws Exception
+	public void visit(IdListInit idListInit) throws Exception
 	{
 		// Otteniamo l'array di id dell'IdListInit
 		ArrayList<Id> setId = new ArrayList<>(idListInit.keySet());
@@ -578,24 +528,20 @@ public class CCodeGenerator implements Visitor
 			}
 			generatedCode.append(setId.size() - 1 == i ? ";\n" : ", ");
 		}
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(VarDecl varDecl) throws Exception
+	public void visit(VarDecl varDecl) throws Exception
 	{
 		// Generiamo il codice per la dichiarazione delle variabili
 		generatedCode.append(varDecl.type).append(" ");
 
 		// Invoco l'accept su idListInit che si occuperà di generare a sua volta il codice.
 		varDecl.idListInit.accept(this);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(Proc proc) throws Exception
+	public void visit(Proc proc) throws Exception
 	{
 		// Per gestire le funzioni con più valori di ritorno creiamo della funzioni con tipo di ritorno void e usiamo dei
 		// punatori per memorizzare i risultati
@@ -617,8 +563,15 @@ public class CCodeGenerator implements Visitor
 		// già dichiarate in C
 		generatedCode.append(" ").append(proc.id).append(proc.id.equals("main") ? "" : "_toy").append("(");
 
-		for(ParDecl param : proc.params)
-			param.accept(this);
+		// I parametri con diverso tipo sono separati da ;
+		// In params abbiamo un numero di liste pari al numero di tipi diversi
+		for(int i = 0; i < proc.params.size(); i++)
+		{
+			// Invochiamo accept su ogni lista
+			proc.params.get(i).accept(this);
+			// Aggiungiamo la virgola nel caso in cui la lista non sia l'ultima
+			generatedCode.append(proc.params.size() - 1 == i ? "" : ", ");
+		}
 
 		//Alla fine dei parametri chiudo la parentesi e metto la graffa
 		generatedCode.append(")\n{\n");
@@ -710,12 +663,10 @@ public class CCodeGenerator implements Visitor
 			}
 		}
 		generatedCode.append("}\n");
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(Program program) throws Exception
+	public void visit(Program program) throws Exception
 	{
 		// All'inizio del programma dobbiamo generare il codice per l'import delle librerie
 		generatedCode.append("#include <stdio.h>\n");
@@ -748,8 +699,6 @@ public class CCodeGenerator implements Visitor
 			proc.accept(this);
 			generatedCode.append("\n");
 		}
-
-		return true;
 	}
 
 	// Esegue il visit sulla radice dell'AST e  restituisce il codice C generato
@@ -996,7 +945,7 @@ public class CCodeGenerator implements Visitor
 						{
 							exprMax.accept(this);
 							long maxTempVariableIndex = variableIndex;
-							System.out.println(maxTempVariableIndex);
+
 							// Numero della temporanea che indica il primo valore dell'espressione con più valori di ritorno
 							long maxValueToSubtract = maxTempVariableIndex - maxValue;
 

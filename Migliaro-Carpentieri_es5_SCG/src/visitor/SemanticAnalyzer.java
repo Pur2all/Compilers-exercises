@@ -35,91 +35,91 @@ public class SemanticAnalyzer implements Visitor
 	}
 
 	@Override
-	public Boolean visit(AddExpr expression) throws Exception
+	public void visit(AddExpr expression) throws Exception
 	{
-		return binaryExpr(expression, "AddOp");
+		binaryExpr(expression, "AddOp");
 	}
 
 	@Override
-	public Boolean visit(AndExpr expression) throws Exception
+	public void visit(AndExpr expression) throws Exception
 	{
-		return binaryExpr(expression, "AndOp");
+		binaryExpr(expression, "AndOp");
 	}
 
 	@Override
-	public Boolean visit(DivExpr expression) throws Exception
+	public void visit(DivExpr expression) throws Exception
 	{
-		return binaryExpr(expression, "DivOp");
+		binaryExpr(expression, "DivOp");
 	}
 
 	@Override
-	public Boolean visit(EqExpr expression) throws Exception
+	public void visit(EqExpr expression) throws Exception
 	{
-		return binaryExpr(expression, "EqOp");
+		binaryExpr(expression, "EqOp");
 	}
 
 	@Override
-	public Boolean visit(GeExpr expression) throws Exception
+	public void visit(GeExpr expression) throws Exception
 	{
-		return binaryExpr(expression, "GeOp");
+		binaryExpr(expression, "GeOp");
 	}
 
 	@Override
-	public Boolean visit(GtExpr expression) throws Exception
+	public void visit(GtExpr expression) throws Exception
 	{
-		return binaryExpr(expression, "GtOp");
+		binaryExpr(expression, "GtOp");
 	}
 
 	@Override
-	public Boolean visit(LeExpr expression) throws Exception
+	public void visit(LeExpr expression) throws Exception
 	{
-		return binaryExpr(expression, "LeOp");
+		binaryExpr(expression, "LeOp");
 	}
 
 	@Override
-	public Boolean visit(LtExpr expression) throws Exception
+	public void visit(LtExpr expression) throws Exception
 	{
-		return binaryExpr(expression, "LtOp");
+		binaryExpr(expression, "LtOp");
 	}
 
 	@Override
-	public Boolean visit(MinExpr expression) throws Exception
+	public void visit(MinExpr expression) throws Exception
 	{
-		return binaryExpr(expression, "MinOp");
+		binaryExpr(expression, "MinOp");
 	}
 
 	@Override
-	public Boolean visit(NeExpr expression) throws Exception
+	public void visit(NeExpr expression) throws Exception
 	{
-		return binaryExpr(expression, "NeOp");
+		binaryExpr(expression, "NeOp");
 	}
 
 	@Override
-	public Boolean visit(OrExpr expression) throws Exception
+	public void visit(OrExpr expression) throws Exception
 	{
-		return binaryExpr(expression, "OrOp");
+		binaryExpr(expression, "OrOp");
 	}
 
 	@Override
-	public Boolean visit(TimesExpr expression) throws Exception
+	public void visit(TimesExpr expression) throws Exception
 	{
-		return binaryExpr(expression, "TimeOp");
+		binaryExpr(expression, "TimeOp");
 	}
 
 	@Override
-	public Boolean visit(False expression)
+	public void visit(False expression)
 	{
-		return true;
+		// Metodo vuoto poiché accetta a prescindere
 	}
 
 	@Override
-	public Boolean visit(FloatConst expression)
+	public void visit(FloatConst expression)
 	{
-		return true;
+		// Metodo vuoto poiché accetta a prescindere
 	}
 
 	@Override
-	public Boolean visit(Id expression) throws Exception
+	public void visit(Id expression) throws Exception
 	{
 		// Partendo dall'ultima symbol table usata vediamo se l'id è presente (lookup)
 		SymbolTableRecord variableDeclaredInfo = currentSymbolTable.lookup(expression.value);
@@ -129,48 +129,46 @@ public class SemanticAnalyzer implements Visitor
 
 		// Assegnamo al nodo id il suo tipo ottenuto dalla tabella dei simboli
 		expression.typeNode = variableDeclaredInfo.type;
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(IntConst expression)
+	public void visit(IntConst expression)
 	{
-		return true;
+		// Metodo vuoto poiché accetta a prescindere
 	}
 
 	@Override
-	public Boolean visit(Null expression)
+	public void visit(Null expression)
 	{
-		return true;
+		// Metodo vuoto poiché accetta a prescindere
 	}
 
 	@Override
-	public Boolean visit(StringConst expression)
+	public void visit(StringConst expression)
 	{
-		return true;
+		// Metodo vuoto poiché accetta a prescindere
 	}
 
 	@Override
-	public Boolean visit(True expression)
+	public void visit(True expression)
 	{
-		return true;
+		// Metodo vuoto poiché accetta a prescindere
 	}
 
 	@Override
-	public Boolean visit(NotExpr expression) throws Exception
+	public void visit(NotExpr expression) throws Exception
 	{
-		return unaryExpr(expression, "NotOp");
+		unaryExpr(expression, "NotOp");
 	}
 
 	@Override
-	public Boolean visit(UminExpr expression) throws Exception
+	public void visit(UminExpr expression) throws Exception
 	{
-		return unaryExpr(expression, "UminOp");
+		unaryExpr(expression, "UminOp");
 	}
 
 	@Override
-	public Boolean visit(CallProc callProc) throws Exception
+	public void visit(CallProc callProc) throws Exception
 	{
 		SymbolTableRecord functionDeclaredInfo = currentSymbolTable.lookup(callProc.id);
 
@@ -277,12 +275,10 @@ public class SemanticAnalyzer implements Visitor
 
 		// Setto come tipo del nodo callProc i tipi di ritorno della procedura
 		callProc.typeNode = returnTypes;
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(AssignStat assignStat) throws Exception
+	public void visit(AssignStat assignStat) throws Exception
 	{
 		// Salviamo il numero di assegnamenti da effettuare basato sul numero di variabli
 		int numOfAssignment = assignStat.idList.size();
@@ -375,12 +371,10 @@ public class SemanticAnalyzer implements Visitor
 			throw new Exception("Too few value to unpack");
 
 		// L'assignStat non ha tipo
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(ReadlnStat readlnStat) throws Exception
+	public void visit(ReadlnStat readlnStat) throws Exception
 	{
 
 		// Chiamo l'accept su id per controllare che gli id siano effettivamente dichiarati
@@ -388,22 +382,18 @@ public class SemanticAnalyzer implements Visitor
 			id.accept(this);
 
 		// Il tipo di readln non è definito
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(WriteStat writeStat) throws Exception
+	public void visit(WriteStat writeStat) throws Exception
 	{
 		// Chiamo l'accept su expr per controllare che siano corrette
 		for(AbstractExpression expr : writeStat.exprList)
 			expr.accept(this);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(WhileStat whileStat) throws Exception
+	public void visit(WhileStat whileStat) throws Exception
 	{
 		// Controllo che gli statament presenti prima della condizione di uscita del while siano corretti
 		for(Statement conditionStat : whileStat.condStatements)
@@ -419,12 +409,10 @@ public class SemanticAnalyzer implements Visitor
 		// Controllo che il tipo dell'espressione sia boolean
 		if(!whileStat.expr.typeNode.equals("BOOL"))
 			throw new Exception("Type mismatch: expression in while condition is not of type BOOL, but " + whileStat.expr.typeNode);
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(Elif elif) throws Exception
+	public void visit(Elif elif) throws Exception
 	{
 
 		// Controlliamo che l'expr sia corretta e che sia di tipo booleano
@@ -437,12 +425,10 @@ public class SemanticAnalyzer implements Visitor
 			stat.accept(this);
 
 		// Elif non ha tipo
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(If anIf) throws Exception
+	public void visit(If anIf) throws Exception
 	{
 		// Controlliamo che l'expr sia corretta e che sia di tipo booleano
 		anIf.expression.accept(this);
@@ -461,33 +447,28 @@ public class SemanticAnalyzer implements Visitor
 		anIf.anElse.accept(this);
 
 		// Elif non ha tipo
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(Else anElse) throws Exception
+	public void visit(Else anElse) throws Exception
 	{
 		// Controllo che ogni statament sia corretto
 		for(Statement stat : anElse.statements)
 			stat.accept(this);
 
 		// L'else non ha tipo ed è settato di default a void
-		return true;
 	}
 
 	@Override
-	public Boolean visit(ParDecl parDecl)
+	public void visit(ParDecl parDecl)
 	{
 		// ParDecl è usato solo per dichiarare i parametri della funzione
 		for(Id id : parDecl.idList)
 			currentSymbolTable.symbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, parDecl.type, "parameter"));
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(IdListInit idListInit) throws Exception
+	public void visit(IdListInit idListInit) throws Exception
 	{
 		for(Id id : idListInit.keySet())
 		{
@@ -515,12 +496,10 @@ public class SemanticAnalyzer implements Visitor
 		}
 
 		// Il nodo IdListInit non ha tipo e di default è settato a void
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(VarDecl varDecl) throws Exception
+	public void visit(VarDecl varDecl) throws Exception
 	{
 		// Inserico gli id della lista nella tebella dei simboli corrente
 		for(Id id : varDecl.idListInit.keySet())
@@ -546,12 +525,10 @@ public class SemanticAnalyzer implements Visitor
 		varDecl.idListInit.accept(this);
 
 		// Il nodo VarDecl non ha tipo e di default è void
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(Proc proc) throws Exception
+	public void visit(Proc proc) throws Exception
 	{
 		StringBuilder type = new StringBuilder();
 
@@ -701,12 +678,10 @@ public class SemanticAnalyzer implements Visitor
 
 		// Il nodo Proc ha come tipo paramsType -> returnTypes
 		proc.typeNode = type.toString();
-
-		return true;
 	}
 
 	@Override
-	public Boolean visit(Program program) throws Exception
+	public void visit(Program program) throws Exception
 	{
 		// Program definisce un nuovo scope quindi creo una tabella dei simboli
 		SymbolTable newSymbolTable = new SymbolTable("Program");
@@ -734,18 +709,17 @@ public class SemanticAnalyzer implements Visitor
 			throw new Exception("Function main is not defined");
 
 		// Program non ha tipo di ritorno
-
-		return true;
 	}
 
 	// Serve per lanciare la visita dell'AST e creare le symbol tables
 	public SymbolTableNode visitAST(Visitable visitable) throws Exception
 	{
 		visitable.accept(this);
+
 		return root;
 	}
 
-	private Boolean unaryExpr(UnaryOp expression, String nameOp) throws Exception
+	private void unaryExpr(UnaryOp expression, String nameOp) throws Exception
 	{
 		expression.expression.accept(this);
 
@@ -766,11 +740,9 @@ public class SemanticAnalyzer implements Visitor
 
 		// Settiamo il tipo dell'espressione
 		expression.typeNode = typeOp;
-
-		return true;
 	}
 
-	private Boolean binaryExpr(BinaryOp expression, String nameOp) throws Exception
+	private void binaryExpr(BinaryOp expression, String nameOp) throws Exception
 	{
 		expression.leftExpr.accept(this);
 		expression.rightExpr.accept(this);
@@ -791,8 +763,6 @@ public class SemanticAnalyzer implements Visitor
 
 		// Settiamo il tipo dell'espressione
 		expression.typeNode = typeOp;
-
-		return true;
 	}
 
 	private String opTypeFunction(String op, String type1, String type2) throws Exception

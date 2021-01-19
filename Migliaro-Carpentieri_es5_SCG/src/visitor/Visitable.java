@@ -2,5 +2,5 @@ package visitor;
 
 public interface Visitable
 {
-	Boolean accept(Visitor visitor) throws Exception;
+	void accept(Visitor visitor) throws Exception;
 }
