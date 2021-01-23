@@ -12,8 +12,8 @@ public class AndExpr extends BinaryOp
 		super(leftExpr, rightExpr);
 	}
 
-	public void accept(Visitor visitor) throws Exception
+	public Object accept(Visitor visitor) throws Exception
 	{
-		visitor.visit(this);
+		return visitor.visit(this);
 	}
 }

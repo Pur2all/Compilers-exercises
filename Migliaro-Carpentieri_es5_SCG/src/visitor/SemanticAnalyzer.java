@@ -35,91 +35,105 @@ public class SemanticAnalyzer implements Visitor
 	}
 
 	@Override
-	public void visit(AddExpr expression) throws Exception
+	public Object visit(AddExpr expression) throws Exception
 	{
 		binaryExpr(expression, "AddOp");
+		return null;
 	}
 
 	@Override
-	public void visit(AndExpr expression) throws Exception
+	public Object visit(AndExpr expression) throws Exception
 	{
 		binaryExpr(expression, "AndOp");
+		return null;
 	}
 
 	@Override
-	public void visit(DivExpr expression) throws Exception
+	public Object visit(DivExpr expression) throws Exception
 	{
 		binaryExpr(expression, "DivOp");
+		return null;
 	}
 
 	@Override
-	public void visit(EqExpr expression) throws Exception
+	public Object visit(EqExpr expression) throws Exception
 	{
 		binaryExpr(expression, "EqOp");
+		return null;
 	}
 
 	@Override
-	public void visit(GeExpr expression) throws Exception
+	public Object visit(GeExpr expression) throws Exception
 	{
 		binaryExpr(expression, "GeOp");
+		return null;
 	}
 
 	@Override
-	public void visit(GtExpr expression) throws Exception
+	public Object visit(GtExpr expression) throws Exception
 	{
 		binaryExpr(expression, "GtOp");
+		return null;
 	}
 
 	@Override
-	public void visit(LeExpr expression) throws Exception
+	public Object visit(LeExpr expression) throws Exception
 	{
 		binaryExpr(expression, "LeOp");
+		return null;
 	}
 
 	@Override
-	public void visit(LtExpr expression) throws Exception
+	public Object visit(LtExpr expression) throws Exception
 	{
 		binaryExpr(expression, "LtOp");
+		return null;
 	}
 
 	@Override
-	public void visit(MinExpr expression) throws Exception
+	public Object visit(MinExpr expression) throws Exception
 	{
 		binaryExpr(expression, "MinOp");
+		return null;
 	}
 
 	@Override
-	public void visit(NeExpr expression) throws Exception
+	public Object visit(NeExpr expression) throws Exception
 	{
 		binaryExpr(expression, "NeOp");
+		return null;
 	}
 
 	@Override
-	public void visit(OrExpr expression) throws Exception
+	public Object visit(OrExpr expression) throws Exception
 	{
 		binaryExpr(expression, "OrOp");
+		return null;
 	}
 
 	@Override
-	public void visit(TimesExpr expression) throws Exception
+	public Object visit(TimesExpr expression) throws Exception
 	{
 		binaryExpr(expression, "TimeOp");
+		return null;
 	}
 
 	@Override
-	public void visit(False expression)
+	public Object visit(False expression)
 	{
 		// Metodo vuoto poiché accetta a prescindere
+		return null;
 	}
 
 	@Override
-	public void visit(FloatConst expression)
+	public Object visit(FloatConst expression)
 	{
 		// Metodo vuoto poiché accetta a prescindere
+		return null;
 	}
 
 	@Override
-	public void visit(Id expression) throws Exception
+	public Object visit(Id expression) throws Exception
 	{
 		// Partendo dall'ultima symbol table usata vediamo se l'id è presente (lookup)
 		SymbolTableRecord variableDeclaredInfo = currentSymbolTable.lookup(expression.value);
@@ -129,46 +143,53 @@ public class SemanticAnalyzer implements Visitor
 
 		// Assegnamo al nodo id il suo tipo ottenuto dalla tabella dei simboli
 		expression.typeNode = variableDeclaredInfo.type;
+		return null;
 	}
 
 	@Override
-	public void visit(IntConst expression)
+	public Object visit(IntConst expression)
 	{
 		// Metodo vuoto poiché accetta a prescindere
+		return null;
 	}
 
 	@Override
-	public void visit(Null expression)
+	public Object visit(Null expression)
 	{
 		// Metodo vuoto poiché accetta a prescindere
+		return null;
 	}
 
 	@Override
-	public void visit(StringConst expression)
+	public Object visit(StringConst expression)
 	{
 		// Metodo vuoto poiché accetta a prescindere
+		return  null;
 	}
 
 	@Override
-	public void visit(True expression)
+	public Object visit(True expression)
 	{
 		// Metodo vuoto poiché accetta a prescindere
+		return null;
 	}
 
 	@Override
-	public void visit(NotExpr expression) throws Exception
+	public Object visit(NotExpr expression) throws Exception
 	{
 		unaryExpr(expression, "NotOp");
+		return null;
 	}
 
 	@Override
-	public void visit(UminExpr expression) throws Exception
+	public Object visit(UminExpr expression) throws Exception
 	{
 		unaryExpr(expression, "UminOp");
+		return null;
 	}
 
 	@Override
-	public void visit(CallProc callProc) throws Exception
+	public Object visit(CallProc callProc) throws Exception
 	{
 		SymbolTableRecord functionDeclaredInfo = currentSymbolTable.lookup(callProc.id);
 
@@ -275,10 +296,11 @@ public class SemanticAnalyzer implements Visitor
 
 		// Setto come tipo del nodo callProc i tipi di ritorno della procedura
 		callProc.typeNode = returnTypes;
+		return null;
 	}
 
 	@Override
-	public void visit(AssignStat assignStat) throws Exception
+	public Object visit(AssignStat assignStat) throws Exception
 	{
 		// Salviamo il numero di assegnamenti da effettuare basato sul numero di variabli
 		int numOfAssignment = assignStat.idList.size();
@@ -371,29 +393,35 @@ public class SemanticAnalyzer implements Visitor
 			throw new Exception("Too few value to unpack");
 
 		// L'assignStat non ha tipo
+		return null;
 	}
 
 	@Override
-	public void visit(ReadlnStat readlnStat) throws Exception
+	public Object visit(ReadlnStat readlnStat) throws Exception
 	{
 
 		// Chiamo l'accept su id per controllare che gli id siano effettivamente dichiarati
 		for(Id id : readlnStat.idList)
 			id.accept(this);
 
+
 		// Il tipo di readln non è definito
+		return null;
 	}
 
 	@Override
-	public void visit(WriteStat writeStat) throws Exception
+	public Object visit(WriteStat writeStat) throws Exception
 	{
 		// Chiamo l'accept su expr per controllare che siano corrette
 		for(AbstractExpression expr : writeStat.exprList)
 			expr.accept(this);
+
+		return null;
 	}
 
+
 	@Override
-	public void visit(WhileStat whileStat) throws Exception
+	public Object visit(WhileStat whileStat) throws Exception
 	{
 		// Controllo che gli statament presenti prima della condizione di uscita del while siano corretti
 		for(Statement conditionStat : whileStat.condStatements)
@@ -409,10 +437,12 @@ public class SemanticAnalyzer implements Visitor
 		// Controllo che il tipo dell'espressione sia boolean
 		if(!whileStat.expr.typeNode.equals("BOOL"))
 			throw new Exception("Type mismatch: expression in while condition is not of type BOOL, but " + whileStat.expr.typeNode);
+
+		return null;
 	}
 
 	@Override
-	public void visit(Elif elif) throws Exception
+	public Object visit(Elif elif) throws Exception
 	{
 
 		// Controlliamo che l'expr sia corretta e che sia di tipo booleano
@@ -425,10 +455,12 @@ public class SemanticAnalyzer implements Visitor
 			stat.accept(this);
 
 		// Elif non ha tipo
+
+		return null;
 	}
 
 	@Override
-	public void visit(If anIf) throws Exception
+	public Object visit(If anIf) throws Exception
 	{
 		// Controlliamo che l'expr sia corretta e che sia di tipo booleano
 		anIf.expression.accept(this);
@@ -447,28 +479,31 @@ public class SemanticAnalyzer implements Visitor
 		anIf.anElse.accept(this);
 
 		// Elif non ha tipo
+		return null;
 	}
 
 	@Override
-	public void visit(Else anElse) throws Exception
+	public Object visit(Else anElse) throws Exception
 	{
 		// Controllo che ogni statament sia corretto
 		for(Statement stat : anElse.statements)
 			stat.accept(this);
 
 		// L'else non ha tipo ed è settato di default a void
+		return null;
 	}
 
 	@Override
-	public void visit(ParDecl parDecl)
+	public Object visit(ParDecl parDecl)
 	{
 		// ParDecl è usato solo per dichiarare i parametri della funzione
 		for(Id id : parDecl.idList)
 			currentSymbolTable.symbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, parDecl.type, "parameter"));
+		return null;
 	}
 
 	@Override
-	public void visit(IdListInit idListInit) throws Exception
+	public Object visit(IdListInit idListInit) throws Exception
 	{
 		for(Id id : idListInit.keySet())
 		{
@@ -496,10 +531,11 @@ public class SemanticAnalyzer implements Visitor
 		}
 
 		// Il nodo IdListInit non ha tipo e di default è settato a void
+		return null;
 	}
 
 	@Override
-	public void visit(VarDecl varDecl) throws Exception
+	public Object visit(VarDecl varDecl) throws Exception
 	{
 		// Inserico gli id della lista nella tebella dei simboli corrente
 		for(Id id : varDecl.idListInit.keySet())
@@ -525,10 +561,11 @@ public class SemanticAnalyzer implements Visitor
 		varDecl.idListInit.accept(this);
 
 		// Il nodo VarDecl non ha tipo e di default è void
+		return null;
 	}
 
 	@Override
-	public void visit(Proc proc) throws Exception
+	public Object visit(Proc proc) throws Exception
 	{
 		StringBuilder type = new StringBuilder();
 
@@ -678,10 +715,12 @@ public class SemanticAnalyzer implements Visitor
 
 		// Il nodo Proc ha come tipo paramsType -> returnTypes
 		proc.typeNode = type.toString();
+
+		return null;
 	}
 
 	@Override
-	public void visit(Program program) throws Exception
+	public Object visit(Program program) throws Exception
 	{
 		// Program definisce un nuovo scope quindi creo una tabella dei simboli
 		SymbolTable newSymbolTable = new SymbolTable("Program");
@@ -709,6 +748,7 @@ public class SemanticAnalyzer implements Visitor
 			throw new Exception("Function main is not defined");
 
 		// Program non ha tipo di ritorno
+		return null;
 	}
 
 	// Serve per lanciare la visita dell'AST e creare le symbol tables

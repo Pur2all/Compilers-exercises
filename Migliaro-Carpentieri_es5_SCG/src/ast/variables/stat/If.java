@@ -30,8 +30,8 @@ public class If implements Statement
 		this.anElse = anElse;
 	}
 
-	public void accept(Visitor visitor) throws Exception
+	public Object accept(Visitor visitor) throws Exception
 	{
-		visitor.visit(this);
+		return visitor.visit(this);
 	}
 }

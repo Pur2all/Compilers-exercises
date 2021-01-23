@@ -17,8 +17,8 @@ public class Program implements Visitable
 		this.procList = procList;
 	}
 
-	public void accept(Visitor visitor) throws Exception
+	public Object accept(Visitor visitor) throws Exception
 	{
-		visitor.visit(this);
+		return visitor.visit(this);
 	}
 }

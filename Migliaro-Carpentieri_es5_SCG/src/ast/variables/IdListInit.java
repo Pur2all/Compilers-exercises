@@ -11,8 +11,8 @@ public class IdListInit extends HashMap<Id, AbstractExpression> implements Visit
 {
 	public String typeNode = "VOID";
 
-	public void accept(Visitor visitor) throws Exception
+	public Object accept(Visitor visitor) throws Exception
 	{
-		visitor.visit(this);
+		return visitor.visit(this);
 	}
 }

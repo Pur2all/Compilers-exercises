@@ -33,8 +33,8 @@ public class WhileStat implements Statement
 		this.bodyStatements = new ArrayList<>();
 	}
 
-	public void accept(Visitor visitor) throws Exception
+	public Object accept(Visitor visitor) throws Exception
 	{
-		visitor.visit(this);
+		return visitor.visit(this);
 	}
 }
