@@ -185,16 +185,33 @@ public class CCodeGenerator implements Visitor
 			funcCode.append("t_").append(variableIndex - 1).append(i - 1 == callProc.typeNode.split(", ").length - 1 ? "" : ", ");
 		}
 
-
 		return funcCode.toString();
 	}
 
 	@Override
 	public Object visit(AssignStat assignStat) throws Exception
 	{
-		//TODO revisionare gli assegnamenti
+		// Contiene il codice degli assegnamenti da appendere
+		StringBuilder assignStatCode = new StringBuilder();
+		// Mantiene i risultati generati dalle espressioni
+		ArrayList<String> exprs = new ArrayList<>();
 
-		return "";
+		// Per ogni espressione facciamo generare il codice e memorizziamo i risultati
+		for(AbstractExpression expr : assignStat.exprList)
+		{
+			String[] values = splitOrNot((String) expr.accept(this));
+
+			exprs.addAll(Arrays.asList(values));
+		}
+
+		int i = 0;
+		// Generiamo il codice dei vari assegnamenti
+		for(Id id : assignStat.idList)
+			assignStatCode.append(id.accept(this))
+					.append(" = ")
+					.append(exprs.get(i++)).append(";\n");
+
+		return assignStatCode.toString();
 	}
 
 	@Override
@@ -263,7 +280,7 @@ public class CCodeGenerator implements Visitor
 		{
 			String[] types = writeStat.exprList.get(i).typeNode.split(", ");
 			// Genero il codice per l'espressione e in exprCode memorizzo i risultati dell'espressione
-			String[] exprCode = ((String) writeStat.exprList.get(i).accept(this)).split(", ");
+			String[] exprCode = splitOrNot((String) writeStat.exprList.get(i).accept(this));
 
 			// Aggiungo i risultati di ogni espressione exprsCode
 			exprsCode.addAll(Arrays.asList(exprCode));
@@ -310,7 +327,12 @@ public class CCodeGenerator implements Visitor
 
 		// Appendo gli stataments prima della condizione del while al codice generato finora facendo l'accept
 		for(Statement condStat : whileStat.condStatements)
-			whileStatCode.append(condStat.accept(this));
+		{
+			String statCode = (String) condStat.accept(this);
+			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
+			if(!(condStat instanceof CallProc))
+				whileStatCode.append(statCode);
+		}
 
 		// Genero il codice dell'espressione e restituisco una stringa con il risulstato
 		String cond = (String) whileStat.expr.accept(this);
@@ -321,11 +343,21 @@ public class CCodeGenerator implements Visitor
 
 		// Appendo il corpo del while al codice generato
 		for(Statement bodyStat : whileStat.bodyStatements)
-			whileStatCode.append(bodyStat.accept(this));
+		{
+			String statCode = (String) bodyStat.accept(this);
+			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
+			if(!(bodyStat instanceof CallProc))
+				whileStatCode.append(statCode);
+		}
 
 		// Appendo gli stataments della condizione dopo il corpo del while al codice generato finora facendo l'accept
 		for(Statement condStat : whileStat.condStatements)
-			whileStatCode.append(condStat.accept(this));
+		{
+			String statCode = (String) condStat.accept(this);
+			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
+			if(!(condStat instanceof CallProc))
+				whileStatCode.append(statCode);
+		}
 
 		// Chiudo il while
 		whileStatCode.append("}\n");
@@ -346,7 +378,12 @@ public class CCodeGenerator implements Visitor
 				.append("{\n");
 
 		for(Statement statement : elif.statements)
-			elifCode.append(statement.accept(this));
+		{
+			String statCode = (String) statement.accept(this);
+			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
+			if(!(statement instanceof CallProc))
+				elifCode.append(statCode);
+		}
 
 		elifCode.append("}\n");
 
@@ -366,7 +403,12 @@ public class CCodeGenerator implements Visitor
 
 		// Per ogni statament produco il codice
 		for(Statement statement : anIf.statements)
-			anIfCode.append(statement.accept(this));
+		{
+			String statCode = (String) statement.accept(this);
+			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
+			if(!(statement instanceof CallProc))
+				anIfCode.append(statCode);
+		}
 
 		anIfCode.append("}\n");
 
@@ -386,7 +428,12 @@ public class CCodeGenerator implements Visitor
 		{
 			anElseCode.append("else\n").append("{\n");
 			for(Statement statement : anElse.statements)
-				anElseCode.append(statement.accept(this));
+			{
+				String statCode = (String) statement.accept(this);
+				// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
+				if(!(statement instanceof CallProc))
+					anElseCode.append(statCode);
+			}
 
 			anElseCode.append("}\n");
 		}
@@ -406,6 +453,7 @@ public class CCodeGenerator implements Visitor
 					.append(parDecl.idList.get(i).accept(this));
 			generatedCode.append(i == numOfIds - 1 ? "" : ", ");
 		}
+
 		return true;
 	}
 
@@ -502,7 +550,12 @@ public class CCodeGenerator implements Visitor
 			varDecl.accept(this);
 
 		for(Statement stat : proc.statements)
-			generatedCode.append(stat.accept(this));
+		{
+			String statCode = (String) stat.accept(this);
+			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
+			if(!(stat instanceof CallProc))
+				generatedCode.append(statCode);
+		}
 
 		// Se la funzione ha 1 o più valori di ritorno gestisco i risultati  utilizzando i puntatori
 		if(!proc.resultTypeList.get(0).equals("VOID"))
@@ -514,7 +567,7 @@ public class CCodeGenerator implements Visitor
 				// Prendiamo l'espressione di ritorno
 				AbstractExpression expr = proc.returnExprs.get(i);
 				// Facendo l'accept della expr restituiamo i risulatati inseriti in una stringa separata da virgole
-				String[] exprValues = ((String) expr.accept(this)).split(", ");
+				String[] exprValues = splitOrNot((String) expr.accept(this));
 				// Per ogni valore ritornato dall'espressione lo inseriamo nel puntatore r che mantiene i risultati della funzione
 				for(int j = 0; j < exprValues.length; j++)
 					generatedCode.append(proc.resultTypeList.get(rIndex).equals("STRING") ? "" : "*").append("r_").append(proc.id).append(rIndex++)
@@ -586,6 +639,7 @@ public class CCodeGenerator implements Visitor
 
 	private Object generateBinaryExpr(String op, AbstractExpression first, AbstractExpression second) throws Exception
 	{
+		// Nei casi delle 4 operazioni chiamiamo una funzione apposita per gestire le operazioni tra stringhe
 		return switch(op)
 				{
 					case "+" -> add(first, second);
@@ -611,38 +665,129 @@ public class CCodeGenerator implements Visitor
 
 	private Object generateSimpleExpr(String op, AbstractExpression first, AbstractExpression second) throws Exception
 	{
-		return true;
+		// Mantiene il codice dell'espressione
+		StringBuilder exprCode = new StringBuilder();
+		// Generiamo il codice della prima espressione e ne salviamo il risultato
+		String firstCode = (String) first.accept(this);
+
+		// Se la seconda espressione non è null vuol dire che dobbiamo generare un'espressione binaria
+		if(second != null)
+		{
+			// Generiamo il codice della seconda espressione e ne salviamo il risultato
+			String secondCode = (String) second.accept(this);
+
+			// Otteniamo i risultati delle espressioni
+			String[] firstExpr = splitOrNot(firstCode);
+			String[] secondExpr = splitOrNot(secondCode);
+
+			// Dobbiamo conoscere i risultati delle espressioni con minor numero di valori per poter effettuare
+			// correttamente l'operazione tra espressioni con un numero diverso di valori
+			String[] minExprResult = firstExpr.length > secondExpr.length ? secondExpr : firstExpr;
+			String[] maxExprResult = minExprResult != firstExpr ? firstExpr : secondExpr;
+
+			AbstractExpression minExpr = firstExpr.length > secondExpr.length ? second : first;
+
+			if(firstExpr.length == 1 && secondExpr.length == 1)
+				exprCode.append(firstExpr[0]).append(" ").append(op).append(" ").append(secondExpr[0]);
+			else
+			{
+				for(int i = 0; i < minExprResult.length; i++)
+				{
+					String type = minExpr.typeNode.split(", ")[i];
+
+					// Generiamo le due temporanee per poter effettuare generateBinaryExpr che prende in input due AbstractExpression
+					Temp firstTemp = new Temp(first == minExpr ? minExprResult[i] : maxExprResult[i]);
+					Temp secondTemp = new Temp(second == minExpr ? minExprResult[i] : maxExprResult[i]);
+					// Settiamo il tipo delle temporanee
+					firstTemp.typeNode = type;
+					secondTemp.typeNode = type;
+					// Generiamo il codice di servizio per poter effettuare l'operazione binaria e restituiamo l'operazione
+					// effettuata
+					String result = (String) generateBinaryExpr(op, firstTemp, secondTemp);
+
+					// Generiamo le temporanee utilizzate per memorizzare il risultato dell'espressione
+					generatedCode.append(type).append(type.equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+							.append(" = ")
+							.append(type.equals("STRING") ? "" : "*").append(result).append(";\n");
+
+					// Appendiamo la temporanea utilizzata dov'è salvata l'espressione generata
+					exprCode.append("t_").append(variableIndex - 1).append(i == minExprResult.length - 1 ? "" : ", ");
+				}
+
+				// Se le espressioni hanno valori diversi allora aggiungiamo una virgola per rispettare il formato
+				if(maxExprResult.length != minExprResult.length)
+					exprCode.append(", ");
+
+				// Appendiamo i restanti risultati
+				for(int i = minExprResult.length; i < maxExprResult.length; i++)
+					exprCode.append(maxExprResult[i]).append(i == maxExprResult.length - 1 ? "" : ", ");
+			}
+		}
+		// Generiamo il codice per un'espressione unaria
+		else
+		{
+			// Otteniamo il risultato dell'espressione
+			String[] firstExpr = splitOrNot(firstCode);
+			System.out.println(Arrays.toString(firstExpr));
+
+			if(firstExpr.length == 1)
+				exprCode.append(op).append(firstExpr[0]);
+			else
+			{
+				for(int i = 0; i < firstExpr.length; i++)
+				{
+					String type = first.typeNode.split(", ")[i];
+					// Generiamo le due temporanee per poter effettuare generateBinaryExpr che prende in input due AbstractExpression
+					Temp firstTemp = new Temp(firstExpr[i]);
+					firstTemp.typeNode = type;
+
+					String result = (String) generateUnaryExpr(op, firstTemp);
+
+					// Generiamo le temporanee utilizzate per memorizzare il risultato dell'espressione
+					generatedCode.append(type).append(type.equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+							.append(" = ")
+							.append(type.equals("STRING") ? "" : "*").append(result).append(";\n");
+
+					// Appendiamo la temporanea utilizzata dov'è salvata l'espressione generata
+					exprCode.append("t_").append(variableIndex - 1).append(i == firstExpr.length - 1 ? "" : ", ");
+				}
+			}
+		}
+
+		return exprCode.toString();
 	}
 
 	private Object generateSimpleLibFuncCall(String funcName, AbstractExpression first, AbstractExpression second) throws Exception
 	{
-		generatedCode.append(funcName).append("(");
-		first.accept(this);
-		generatedCode.append(", ");
-		second.accept(this);
-		generatedCode.append(")");
-		return true;
+		StringBuilder funcCallCode = new StringBuilder();
+
+		String firstCode = (String) first.accept(this);
+		String secondCode = (String) second.accept(this);
+		funcCallCode.append(funcName).append("(")
+				.append(firstCode)
+				.append(", ")
+				.append(secondCode)
+				.append(")");
+
+		return funcCallCode.toString();
 	}
 
 	private Object add(AbstractExpression first, AbstractExpression second) throws Exception
 	{
 		// Se il tipo delle espressioni è STRING bisogna effettuare la concatenazione delle due stringhe
 		if(first.typeNode.equals("STRING") && second.typeNode.equals("STRING"))
-			generateSimpleLibFuncCall("concatString", first, second);
+			return generateSimpleLibFuncCall("concatString", first, second);
 		else
-			generateSimpleExpr("+", first, second);
-		return true;
+			return generateSimpleExpr("+", first, second);
 	}
 
 	private Object min(AbstractExpression first, AbstractExpression second) throws Exception
 	{
 		// Se il tipo delle espressioni è STRING bisogna togliere l'occorrenza della seconda stringa dalla prima se c'è
 		if(first.typeNode.equals("STRING") && second.typeNode.equals("STRING"))
-			generateSimpleLibFuncCall("deleteSubstring", first, second);
+			return generateSimpleLibFuncCall("deleteSubstring", first, second);
 		else
-			generateSimpleExpr("-", first, second);
-
-		return true;
+			return generateSimpleExpr("-", first, second);
 	}
 
 	private Object mul(AbstractExpression first, AbstractExpression second) throws Exception
@@ -650,20 +795,18 @@ public class CCodeGenerator implements Visitor
 		// Se l'operazione è effettuata tra un INT e un STRING allora si deve effettuare l'operazione di ripetizione della stringa
 		if(first.typeNode.equals("INT") && second.typeNode.equals("STRING") ||
 				first.typeNode.equals("STRING") && second.typeNode.equals("INT"))
-			generateSimpleLibFuncCall("repeatString", first.typeNode.equals("STRING") ? first : second, second.typeNode.equals("INT") ? second : first);
+			return generateSimpleLibFuncCall("repeatString", first.typeNode.equals("STRING") ? first : second, second.typeNode.equals("INT") ? second : first);
 		else
-			generateSimpleExpr("*", first, second);
-		return true;
+			return generateSimpleExpr("*", first, second);
 	}
 
 	private Object div(AbstractExpression first, AbstractExpression second) throws Exception
 	{
 		// Se il tipo delle espressioni è STRING bisogna tornare il numero di occorrenze della seconda stringa nella prima
 		if(first.typeNode.equals("STRING") && second.typeNode.equals("STRING"))
-			generateSimpleLibFuncCall("countOccurrences", first, second);
+			return generateSimpleLibFuncCall("countOccurrences", first, second);
 		else
-			generateSimpleExpr("/", first, second);
-		return true;
+			return generateSimpleExpr("/", first, second);
 	}
 
 	private Object relop(String op, AbstractExpression first, AbstractExpression second) throws Exception
@@ -671,19 +814,33 @@ public class CCodeGenerator implements Visitor
 		// Se il tipo delle espressione è STRING bisogna effettuare una string compare
 		if(first.typeNode.equals("STRING") && second.typeNode.equals("STRING"))
 		{
-			generateSimpleLibFuncCall("strcmp", first, second);
-			switch(op)
-			{
-				case "==" -> generatedCode.append(" == 0");
-				case "!=" -> generatedCode.append(" != 0");
-				case "<" -> generatedCode.append(" < 0");
-				case ">" -> generatedCode.append(" > 0");
-				case "<=" -> generatedCode.append(" <= 0");
-				case ">=" -> generatedCode.append(" >= 0");
-			}
+			String funcCall = (String) generateSimpleLibFuncCall("strcmp", first, second);
+
+			funcCall = switch(op)
+					{
+						case "==" -> funcCall + " == 0";
+						case "!=" -> funcCall + " != 0";
+						case "<" -> funcCall + " < 0";
+						case ">" -> funcCall + " > 0";
+						case "<=" -> funcCall + " <= 0";
+						case ">=" -> funcCall + " >= 0";
+						default -> throw new IllegalStateException("Unexpected value: " + op);
+					};
+
+			return funcCall;
 		}
 		else
-			generateSimpleExpr(op, first, second);
-		return true;
+			return generateSimpleExpr(op, first, second);
+	}
+
+	// Il risultato di un'espressione può essere una funzione di servizio tipo concatString e dobbiamo gestirne il caso
+	// Nel caso in cui non sia una funzione di servizio restituiamo un array di stringhe contenente i risultati dell'
+	// espressione altrimenti la chiamata a funzione
+	private String[] splitOrNot(String expression)
+	{
+		if(expression.contains("("))
+			return new String[]{expression};
+		else
+			return expression.split(", ");
 	}
 }
