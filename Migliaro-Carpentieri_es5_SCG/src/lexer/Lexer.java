@@ -108,11 +108,10 @@ public class Lexer implements java_cup.runtime.Scanner {
     "\1\6\1\7\1\10\1\11\1\12\1\13\2\14\1\15"+
     "\1\16\1\17\1\20\1\21\1\22\1\2\2\23\1\24"+
     "\1\25\1\1\1\0\1\26\1\27\1\30\1\0\1\31"+
-    "\1\32\1\33\1\34\1\35\1\36\1\37\1\0\1\40"+
-    "\1\41";
+    "\1\32\1\33\1\34\1\35\1\23\1\0\1\36\1\37";
 
   private static int [] zzUnpackAction() {
-    int [] result = new int[45];
+    int [] result = new int[44];
     int offset = 0;
     offset = zzUnpackAction(ZZ_ACTION_PACKED_0, offset, result);
     return result;
@@ -142,10 +141,10 @@ public class Lexer implements java_cup.runtime.Scanner {
     "\0\320\0\352\0\u0104\0\116\0\u011e\0\116\0\u0138\0\u0152"+
     "\0\u016c\0\u0186\0\u01a0\0\116\0\u01ba\0\u01d4\0\u01ee\0\116"+
     "\0\116\0\116\0\u0208\0\116\0\116\0\116\0\116\0\116"+
-    "\0\116\0\116\0\u0222\0\116\0\u0208";
+    "\0\116\0\u0222\0\116\0\u0208";
 
   private static int [] zzUnpackRowMap() {
-    int [] result = new int[45];
+    int [] result = new int[44];
     int offset = 0;
     offset = zzUnpackRowMap(ZZ_ROWMAP_PACKED_0, offset, result);
     return result;
@@ -177,9 +176,9 @@ public class Lexer implements java_cup.runtime.Scanner {
     "\2\22\35\0\1\44\31\0\1\45\1\46\30\0\1\47"+
     "\24\0\2\30\5\0\1\30\1\0\1\30\32\0\1\50"+
     "\2\32\2\0\1\32\1\0\21\32\1\0\2\32\2\0"+
-    "\2\33\33\0\1\51\22\0\1\52\1\0\11\36\1\53"+
-    "\31\36\1\53\4\36\1\54\13\36\17\0\2\55\11\0"+
-    "\11\36\1\53\4\36\1\0\13\36";
+    "\2\33\33\0\1\51\22\0\1\51\1\0\11\36\1\52"+
+    "\31\36\1\52\4\36\1\53\13\36\17\0\2\54\11\0"+
+    "\11\36\1\52\4\36\1\0\13\36";
 
   private static int [] zzUnpackTrans() {
     int [] result = new int[572];
@@ -227,10 +226,10 @@ public class Lexer implements java_cup.runtime.Scanner {
   private static final String ZZ_ATTRIBUTE_PACKED_0 =
     "\2\0\1\1\2\11\1\1\2\11\1\1\5\11\5\1"+
     "\1\11\1\1\1\11\5\1\1\11\2\1\1\0\3\11"+
-    "\1\0\7\11\1\0\1\11\1\1";
+    "\1\0\6\11\1\0\1\11\1\1";
 
   private static int [] zzUnpackAttribute() {
-    int [] result = new int[45];
+    int [] result = new int[44];
     int offset = 0;
     offset = zzUnpackAttribute(ZZ_ATTRIBUTE_PACKED_0, offset, result);
     return result;
@@ -712,11 +711,11 @@ private Symbol installID(String lexeme)
             case STRING: {
               throw new Error("Stringa costante non completata");
             }  // fall though
-            case 46: break;
+            case 45: break;
             case COMMENTS: {
               throw new Error("Commento non chiuso");
             }  // fall though
-            case 47: break;
+            case 46: break;
             default:
               {
                 return new Symbol(ParserSym.EOF);
@@ -729,169 +728,159 @@ private Symbol installID(String lexeme)
             { /* ignore */
             }
             // fall through
-          case 34: break;
+          case 32: break;
           case 2:
             { throw new Error("Carattere non riconosciuto: " + yytext());
             }
             // fall through
-          case 35: break;
+          case 33: break;
           case 3:
             { return token(ParserSym.NOT);
             }
             // fall through
-          case 36: break;
+          case 34: break;
           case 4:
             { string.setLength(0);
                          yybegin(STRING);
             }
             // fall through
-          case 37: break;
+          case 35: break;
           case 5:
             { return token(ParserSym.LPAR);
             }
             // fall through
-          case 38: break;
+          case 36: break;
           case 6:
             { return token(ParserSym.RPAR);
             }
             // fall through
-          case 39: break;
+          case 37: break;
           case 7:
             { return token(ParserSym.TIMES);
             }
             // fall through
-          case 40: break;
+          case 38: break;
           case 8:
             { return token(ParserSym.PLUS);
             }
             // fall through
-          case 41: break;
+          case 39: break;
           case 9:
             { return token(ParserSym.COMMA);
             }
             // fall through
-          case 42: break;
+          case 40: break;
           case 10:
             { return token(ParserSym.MINUS);
             }
             // fall through
-          case 43: break;
+          case 41: break;
           case 11:
             { return token(ParserSym.DIV);
             }
             // fall through
-          case 44: break;
+          case 42: break;
           case 12:
             { return token(ParserSym.INT_CONST, yytext());
             }
             // fall through
-          case 45: break;
+          case 43: break;
           case 13:
             { return token(ParserSym.COLON);
             }
             // fall through
-          case 46: break;
+          case 44: break;
           case 14:
             { return token(ParserSym.SEMI);
             }
             // fall through
-          case 47: break;
+          case 45: break;
           case 15:
             { return token(ParserSym.LT);
             }
             // fall through
-          case 48: break;
+          case 46: break;
           case 16:
             { return token(ParserSym.EQ);
             }
             // fall through
-          case 49: break;
+          case 47: break;
           case 17:
             { return token(ParserSym.GT);
             }
             // fall through
-          case 50: break;
+          case 48: break;
           case 18:
             { return installID(yytext());
             }
             // fall through
-          case 51: break;
+          case 49: break;
           case 19:
             { string.append(yytext());
             }
             // fall through
-          case 52: break;
+          case 50: break;
           case 20:
             { yybegin(YYINITIAL);
                          return token(ParserSym.STRING_CONST, string.toString());
             }
             // fall through
-          case 53: break;
+          case 51: break;
           case 21:
             { string.append('\\');
             }
             // fall through
-          case 54: break;
+          case 52: break;
           case 22:
             { return token(ParserSym.AND);
             }
             // fall through
-          case 55: break;
+          case 53: break;
           case 23:
             { return token(ParserSym.RETURN);
             }
             // fall through
-          case 56: break;
+          case 54: break;
           case 24:
             { yybegin(COMMENTS);
             }
             // fall through
-          case 57: break;
+          case 55: break;
           case 25:
             { return token(ParserSym.ASSIGN);
             }
             // fall through
-          case 58: break;
+          case 56: break;
           case 26:
             { return token(ParserSym.LE);
             }
             // fall through
-          case 59: break;
+          case 57: break;
           case 27:
             { return token(ParserSym.NE);
             }
             // fall through
-          case 60: break;
+          case 58: break;
           case 28:
             { return token(ParserSym.GE);
             }
             // fall through
-          case 61: break;
+          case 59: break;
           case 29:
             { return token(ParserSym.OR);
             }
             // fall through
-          case 62: break;
+          case 60: break;
           case 30:
-            { string.append('\"');
-            }
-            // fall through
-          case 63: break;
-          case 31:
-            { string.append('\t');
-            }
-            // fall through
-          case 64: break;
-          case 32:
             { yybegin(YYINITIAL);
             }
             // fall through
-          case 65: break;
-          case 33:
+          case 61: break;
+          case 31:
             { return token(ParserSym.FLOAT_CONST, yytext());
             }
             // fall through
-          case 66: break;
+          case 62: break;
           default:
             zzScanError(ZZ_NO_MATCH);
         }

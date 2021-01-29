@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Migliaro-Carpentieri_es5_SCG:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Migliaro_Carpentieri_es5_SCG_jar</output-path>
+    <root id="archive" name="Migliaro-Carpentieri_es5_SCG.jar">
+      <element id="module-output" name="Migliaro-Carpentieri_es5_SCG" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../../../../../../../CUP/java-cup-11b-runtime.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
