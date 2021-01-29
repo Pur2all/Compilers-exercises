@@ -16,13 +16,14 @@ import java.util.Arrays;
 public class CCodeGenerator implements Visitor
 {
 	private StringBuilder generatedCode;
+	private StringBuilder serviceCode;
 	private SymbolTableNode rootSymbolTableTree;
 	private long variableIndex;
 
 	public CCodeGenerator(SymbolTableNode rootSymbolTableTree)
 	{
-		generatedCode = new StringBuilder();
-
+		this.generatedCode = new StringBuilder();
+		this.serviceCode = new StringBuilder();
 		this.rootSymbolTableTree = rootSymbolTableTree;
 
 		this.variableIndex = 0;
@@ -170,19 +171,22 @@ public class CCodeGenerator implements Visitor
 		// Chiudiamo la funzione
 		funcCode.append(");\n");
 
-		generatedCode.append(funcCode);
+		serviceCode.append(funcCode);
 		// Puliamo lo string Builder
 		funcCode.setLength(0);
 
-		// Inseriamo nel codice C le temporanee che contengono il risultato della funzione.
-		int i = 0;
-		for(String type : callProc.typeNode.split(", "))
+		if(!callProc.typeNode.equals("VOID"))
 		{
-			generatedCode.append(type).append(type.equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
-					.append(" = ")
-					.append(type.equals("STRING") ? "" : "*").append("r_").append(callProc.id).append(i++).append(";\n");
-			// In funcCode metto le temporanee che contengono i valori di ritorno separate da ,
-			funcCode.append("t_").append(variableIndex - 1).append(i - 1 == callProc.typeNode.split(", ").length - 1 ? "" : ", ");
+			// Inseriamo nel codice C le temporanee che contengono il risultato della funzione.
+			int i = 0;
+			for(String type : callProc.typeNode.split(", "))
+			{
+				serviceCode.append(type).append(type.equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+						.append(" = ")
+						.append(type.equals("STRING") ? "" : "*").append("r_").append(callProc.id).append(i++).append(";\n");
+				// In funcCode metto le temporanee che contengono i valori di ritorno separate da ,
+				funcCode.append("t_").append(variableIndex - 1).append(i - 1 == callProc.typeNode.split(", ").length - 1 ? "" : ", ");
+			}
 		}
 
 		return funcCode.toString();
@@ -203,6 +207,8 @@ public class CCodeGenerator implements Visitor
 
 			exprs.addAll(Arrays.asList(values));
 		}
+
+		addServiceCode(assignStatCode);
 
 		int i = 0;
 		// Generiamo il codice dei vari assegnamenti
@@ -302,6 +308,7 @@ public class CCodeGenerator implements Visitor
 			}
 		}
 
+		addServiceCode(writeStatCode);
 
 		writeStatCode.append("printf(")
 				.append("\"")
@@ -330,12 +337,17 @@ public class CCodeGenerator implements Visitor
 		{
 			String statCode = (String) condStat.accept(this);
 			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
-			if(!(condStat instanceof CallProc))
+			if(condStat instanceof CallProc)
+				addServiceCode(whileStatCode);
+			else
 				whileStatCode.append(statCode);
 		}
 
 		// Genero il codice dell'espressione e restituisco una stringa con il risulstato
 		String cond = (String) whileStat.expr.accept(this);
+
+		addServiceCode(whileStatCode);
+
 		// Genero il codice while(cond) in C
 		whileStatCode.append("\nwhile(")
 				.append(cond)
@@ -346,7 +358,9 @@ public class CCodeGenerator implements Visitor
 		{
 			String statCode = (String) bodyStat.accept(this);
 			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
-			if(!(bodyStat instanceof CallProc))
+			if(bodyStat instanceof CallProc)
+				addServiceCode(whileStatCode);
+			else
 				whileStatCode.append(statCode);
 		}
 
@@ -355,7 +369,9 @@ public class CCodeGenerator implements Visitor
 		{
 			String statCode = (String) condStat.accept(this);
 			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
-			if(!(condStat instanceof CallProc))
+			if(condStat instanceof CallProc)
+				addServiceCode(whileStatCode);
+			else
 				whileStatCode.append(statCode);
 		}
 
@@ -370,6 +386,11 @@ public class CCodeGenerator implements Visitor
 	{
 		// Genero il codice dell'espressione e il risultato lo inserisco nella stringa condIf
 		String condIf = (String) elif.expr.accept(this);
+
+		// Il codice di servizio per la condizione dell'elif è stato già generato nell'if, quindi puliamo il buffer
+		// è comunque necessario invocare accept sulla condizione dell'elif per avere il codice di tale condizione
+		serviceCode.setLength(0);
+
 		// Inserisco il codice dell'elif in C
 		StringBuilder elifCode = new StringBuilder();
 		// Genero il codice dell'else if
@@ -381,7 +402,9 @@ public class CCodeGenerator implements Visitor
 		{
 			String statCode = (String) statement.accept(this);
 			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
-			if(!(statement instanceof CallProc))
+			if(statement instanceof CallProc)
+				addServiceCode(elifCode);
+			else
 				elifCode.append(statCode);
 		}
 
@@ -396,7 +419,13 @@ public class CCodeGenerator implements Visitor
 		// Genero il codice per l'espressione e il risultato lo memorizzo in ifCode
 		String ifCode = (String) anIf.expression.accept(this);
 
+		for(Elif elif : anIf.elifList)
+			elif.expr.accept(this);
+
 		StringBuilder anIfCode = new StringBuilder();
+
+		addServiceCode(anIfCode);
+
 		// Genero il codice if(cond) in C
 		anIfCode.append("if(").append(ifCode)
 				.append(")\n").append("{\n");
@@ -406,7 +435,9 @@ public class CCodeGenerator implements Visitor
 		{
 			String statCode = (String) statement.accept(this);
 			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
-			if(!(statement instanceof CallProc))
+			if(statement instanceof CallProc)
+				addServiceCode(anIfCode);
+			else
 				anIfCode.append(statCode);
 		}
 
@@ -431,7 +462,9 @@ public class CCodeGenerator implements Visitor
 			{
 				String statCode = (String) statement.accept(this);
 				// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
-				if(!(statement instanceof CallProc))
+				if(statement instanceof CallProc)
+					addServiceCode(anElseCode);
+				else
 					anElseCode.append(statCode);
 			}
 
@@ -465,10 +498,17 @@ public class CCodeGenerator implements Visitor
 		// Costruiamo la stringa da restituire
 		StringBuilder idListCode = new StringBuilder();
 
+		// Generiamo il codice di servizio per le espressioni che vengono assegnate agli id
+		for(Id id : setId)
+			if(idListInit.get(id) != null)
+				idListInit.get(id).accept(this);
+
+		addServiceCode(idListCode);
+
 		for(int i = 0; i < setId.size(); i++)
 		{
-			// Se l'id è una stringa vuol dire che in C il tipo sarà un char *. In C char* a, b, c fa sì che solo a sia un puntatore a char mentre noi vogliamo che lo siano tutti
-			// cioè vogliamo char *a, *b, *c;
+			// Se l'id è una stringa vuol dire che in C il tipo sarà un char *. In C char* a, b, c fa sì che solo a sia un
+			// puntatore a char mentre noi vogliamo che lo siano tutti cioè vogliamo char *a, *b, *c;
 			if(setId.get(i).typeNode.equals("STRING"))
 				idListCode.append("*");
 			// Invochiamo l'accept su id che generarà il codice per l'id
@@ -481,6 +521,10 @@ public class CCodeGenerator implements Visitor
 				idListCode.append(" = ");
 				// Invoco l'accept su expr che restituice il risultato dell'espressione e genera il codice per ottenere tale risultato
 				idListCode.append(expr.accept(this));
+
+				// Il codice di servizio per l'espressione con cui è inizializzato l'id è già stato generato prima e quindi pulisco
+				// il buffer
+				serviceCode.setLength(0);
 			}
 			idListCode.append(setId.size() - 1 == i ? ";\n" : ", ");
 		}
@@ -508,7 +552,7 @@ public class CCodeGenerator implements Visitor
 
 		// Dichiaramo i puntatori che indicano i valori di ritorno delle funzioni
 		int numVar = 0;
-		if(!proc.resultTypeList.get(0).equals("VOID"))
+		if(!proc.resultTypeList.get(0).equals("VOID")) //TODO far ritornare int al main se lo fa di suo
 			for(String type : proc.resultTypeList)
 				generatedCode.append(type).append(" ").append("*r_").append(proc.id).append(numVar++)
 						.append(" = NULL;\n");
@@ -553,7 +597,9 @@ public class CCodeGenerator implements Visitor
 		{
 			String statCode = (String) stat.accept(this);
 			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
-			if(!(stat instanceof CallProc))
+			if(stat instanceof CallProc)
+				addServiceCode(generatedCode);
+			else
 				generatedCode.append(statCode);
 		}
 
@@ -706,7 +752,7 @@ public class CCodeGenerator implements Visitor
 					String result = (String) generateBinaryExpr(op, firstTemp, secondTemp);
 
 					// Generiamo le temporanee utilizzate per memorizzare il risultato dell'espressione
-					generatedCode.append(type).append(type.equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+					serviceCode.append(type).append(type.equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
 							.append(" = ")
 							.append(type.equals("STRING") ? "" : "*").append(result).append(";\n");
 
@@ -728,7 +774,6 @@ public class CCodeGenerator implements Visitor
 		{
 			// Otteniamo il risultato dell'espressione
 			String[] firstExpr = splitOrNot(firstCode);
-			System.out.println(Arrays.toString(firstExpr));
 
 			if(firstExpr.length == 1)
 				exprCode.append(op).append(firstExpr[0]);
@@ -744,7 +789,7 @@ public class CCodeGenerator implements Visitor
 					String result = (String) generateUnaryExpr(op, firstTemp);
 
 					// Generiamo le temporanee utilizzate per memorizzare il risultato dell'espressione
-					generatedCode.append(type).append(type.equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
+					serviceCode.append(type).append(type.equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
 							.append(" = ")
 							.append(type.equals("STRING") ? "" : "*").append(result).append(";\n");
 
@@ -842,5 +887,11 @@ public class CCodeGenerator implements Visitor
 			return new String[]{expression};
 		else
 			return expression.split(", ");
+	}
+
+	private void addServiceCode(StringBuilder builder)
+	{
+		builder.append(serviceCode.toString());
+		serviceCode.setLength(0);
 	}
 }
