@@ -1,0 +1,31 @@
+proc g() int:
+    -> 5
+corp;
+
+proc f() int, int:
+    -> 3 + g(), 3 + 3
+corp;
+
+proc h() int, int, int:
+    -> f(), g()
+corp;
+
+proc z() void:
+    write("Sono in z");
+corp;
+
+proc main() int:
+    int a, b;
+    a, b := f() + g();
+    write("Valore di a: ", a, "\nValore di b: ", b);
+    write("Valore di f() + g(): ", f() + g());
+    write("Valore di h(): ", h());
+    write("Valore di h() + f() + g(): ", h() + f() + g());
+    write("Valore di h() + f() * g(): ", h() + f() * g());
+    write("Valore di h() * f() + g(): ", h() * f() + g());
+    write("Valore di a + h(): ", a + h());
+    write("Valore di 3 - h(): ", 3 - h());
+    write(z());
+
+    -> 0
+corp;

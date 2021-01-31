@@ -1,0 +1,21 @@
+int x := 2;
+
+proc f() int:
+    -> x
+corp;
+
+proc g() int:
+    int x := 5;
+
+    -> x
+corp;
+
+proc main() int:
+    int x := 3;
+
+    write(x);
+    write(f());
+    write(g());
+
+    -> 0
+corp;

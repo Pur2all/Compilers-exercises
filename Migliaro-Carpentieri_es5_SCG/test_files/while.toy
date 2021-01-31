@@ -28,4 +28,20 @@ proc main() void:
         i := i + 1;
     od;
 
+    write("\nInizio del secondo ciclo\n");
+
+    i := 0;
+    x := -5;
+    while
+        while i < 3 do
+            write("Ciclo in condizione numero ", i);
+            i := i + 1;
+        od;
+        write("Inizio del while esterno");
+        f(g()) + x < 10
+    do
+        write("Ciclo del while esterno: ", x);
+        x := x + 1;
+    od;
+
 corp;

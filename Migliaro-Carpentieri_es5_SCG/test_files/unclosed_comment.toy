@@ -1,0 +1,12 @@
+/*
+Programma che calcola la somma di due numeri
+
+proc main() int:
+    int x, y;
+
+    write("Inserisci i due numeri per la somma:");
+    readln(x, y);
+    write("Risultato: ", x + y);
+
+    -> 0
+corp;

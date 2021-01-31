@@ -1,0 +1,23 @@
+proc f(int a, b; float c; string d) int:
+    int x := a, y := b;
+    float z := c;
+    string w := d;
+
+    write(x, " ", y, " ", z, " ", w);
+    -> 3
+corp;
+
+proc g() int, int, float, string:
+    -> 3, 6, 5.5, "paolo"
+corp;
+
+proc h() int, int, float, string, int:
+    -> g(), f(g())
+corp;
+
+proc main() int:
+    f(g());
+    write("Ritorno di h(): ", h());
+
+    -> 0
+corp;

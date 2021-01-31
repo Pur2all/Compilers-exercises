@@ -80,7 +80,7 @@ proc main() void:
     /* test if con funzioni che prendono come parametri funzioni con più valori di ritorno */
     if !ascendingOrder(selezionaNumeri()) = false then
         write("I numeri sono in ordine crescente");
-    elif discendingOrder(selezionaNumeri()) <> true then
+    elif discendingOrder(selezionaNumeri()) <> false then
         write("I numeri sono in ordine decrescente");
     else
         write("La prima sequenza non è in ordine crescente e la seconda non è in ordine decrescente");

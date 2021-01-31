@@ -24,15 +24,12 @@ public class CCodeGenerator implements Visitor
 	private SymbolTableNode rootSymbolTableTree;
 	// Indice che identifica il numero della prossima temporanea
 	private long variableIndex;
-	// Lista per manetenere i risultati delle condizioni di if e elif.
-	private ArrayList<String> ifConds;
 
 	public CCodeGenerator(SymbolTableNode rootSymbolTableTree)
 	{
 		this.generatedCode = new StringBuilder();
 		this.serviceCode = new StringBuilder();
 		this.rootSymbolTableTree = rootSymbolTableTree;
-		this.ifConds = new ArrayList<>();
 
 		this.variableIndex = 0;
 	}
@@ -322,11 +319,13 @@ public class CCodeGenerator implements Visitor
 				.append("\"")
 				.append(placeholders.toString())
 				.append("\\n")
-				.append("\", ");
+				.append("\"");
 
 		// Aggiungiamo gli altri parametri alla chiamata
-		for(int i = 0; i < exprsCode.size(); i++)
-			writeStatCode.append(exprsCode.get(i)).append(i == exprsCode.size() - 1 ? ");\n" : ", ");
+		for(String result : exprsCode)
+			if(!result.equals(""))
+				writeStatCode.append(", ").append(result);
+		writeStatCode.append(");\n");
 
 		return writeStatCode.toString();
 	}
@@ -395,12 +394,17 @@ public class CCodeGenerator implements Visitor
 	{
 		// Inserisco il codice dell'elif in C
 		StringBuilder elifCode = new StringBuilder();
+
+		// Memorizziamo il risultato della condizione dell'elif
+		String result = (String) elif.expr.accept(this);
+
+		// Appendiamo il codice di servizio necessario all'elif
+		addServiceCode(elifCode);
+
 		// Genero il codice dell'else if
-		elifCode.append("else if(").append(ifConds.get(ifConds.size() - 1))
+		elifCode.append("if(").append(result)
 				.append(")\n")
 				.append("{\n");
-		// Dopo aver generato il codice della condizione lo rimuovo dall'array
-		ifConds.remove(ifConds.size() - 1);
 
 		for(Statement statement : elif.statements)
 		{
@@ -412,7 +416,8 @@ public class CCodeGenerator implements Visitor
 				elifCode.append(statCode);
 		}
 
-		elifCode.append("}\n");
+		// Appendiamo l'else a ogni elif poiché li abbiamo gestiti come if else annidati tra loro
+		elifCode.append("}\nelse\n{");
 
 		return elifCode.toString();
 	}
@@ -422,12 +427,6 @@ public class CCodeGenerator implements Visitor
 	{
 		// Genero il codice per l'espressione e il risultato lo memorizzo in ifCode
 		String ifCode = (String) anIf.expression.accept(this);
-
-		// Facciamo l'accept sulle condizioni dell'elif in quanto potrebbero esserci tra
-		// le condizioni espressioni per cui è necessario generare del codice.
-		// Memorizziamo, inoltre, i risultati in un array globale per poi inserirli nell'elif.
-		for(Elif elif : anIf.elifList)
-			ifConds.add(0, (String) elif.expr.accept(this));
 
 		StringBuilder anIfCode = new StringBuilder();
 
@@ -448,11 +447,22 @@ public class CCodeGenerator implements Visitor
 				anIfCode.append(statCode);
 		}
 
-		anIfCode.append("}\n");
+		// Appendiamo a prescindere la keyword else poiché gestiamo gli elif come if else innestati tra loro
+		anIfCode.append("}\nelse\n{");
 
 		for(Elif elif : anIf.elifList)
+		{
+			anIfCode.append("\n");
 			anIfCode.append(elif.accept(this));
+		}
 		anIfCode.append(anIf.anElse.accept(this));
+
+		// Appendiamo la parentesi che va chiusa a prescindere relativa all'else creato sopra o all'else generato
+		anIfCode.append("}\n");
+
+		// Appendiamo una parentesi chiusa per ogni elif per chiudere la gerarchia di if else
+		for(Elif ignored : anIf.elifList)
+			anIfCode.append("}\n");
 
 		return anIfCode.toString();
 	}
@@ -460,11 +470,13 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Object visit(Else anElse) throws Exception
 	{
+		// Non appendiamo la parola chiave else perché lo facciamo a prescindere nell'if
+
 		StringBuilder anElseCode = new StringBuilder();
 
 		if(!anElse.statements.isEmpty())
 		{
-			anElseCode.append("else\n").append("{\n");
+			anElseCode.append("\n");
 			for(Statement statement : anElse.statements)
 			{
 				String statCode = (String) statement.accept(this);
@@ -474,8 +486,6 @@ public class CCodeGenerator implements Visitor
 				else
 					anElseCode.append(statCode);
 			}
-
-			anElseCode.append("}\n");
 		}
 
 		return anElseCode.toString();
@@ -489,7 +499,7 @@ public class CCodeGenerator implements Visitor
 		// Per ogni parametro genero il codice corrispondente
 		for(int i = 0; i < numOfIds; i++)
 		{
-			generatedCode.append(parDecl.type).append(" ")
+			generatedCode.append(parDecl.type).append(parDecl.type.equals("STRING") ? " *" : " ")
 					.append(parDecl.idList.get(i).accept(this));
 			generatedCode.append(i == numOfIds - 1 ? "" : ", ");
 		}
@@ -937,7 +947,7 @@ public class CCodeGenerator implements Visitor
 				if(firstType.equals("STRING") && secondType.equals("STRING"))
 					return "INT";
 				else
-					return  "FLOAT";
+					return "FLOAT";
 			}
 	}
 

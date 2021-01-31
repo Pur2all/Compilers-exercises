@@ -1,0 +1,10 @@
+proc f() void:
+corp;
+
+proc main() int:
+    int f := 3;
+
+    write(f);
+
+    -> 0
+corp;
