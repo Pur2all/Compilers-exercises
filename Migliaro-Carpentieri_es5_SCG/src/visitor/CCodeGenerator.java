@@ -13,18 +13,26 @@ import utils.Temp;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+
 public class CCodeGenerator implements Visitor
 {
+	// Contiene i codice che verrà inerito nel file .c
 	private StringBuilder generatedCode;
+	// Contiene il codice di servizio necessario per la generazione del codice
 	private StringBuilder serviceCode;
+	// Puntatore alla tabella dei simboli
 	private SymbolTableNode rootSymbolTableTree;
+	// Indice che identifica il numero della prossima temporanea
 	private long variableIndex;
+	// Lista per manetenere i risultati delle condizioni di if e elif.
+	private ArrayList<String> ifConds;
 
 	public CCodeGenerator(SymbolTableNode rootSymbolTableTree)
 	{
 		this.generatedCode = new StringBuilder();
 		this.serviceCode = new StringBuilder();
 		this.rootSymbolTableTree = rootSymbolTableTree;
+		this.ifConds = new ArrayList<>();
 
 		this.variableIndex = 0;
 	}
@@ -129,7 +137,7 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Object visit(Null expression) throws Exception
 	{
-		return "NULL";
+		return "(int) NULL";
 	}
 
 	@Override
@@ -329,23 +337,28 @@ public class CCodeGenerator implements Visitor
 		// Per poter gestire il while del linguaggio toy che permette di avere stataments prima della condizione del while procediamo come segue:
 		// Appendiamo al codice generato fino a questo momento gli statment prima della condizione e poi li appendiamo anche alla fine nel corpo del while
 		// In questo modo simuliamo in C il while di toy.
-
 		StringBuilder whileStatCode = new StringBuilder();
-
+		// In questa varaibile memorizzo il codice di servizio necessario per la generazoine della condizione
+		String serviceCodeWhileCondTemp;
 		// Appendo gli stataments prima della condizione del while al codice generato finora facendo l'accept
+
+		StringBuilder condStatServiceCodeTemp = new StringBuilder();
+
 		for(Statement condStat : whileStat.condStatements)
 		{
 			String statCode = (String) condStat.accept(this);
 			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
 			if(condStat instanceof CallProc)
-				addServiceCode(whileStatCode);
+				addServiceCode(condStatServiceCodeTemp);
 			else
-				whileStatCode.append(statCode);
+				condStatServiceCodeTemp.append(statCode);
 		}
+		whileStatCode.append(condStatServiceCodeTemp.toString());
 
 		// Genero il codice dell'espressione e restituisco una stringa con il risulstato
 		String cond = (String) whileStat.expr.accept(this);
-
+		// Inserisco nella temporanea il codice di servizio della condizione del while
+		serviceCodeWhileCondTemp = serviceCode.toString();
 		addServiceCode(whileStatCode);
 
 		// Genero il codice while(cond) in C
@@ -365,15 +378,11 @@ public class CCodeGenerator implements Visitor
 		}
 
 		// Appendo gli stataments della condizione dopo il corpo del while al codice generato finora facendo l'accept
-		for(Statement condStat : whileStat.condStatements)
-		{
-			String statCode = (String) condStat.accept(this);
-			// La callProc in questo caso è uno statement e non un'espressione, quindi non abbiamo bisogno dei valori di ritono
-			if(condStat instanceof CallProc)
-				addServiceCode(whileStatCode);
-			else
-				whileStatCode.append(statCode);
-		}
+		whileStatCode.append(condStatServiceCodeTemp.toString());
+
+		// Appendo al corpo del while anche il codice necessario per l'esecuzione della condizione nel caso in cui sia
+		// unespressione complessa.
+		whileStatCode.append(whileCondCodeGenerator(serviceCodeWhileCondTemp));
 
 		// Chiudo il while
 		whileStatCode.append("}\n");
@@ -384,19 +393,14 @@ public class CCodeGenerator implements Visitor
 	@Override
 	public Object visit(Elif elif) throws Exception
 	{
-		// Genero il codice dell'espressione e il risultato lo inserisco nella stringa condIf
-		String condIf = (String) elif.expr.accept(this);
-
-		// Il codice di servizio per la condizione dell'elif è stato già generato nell'if, quindi puliamo il buffer
-		// è comunque necessario invocare accept sulla condizione dell'elif per avere il codice di tale condizione
-		serviceCode.setLength(0);
-
 		// Inserisco il codice dell'elif in C
 		StringBuilder elifCode = new StringBuilder();
 		// Genero il codice dell'else if
-		elifCode.append("else if(").append(condIf)
+		elifCode.append("else if(").append(ifConds.get(ifConds.size() - 1))
 				.append(")\n")
 				.append("{\n");
+		// Dopo aver generato il codice della condizione lo rimuovo dall'array
+		ifConds.remove(ifConds.size() - 1);
 
 		for(Statement statement : elif.statements)
 		{
@@ -419,8 +423,11 @@ public class CCodeGenerator implements Visitor
 		// Genero il codice per l'espressione e il risultato lo memorizzo in ifCode
 		String ifCode = (String) anIf.expression.accept(this);
 
+		// Facciamo l'accept sulle condizioni dell'elif in quanto potrebbero esserci tra
+		// le condizioni espressioni per cui è necessario generare del codice.
+		// Memorizziamo, inoltre, i risultati in un array globale per poi inserirli nell'elif.
 		for(Elif elif : anIf.elifList)
-			elif.expr.accept(this);
+			ifConds.add(0, (String) elif.expr.accept(this));
 
 		StringBuilder anIfCode = new StringBuilder();
 
@@ -497,15 +504,19 @@ public class CCodeGenerator implements Visitor
 		ArrayList<Id> setId = new ArrayList<>(idListInit.keySet());
 		// Costruiamo la stringa da restituire
 		StringBuilder idListCode = new StringBuilder();
-
+		// Costruisco un array per mantenere i risultati delle espressioni associate ad alcuni id.
+		// Tutte le espressioni possono avere un solo valore di ritorno perché in idListInit abbiamo id ASSIG expr
+		// quindi se expr tornasse più valori avremmo un errore in analisi semantica.
+		ArrayList<String> exprResult = new ArrayList<>();
 		// Generiamo il codice di servizio per le espressioni che vengono assegnate agli id
+		// Memorizziamo i risultati delle espressioni nell'array
 		for(Id id : setId)
 			if(idListInit.get(id) != null)
-				idListInit.get(id).accept(this);
+				exprResult.add((String) idListInit.get(id).accept(this));
 
 		addServiceCode(idListCode);
-
-		for(int i = 0; i < setId.size(); i++)
+		// L'indice j serve per far avanzare l'array contenente i risultati delle espressioni
+		for(int i = 0, j = 0; i < setId.size(); i++)
 		{
 			// Se l'id è una stringa vuol dire che in C il tipo sarà un char *. In C char* a, b, c fa sì che solo a sia un
 			// puntatore a char mentre noi vogliamo che lo siano tutti cioè vogliamo char *a, *b, *c;
@@ -513,18 +524,15 @@ public class CCodeGenerator implements Visitor
 				idListCode.append("*");
 			// Invochiamo l'accept su id che generarà il codice per l'id
 			idListCode.append(setId.get(i).accept(this));
+
 			// Prendiamo l'espressione nell'hashMap con chiave id
 			AbstractExpression expr = idListInit.get(setId.get(i));
 			// Se all'id è associata un'espressione allora generiamo il codice per l'assegnamento dell'espressione
 			if(expr != null)
 			{
 				idListCode.append(" = ");
-				// Invoco l'accept su expr che restituice il risultato dell'espressione e genera il codice per ottenere tale risultato
-				idListCode.append(expr.accept(this));
-
-				// Il codice di servizio per l'espressione con cui è inizializzato l'id è già stato generato prima e quindi pulisco
-				// il buffer
-				serviceCode.setLength(0);
+				// Appendo il risultato solamente perché il codice di serivizio per l'espressione è già stato generato
+				idListCode.append(exprResult.get(j++));
 			}
 			idListCode.append(setId.size() - 1 == i ? ";\n" : ", ");
 		}
@@ -580,7 +588,7 @@ public class CCodeGenerator implements Visitor
 
 
 		// Allochiamo la memoria necessaria per i puntatori ai valori di ritorno della funzione
-		// Non possiamo allocarli alla dichirazione in quanto variabili globali che vengono allocate in memoria statica
+		// Non possiamo allocarli alla dichirazione in quanto sono variabili globali che vengono allocate in memoria statica
 		numVar = 0;
 		if(!proc.resultTypeList.get(0).equals("VOID"))
 			for(String type : proc.resultTypeList)
@@ -614,6 +622,8 @@ public class CCodeGenerator implements Visitor
 				AbstractExpression expr = proc.returnExprs.get(i);
 				// Facendo l'accept della expr restituiamo i risulatati inseriti in una stringa separata da virgole
 				String[] exprValues = splitOrNot((String) expr.accept(this));
+				// Genero il codice di servizio per le espressioni
+				addServiceCode(generatedCode);
 				// Per ogni valore ritornato dall'espressione lo inseriamo nel puntatore r che mantiene i risultati della funzione
 				for(int j = 0; j < exprValues.length; j++)
 					generatedCode.append(proc.resultTypeList.get(rIndex).equals("STRING") ? "" : "*").append("r_").append(proc.id).append(rIndex++)
@@ -739,22 +749,26 @@ public class CCodeGenerator implements Visitor
 			{
 				for(int i = 0; i < minExprResult.length; i++)
 				{
-					String type = minExpr.typeNode.split(", ")[i];
 
+					// Prendo il tipo i-esimo della prima e della seconda espressione
+					String typeFirst = first.typeNode.split(", ")[i];
+					String typeSecond = second.typeNode.split(", ")[i];
 					// Generiamo le due temporanee per poter effettuare generateBinaryExpr che prende in input due AbstractExpression
 					Temp firstTemp = new Temp(first == minExpr ? minExprResult[i] : maxExprResult[i]);
 					Temp secondTemp = new Temp(second == minExpr ? minExprResult[i] : maxExprResult[i]);
 					// Settiamo il tipo delle temporanee
-					firstTemp.typeNode = type;
-					secondTemp.typeNode = type;
+					firstTemp.typeNode = typeFirst;
+					secondTemp.typeNode = typeSecond;
 					// Generiamo il codice di servizio per poter effettuare l'operazione binaria e restituiamo l'operazione
 					// effettuata
 					String result = (String) generateBinaryExpr(op, firstTemp, secondTemp);
 
+					String type = getSuperType(op, typeFirst, typeSecond);
+
 					// Generiamo le temporanee utilizzate per memorizzare il risultato dell'espressione
 					serviceCode.append(type).append(type.equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
 							.append(" = ")
-							.append(type.equals("STRING") ? "" : "*").append(result).append(";\n");
+							.append(result).append(";\n");
 
 					// Appendiamo la temporanea utilizzata dov'è salvata l'espressione generata
 					exprCode.append("t_").append(variableIndex - 1).append(i == minExprResult.length - 1 ? "" : ", ");
@@ -791,7 +805,7 @@ public class CCodeGenerator implements Visitor
 					// Generiamo le temporanee utilizzate per memorizzare il risultato dell'espressione
 					serviceCode.append(type).append(type.equals("STRING") ? " *" : " ").append("t_").append(variableIndex++)
 							.append(" = ")
-							.append(type.equals("STRING") ? "" : "*").append(result).append(";\n");
+							.append(result).append(";\n");
 
 					// Appendiamo la temporanea utilizzata dov'è salvata l'espressione generata
 					exprCode.append("t_").append(variableIndex - 1).append(i == firstExpr.length - 1 ? "" : ", ");
@@ -838,8 +852,8 @@ public class CCodeGenerator implements Visitor
 	private Object mul(AbstractExpression first, AbstractExpression second) throws Exception
 	{
 		// Se l'operazione è effettuata tra un INT e un STRING allora si deve effettuare l'operazione di ripetizione della stringa
-		if(first.typeNode.equals("INT") && second.typeNode.equals("STRING") ||
-				first.typeNode.equals("STRING") && second.typeNode.equals("INT"))
+		if((first.typeNode.equals("INT") && second.typeNode.equals("STRING")) ||
+				(first.typeNode.equals("STRING") && second.typeNode.equals("INT")))
 			return generateSimpleLibFuncCall("repeatString", first.typeNode.equals("STRING") ? first : second, second.typeNode.equals("INT") ? second : first);
 		else
 			return generateSimpleExpr("*", first, second);
@@ -893,5 +907,50 @@ public class CCodeGenerator implements Visitor
 	{
 		builder.append(serviceCode.toString());
 		serviceCode.setLength(0);
+	}
+
+	// Permette di reistituire il tipo con cui devo dichiarare le variabili temporanee
+	private String getSuperType(String op, String firstType, String secondType)
+	{
+
+		if(op.equals("+") || op.equals("-"))
+			if(firstType.equals("FLOAT") || secondType.equals("FLOAT"))
+				return "FLOAT";
+			else
+				if(firstType.equals("STRING") && secondType.equals("STRING"))
+					return "STRING";
+				else
+					return "INT";
+		else
+			if(op.equals("*"))
+			{
+				if(firstType.equals("FLOAT") || secondType.equals("FLOAT"))
+					return "FLOAT";
+				else
+					if(firstType.equals("STRING") || secondType.equals("STRING"))
+						return "STRING";
+					else
+						return "INT";
+			}
+			else
+			{
+				if(firstType.equals("STRING") && secondType.equals("STRING"))
+					return "INT";
+				else
+					return  "FLOAT";
+			}
+	}
+
+	// Genero il codice di servizio per la condizione senza dichiarazioni
+	private String whileCondCodeGenerator(String serviceCodeWhileCond)
+	{
+		String result;
+
+		result = serviceCodeWhileCond.replace("STRING *", "");
+		result = result.replace("INT ", "");
+		result = result.replace("FLOAT ", "");
+		result = result.replace("BOOL ", "");
+
+		return result;
 	}
 }

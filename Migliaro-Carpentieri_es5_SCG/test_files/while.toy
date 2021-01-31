@@ -1,0 +1,31 @@
+proc f(int x, y, z) int:
+    -> 10
+corp;
+
+proc g() int, int, int:
+    -> 1, 2, 3
+corp;
+
+proc h(int x) int:
+    -> x
+corp;
+
+proc j(int x) int:
+    -> x
+corp;
+
+proc main() void:
+    int x, i := 0;
+
+    write("Inserire il numero di volte in cui si vuole ripetere il ciclo: ");
+    readln(x);
+
+    while
+        write("Ciao: ", g());
+        i < h(j(x))
+    do
+        write("Numero di iterazioni: ", i+1);
+        i := i + 1;
+    od;
+
+corp;

@@ -1,0 +1,29 @@
+proc f() int:
+    -> 1
+corp;
+
+proc g() int:
+    ->2
+corp;
+
+proc main() void:
+    int a, b, c;
+    float d;
+    string e := "Progetto ", x := "Compilatori ", y := "2020", h := " Carpentieri/Migliaro", i;
+    /* Operazioni tra interi */
+    a := f() + g();
+    b := f() - g();
+    c := f() * g();
+    d := f() / g();
+
+    write("Somma: ", a, "\nSottrazione: ", b, "\nMoltiplicazione: ", c, "\nDivisione: ", d);
+
+   /* Operazioni tra stringhe */
+   i := e+x+y+h;
+   e := e*3;
+   a := e / "t";
+   x := x - "tori";
+
+
+   write("Somma stringhe: ", i, "\nDivisione stringhe: ", a, "\nMoltiplicazione stringhe: ", e, "\nSottrazione tra stinghe: ", x);
+corp;

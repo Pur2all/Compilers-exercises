@@ -1,0 +1,42 @@
+
+proc f() int, int, int:
+    -> 1, 2, 3
+corp;
+
+proc g() string, string, string:
+    ->"a", "a", "a"
+corp;
+
+proc h() string, string, string:
+    ->"b", "b", "b"
+corp;
+
+proc i() string, string, string:
+    -> "a", "a", "a"
+corp;
+
+proc main() void:
+    string s, t, u;
+    int x;
+    string str1;
+    string str2;
+
+    s, t, u := f() * g();
+    write("Il valore di s è: ", s, "\nIl valore di t è: ", t, "\nIl valore u è: ", u);
+
+    s, t, u := "" , "", "";
+    s, t, u := g() + h();
+    write("Il valore di s è: ", s, "\nIl valore di t è: ", t, "\nIl valore u è: ", u);
+
+    s, t, u := "" , "", "";
+    s, t, u := g() + g() - i();
+    write("Il valore di s è: ", s, "\nIl valore di t è: ", t, "\nIl valore u è: ", u);
+
+    write("Inserire una parola: ");
+    readln(str1);
+    write("Inserire un'altra parola: ");
+    readln(str2);
+    write("Numero di volte che la seconda parola inserita compare nella prima: ", str1/str2);
+
+
+corp;

@@ -1,0 +1,24 @@
+/* Test null value */
+
+proc main() int:
+    int x := null;
+    float y := null;
+    string w := "str";
+    bool z := null;
+
+    if x = y then
+        write("x e y sono null");
+    fi;
+
+
+    if w <> null then
+        write("w non e' null");
+    fi;
+
+
+    if z = null then
+        write("z e' null");
+    fi;
+
+    -> 1
+corp;

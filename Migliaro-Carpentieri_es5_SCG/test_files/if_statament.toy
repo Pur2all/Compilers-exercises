@@ -1,0 +1,102 @@
+proc f(int x) bool:
+    bool result;
+
+    if x < 10 then
+        result := true;
+    else
+        result := false;
+    fi;
+
+     -> result
+corp;
+
+
+proc g(int x, y, z) bool:
+    bool result;
+
+    if x < y && y < z then
+        result := true;
+    else
+        result := false;
+    fi;
+
+    -> result
+corp;
+
+
+proc ascendingOrder(int x, y, z) bool:
+    bool result;
+
+    if x < y && y < z then
+        result := true;
+    else
+        result := false;
+    fi;
+
+    -> result
+corp;
+
+proc discendingOrder(int  x, y, z) bool:
+    bool result := false;
+
+    if x>y && y>z then
+        result := true;
+   fi;
+
+   -> result
+corp;
+
+proc h(float x) float:
+    float result := x*10;
+    -> result
+corp;
+
+proc selezionaNumeri() int, int, int:
+      int x, y, z;
+      write("Inserire primo intero: ");
+      readln(x);
+      write("Inserire secondo intero: ");
+      readln(y);
+      write("Inserire terzo intero: ");
+      readln(z);
+
+      -> x, y, z
+corp;
+
+proc main() void:
+    int x, y, z;
+    float u;
+    write("Inserire un intero: ");
+    readln(x);
+
+    /* If else semplice */
+    if f(x) then
+        write(x, " minore di 10");
+    else
+        write(x, " maggiore o uguale di 10");
+    fi;
+
+
+    /* test if con funzioni che prendono come parametri funzioni con più valori di ritorno */
+    if !ascendingOrder(selezionaNumeri()) = false then
+        write("I numeri sono in ordine crescente");
+    elif discendingOrder(selezionaNumeri()) <> true then
+        write("I numeri sono in ordine decrescente");
+    else
+        write("La prima sequenza non è in ordine crescente e la seconda non è in ordine decrescente");
+    fi;
+
+   write("Inserire un intero: ");
+   readln(u);
+    if h(u) > 100 && h(u) <200 then
+        write("Il numero ", h(u) , "è compreso tra 100 e 200");
+    elif h(u) >= 200 && h(u)<300 then
+         write("Il numero ", h(u) , "è compreso tra 200 e 300");
+    elif h(u) >= 300 && h(u)<400 then
+         write("Il numero ", h(u) , "è compreso tra 300 e 400");
+    else
+        write("Il numero", h(u),"è minore di 100 o maggiore 400");
+    fi;
+
+
+corp;

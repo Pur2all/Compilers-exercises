@@ -1,0 +1,63 @@
+
+proc f(int x; float y; bool z) float, float, float:
+   float result := 0;
+
+    if z = true then
+        y := x;
+    fi;
+
+   result := x+y;
+
+    -> x + y, 2.0, 3.0
+corp;
+
+proc g() int, int, int:
+    -> 1, 2, 3
+corp;
+
+
+proc h() int, int:
+    -> 1, 1
+corp;
+
+proc input() int, float , bool:
+    int x, t;
+    float y;
+    bool z;
+
+    write("Inserire un intero: ");
+    readln(x);
+    write("Inserire un reale: ");
+    readln(y);
+
+    write("Digitare 0 per false, 1 per true: ");
+    readln(t);
+
+    if t=1 then
+        z := true;
+     else
+        z := false;
+    fi;
+
+    -> x, y, z
+corp;
+
+proc i() int, int, int:
+    -> 1, 2, 3
+corp;
+
+proc main() void:
+    float x, y, z;
+    x, y, z := f(input()) + g();
+    write("Il valore di x è: ", x, "\nIl valore di y è: ", y, "\nIl valore z è: ", z);
+
+    /* Funzione con 3 valori più funzione con 2 due valori */
+    x, y, z := f(input()) + h();
+    write("Il valore di x è: ", x, "\nIl valore di y è: ", y, "\nIl valore z è: ", z);
+
+    /* Funzione con 2 valori più funzione con 3 due valori */
+    x, y, z := f(input()) + h();
+    write("Il valore di x è: ", x, "\nIl valore di y è: ", y, "\nIl valore z è: ", z);
+
+
+corp;

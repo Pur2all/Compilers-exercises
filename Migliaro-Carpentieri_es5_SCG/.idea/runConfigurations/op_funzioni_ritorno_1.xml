@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="op_funzioni_ritorno_1" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="tester.Toy" />
+    <module name="Migliaro-Carpentieri_es5_SCG" />
+    <option name="PROGRAM_PARAMETERS" value="test_files/op_funzioni_ritorno_1.toy" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

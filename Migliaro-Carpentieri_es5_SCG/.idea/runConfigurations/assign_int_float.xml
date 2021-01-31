@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="assign_int_float" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="tester.Toy" />
+    <module name="Migliaro-Carpentieri_es5_SCG" />
+    <option name="PROGRAM_PARAMETERS" value="test_files/assign_int_float.toy" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

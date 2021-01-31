@@ -863,54 +863,67 @@ public class SemanticAnalyzer implements Visitor
 		// e le celle indicano il tipo del risultato dell'operazione tra quei due tipi specifici
 
 		String[][] addTable = {
-				{"INT", "FLOAT", "ERR", "ERR"},
-				{"FLOAT", "FLOAT", "ERR", "ERR"},
-				{"ERR", "ERR", "STRING", "ERR"},
-				{"ERR", "ERR", "ERR", "ERR"}
+				{"INT", "FLOAT", "ERR", "ERR", "ERR"},
+				{"FLOAT", "FLOAT", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "STRING", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR", "ERR"}
 		};
 		// La minTable non la facciamo perché è uguale alla addTable in quanto è l'operazione inversa
 
 		String[][] timeTable = {
-				{"INT", "FLOAT", "STRING", "ERR"},
-				{"FLOAT", "FLOAT", "ERR", "ERR"},
-				{"STRING", "ERR", "ERR", "ERR"},
-				{"ERR", "ERR", "ERR", "ERR"}
+				{"INT", "FLOAT", "STRING", "ERR", "ERR"},
+				{"FLOAT", "FLOAT", "ERR", "ERR", "ERR"},
+				{"STRING", "ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR", "ERR"}
 		};
 
 		String[][] divTable = {
-				{"FLOAT", "FLOAT", "ERR", "ERR"},
-				{"FLOAT", "FLOAT", "ERR", "ERR"},
-				{"ERR", "ERR", "INT", "ERR"},
-				{"ERR", "ERR", "ERR", "ERR"}
+				{"FLOAT", "FLOAT", "ERR", "ERR", "ERR"},
+				{"FLOAT", "FLOAT", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "INT", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR", "ERR"}
 		};
 
 		// Questa tabella è usata sia per l'and che per l'or in quanto hanno la stessa definizione di compatibilità
 		String[][] logicBinaryOps = {
-				{"ERR", "ERR", "ERR", "ERR"},
-				{"ERR", "ERR", "ERR", "ERR"},
-				{"ERR", "ERR", "ERR", "ERR"},
-				{"ERR", "ERR", "ERR", "BOOL"}
+				{"ERR", "ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "BOOL", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR", "ERR"}
 		};
 
 		// Poiché il not è un operatore unario anziché avere una matrice per le compatibilità basta un array dove gli indici
 		// rappresentano il tipo dell'operando e il contenuto è il tipo del risultato dell'operazione
-		String[] notOp = {"ERR", "ERR", "ERR", "BOOL"};
+		String[] notOp = {"ERR", "ERR", "ERR", "BOOL", "ERR"};
 
 		// Poiché il not è un operatore unario anziché avere una matrice per le compatibilità basta un array dove gli indici
 		// rappresentano il tipo dell'operando e il contenuto è il tipo del risultato dell'operazione
-		String[] uminOp = {"INT", "FLOAT", "ERR", "ERR"};
+		String[] uminOp = {"INT", "FLOAT", "ERR", "ERR", "ERR"};
 
+		// relOps non copre uguaglianza e disuguaglianza
 		String[][] relOps = {
-				{"BOOL", "BOOL", "ERR", "ERR"},
-				{"BOOL", "BOOL", "ERR", "ERR"},
-				{"ERR", "ERR", "BOOL", "ERR"},
-				{"ERR", "ERR", "ERR", "BOOL"}
+				{"BOOL", "BOOL", "ERR", "ERR", "ERR"},
+				{"BOOL", "BOOL", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "BOOL", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR", "ERR"}
+		};
+
+		String[][] eqNeqOps = {
+				{"BOOL", "BOOL", "ERR", "ERR", "BOOL"},
+				{"BOOL", "BOOL", "ERR", "ERR", "BOOL"},
+				{"ERR", "ERR", "BOOL", "ERR", "BOOL"},
+				{"ERR", "ERR", "ERR", "BOOL", "BOOL"},
+				{"BOOL", "BOOL", "BOOL", "BOOL", "BOOL"}
 		};
 
 		// Utilizziamo la funzione getCoord per ottenere gli indici relativi ai tipi degli operandi passati come argomento
 		int x = getCoord(type1), y = -1;
 
-		// Se getCoord restiuisce -1 allora vuol dire che sto facendo un'operazione che include il tipo null
+		// Se getCoord restiuisce -1 allora vuol dire che sto facendo un'operazione che include il tipo void
 		if(x == -1)
 			return "ERR";
 
@@ -918,13 +931,9 @@ public class SemanticAnalyzer implements Visitor
 		if(type2 != null)
 		{
 			y = getCoord(type2);
-			// Se getCoord restituisce -1 allora vuol dire che stiamo facendo un'operazione non valida con null
+			// Se getCoord restituisce -1 allora vuol dire che stiamo facendo un'operazione non valida con void
 			if(y == -1)
 				return "ERR";
-			// L'operazioni BOOL RELOP BOOL possiamo farla solo quando l'operazione è equal o not equal altrimenti non è definita
-			if(type1.equals("BOOL") && type2.equals("BOOL") && !(op.equals("EqOp") || op.equals("NeOp")))
-				if(!op.equals("AndOp") && !op.equals("OrOp"))
-					return "ERR";
 		}
 
 		// Ritorniamo il tipo dell'operazione che effettuiamo in base all'operatore op ricevuto in input
@@ -936,14 +945,15 @@ public class SemanticAnalyzer implements Visitor
 					case "AndOp", "OrOp" -> logicBinaryOps[x][y];
 					case "NotOp" -> notOp[x];
 					case "UminOp" -> uminOp[x];
-					case "EqOp", "GeOp", "GtOp", "LeOp", "LtOp", "NeOp" -> relOps[x][y];
+					case "GeOp", "GtOp", "LeOp", "LtOp" -> relOps[x][y];
+					case "EqOp", "NeOp" -> eqNeqOps[x][y];
 					default -> "ERR";
 				};
 	}
 
 	private int getCoord(String type)
 	{
-		final int INT = 0, FLOAT = 1, STRING = 2, BOOL = 3;
+		final int INT = 0, FLOAT = 1, STRING = 2, BOOL = 3, NULL = 4;
 
 		// Definiamo un associazione tra i tipi e degli interi che utilizziamo come indici di riga e colonna per accedere alle matrici di compatibiltià
 		return switch(type)
@@ -952,6 +962,7 @@ public class SemanticAnalyzer implements Visitor
 					case "FLOAT" -> FLOAT;
 					case "STRING" -> STRING;
 					case "BOOL" -> BOOL;
+					case "NULL" -> NULL;
 					default -> -1;
 				};
 	}
