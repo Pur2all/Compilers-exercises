@@ -570,7 +570,7 @@ public class CCodeGenerator implements Visitor
 
 		// Dichiaramo i puntatori che indicano i valori di ritorno delle funzioni
 		int numVar = 0;
-		if(!proc.resultTypeList.get(0).equals("VOID")) //TODO far ritornare int al main se lo fa di suo
+		if(!proc.resultTypeList.get(0).equals("VOID"))
 			for(String type : proc.resultTypeList)
 				generatedCode.append(type).append(" ").append("*r_").append(proc.id).append(numVar++)
 						.append(" = NULL;\n");

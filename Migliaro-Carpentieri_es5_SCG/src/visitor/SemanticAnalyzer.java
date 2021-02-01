@@ -526,10 +526,9 @@ public class SemanticAnalyzer implements Visitor
 				// Controlliamo che l'espressione assegnata all'id sia di tipo corretto
 				expr.accept(this);
 
-				// Se l'espressione è una chiamata a funzione controlliamo che questa torni al massimo un solo valore
-				if(expr instanceof CallProc)
-					if(expr.typeNode.split(", ").length != 1)
-						throw new Exception("Cannot assign multiple values to a single variable");
+				// Controlliamo che l'espressione torni al massimo un solo valore
+				if(expr.typeNode.split(", ").length != 1)
+					throw new Exception("Too many value to unpack");
 
 				// Faccio l'accept di id per avere il tipo del nodo id
 				id.accept(this);
@@ -560,6 +559,8 @@ public class SemanticAnalyzer implements Visitor
 			{
 				String properties = currentSymbolTable.symbolTable.get(id.value).properties;
 
+				// Se il campo properties è vuoto vuol dire che l'identificatore in questione non è dichiarato come parametro
+				// di una funzione, altrimenti sì poiché contiene la stringa "parameter" settata in ParDecl
 				if(properties.equals(""))
 					throw new Exception("Variable " + id.value + " is alredy declared in this scope");
 				else
@@ -663,7 +664,7 @@ public class SemanticAnalyzer implements Visitor
 				numResultType -= returnTypesProc.length;
 
 				if(numResultType < 0)
-					throw new Exception("Too much value to unpack in return expression for function " + proc.id);
+					throw new Exception("Function " + proc.id + " returns too many values than those declared");
 
 				// Se il numero di valori di ritorno è non negativo, per ogni valore di ritorno della funzione presente come espressione
 				//controlliamo se i tipi sono in corrispondenza con i tipi di ritorno effettivi della funzione
@@ -704,7 +705,7 @@ public class SemanticAnalyzer implements Visitor
 				catch(IndexOutOfBoundsException indexOutOfBoundsException)
 				{
 					// Se il numero di valori di ritorno della funzione sono maggiori rispetto a quelli dichiarati è un errore
-					throw new Exception("Function " + proc.id + " returns too much values than those declared");
+					throw new Exception("Function " + proc.id + " returns too many values than those declared");
 				}
 
 				// In questo caso abbiamo matchato una solo valore di ritorno
@@ -714,7 +715,7 @@ public class SemanticAnalyzer implements Visitor
 			// Se il numero di valori di ritorno è negativo vuol dire che sono stati dati troppi valori di ritorno alla funzione
 			// rispetto a quelli che si aspettava, quindi lanciamo eccezione
 			if(numResultType < 0)
-				throw new Exception("Too much return value given to the function " + proc.id);
+				throw new Exception("Function " + proc.id + " returns too many values than those declared");
 		}
 
 		if(!proc.resultTypeList.get(0).equals("VOID"))
