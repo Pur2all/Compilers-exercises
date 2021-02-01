@@ -1,0 +1,12 @@
+/* Too much arguments givent to the function */
+
+proc f() void:
+corp;
+
+proc g() int, int, int:
+    -> 3, 2, 1
+corp;
+
+proc main() void:
+    f(g()+g());
+corp;

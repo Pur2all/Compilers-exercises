@@ -1,0 +1,12 @@
+
+/* To few value to unpack: l'espressione ritorna 3 valori e gli di sono 4 */
+
+proc f() int, int, int:
+    -> 1, 2, 3
+corp;
+
+proc main() void:
+    int x, y, z, t;
+
+    x, y, z, t:= f()+f();
+corp;

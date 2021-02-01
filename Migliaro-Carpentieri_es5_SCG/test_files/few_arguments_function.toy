@@ -1,0 +1,7 @@
+proc f(int x) void:
+corp;
+
+
+proc main () int:
+    f();
+corp;

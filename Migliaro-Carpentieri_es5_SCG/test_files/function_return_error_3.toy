@@ -1,0 +1,13 @@
+/* Type mismatch in return value */
+
+proc g() int, bool:
+    -> 1, 2
+corp;
+
+proc f() int, int, int:
+    -> g(), 2
+corp;
+
+proc main() void:
+    f();
+corp;

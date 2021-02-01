@@ -1,0 +1,5 @@
+/* function f not declared */
+
+proc main() void:
+    f();
+corp;

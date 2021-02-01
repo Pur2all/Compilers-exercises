@@ -1,0 +1,13 @@
+/* Too much return value */
+
+proc g() int, int:
+    -> 1, 2
+corp;
+
+proc f() int, int, int:
+    -> g(), 2, 3
+corp;
+
+proc main() void:
+    f();
+corp;

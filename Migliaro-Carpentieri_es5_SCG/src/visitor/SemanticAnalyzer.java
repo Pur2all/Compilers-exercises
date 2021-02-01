@@ -337,7 +337,7 @@ public class SemanticAnalyzer implements Visitor
 				numOfAssignment -= returnTypes.length;
 
 				if(numOfAssignment < 0)
-					throw new Exception("Too much value to unpack");
+					throw new Exception("Too many value to unpack");
 
 				for(int j = 0; j < returnTypes.length; j++)
 				{
@@ -367,7 +367,17 @@ public class SemanticAnalyzer implements Visitor
 						tempVar.typeNode = tempReturnTypes[j];
 
 						numOfAssignment--;
-						Id internalId = assignStat.idList.get(assignStat.idList.size() - oldNOA--);
+						Id internalId;
+
+						try
+						{
+							internalId = assignStat.idList.get(assignStat.idList.size() - oldNOA--);
+						}
+						catch(IndexOutOfBoundsException indexOutOfBoundsException)
+						{
+							throw new Exception("Too many value to unpack");
+						}
+
 						internalId.accept(this);
 
 						// Controllo che l'assegnazione sia corretta

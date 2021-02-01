@@ -1,0 +1,9 @@
+proc f() int, int, int, int:
+    -> 1, 2, 3, 4
+corp;
+
+proc main() void:
+    int x, y, z;
+
+    x, y, z := f()+f();
+corp;
