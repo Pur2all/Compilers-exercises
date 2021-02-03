@@ -6,8 +6,9 @@ import visitor.Visitable;
 import visitor.Visitor;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
-public class IdListInit extends HashMap<Id, AbstractExpression> implements Visitable
+public class IdListInit extends LinkedHashMap<Id, AbstractExpression> implements Visitable
 {
 	public String typeNode = "VOID";
 

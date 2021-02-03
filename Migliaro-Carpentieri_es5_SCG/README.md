@@ -73,8 +73,8 @@ padre possiamo ricostruire l'intero type environment.
 ### Scelte implementative aggiuntive
 #### Funzioni
 È stata data la possibilità di effettuare operazione tra funzioni anche quando queste ritornano un numero diverso di valori.
-In particolare sia `f1` una funzione che restituisce `s0, s1, ..., sn` valori e `f2` una funzione che restituisce `r0, r1, ..., rm` valori.
-Sia `O = min(N, M)` e sia `P = max(N, M) - O` il risultato dell'operazione sarà `s0 op r0, s1 op r1, ..., so op ro` e i restanti
+In particolare sia `f1` una funzione che restituisce `s0, s1, ..., sN` valori e `f2` una funzione che restituisce `r0, r1, ..., rM` valori.
+Sia `O = min(N, M)` e sia `P = max(N, M) - O` il risultato dell'operazione sarà `s0 op r0, s1 op r1, ..., sO op rO` e i restanti
 `P` valori saranno quelli corrispondenti alla funzione che torna più valori tra le due.  
 
 È possibile effettuare una chiamata a funzione che ha come argomenti espressioni che ritornano più valori.
