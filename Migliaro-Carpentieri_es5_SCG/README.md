@@ -81,7 +81,8 @@ Sia `O = min(N, M)` e sia `P = max(N, M) - O` il risultato dell'operazione sarà
 Ad esempio sia `f` una funzione che prende 3 parametri interi e sia `g` una funzione che restituisce 3 valori interi, è possibile 
 effettuare la seguente chiamata `f(g)` e ogni tipo di combinazione simile.
 #### Assegnamenti
-Abbiamo dato la possibilità di assegnare ad un float un int.  
+Abbiamo dato la possibilità di assegnare ad un float un int e di passare ad una funzione con un intero anche 
+se il parametro è float. La stessa cosa è stata definita per i valori di ritorno della funzione.  
 
 È possibile avere a destra di un assegnamento delle espressioni che tornano più valori.
 #### Operazioni con stringhe
@@ -93,7 +94,7 @@ Abbiamo dato la possibilità di effettuare delle operazioni con stringhe, in par
 #### Dichiarazioni in scoping diversi
 Abbiamo deciso in fase di progettazione che è possibile dichiarare una variabile all'interno di uno scope con lo stesso nome
 di una funzione dichiarata in uno scope esterno. In tal caso la visibilità della funzione è sovrascritta da quella della
-variabile.  
+variabile. All'interno dello stesso scope non è possibile però dichiarare una funzione e una varibile con lo stesso nome.
 Tale scelta è stata presa tenendo come riferimento in particolare il linguaggio C e altri.
 #### Gestione del null
 È possibile assegnare null a una variabile di qualsiasi tipo.  

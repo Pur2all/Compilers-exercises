@@ -12,6 +12,7 @@ import symbolTable.Kind;
 import symbolTable.SymbolTable;
 import symbolTable.SymbolTableNode;
 import symbolTable.SymbolTableRecord;
+import utils.Temp;
 
 public class SemanticAnalyzer implements Visitor
 {
@@ -164,7 +165,7 @@ public class SemanticAnalyzer implements Visitor
 	public Object visit(StringConst expression)
 	{
 		// Metodo vuoto poiché accetta a prescindere
-		return  null;
+		return null;
 	}
 
 	@Override
@@ -205,94 +206,81 @@ public class SemanticAnalyzer implements Visitor
 		// Salviamo i tipi dei valori di ritorno della funzione
 		String returnTypes = splittedType[1];
 
-		// Poiché le due funzioni di libreria non hanno bisogno di questi controlli vengono saltati, per via del loro
-		// poter prendere parametri variabili
-		if(!(callProc.id.equals("readln") || callProc.id.equals("write")))
+		// Memorizziamo il numero di parametri della funzione
+		int numOfParametersType = parametersTypes.length;
+		// Controlliamo se gli argomenti della funzione sono in corrispondenza con i parametri
+		for(int i = 0; i < callProc.arguments.size(); i++)
 		{
-			// Memorizziamo il numero di parametri della funzione
-			int numOfParametersType = parametersTypes.length;
-			// Controlliamo se gli argomenti della funzione sono in corrispondenza con i parametri
-			for(int i = 0; i < callProc.arguments.size(); i++)
+			// Su ogni argomento invochiamo il metodo accept
+			callProc.arguments.get(i).accept(this);
+
+			// Prendo il tipo del nodo dell'i-esimo argomento
+			String typeNode = callProc.arguments.get(i).typeNode;
+			// Salviamo il numero di parametri ancora da matchare
+			int oldNOPT = numOfParametersType;
+
+			// Se oldNOPT è 0 e siamo entrati nel ciclo vuol dire che non abbiamo più tipi di parametri da matchare
+			// ma ci sono ancora rimaste delle espresisone e quindi lanciamo eccezione.
+			if(oldNOPT == 0)
+				throw new Exception("Too many arguments given to the function " + callProc.id);
+
+			// Se l'argomento è un' espressione questa potrebbe ritornare più valori, quindi ha bisogno di ulteriori controlli
+			if(typeNode.contains(", "))
 			{
-				// Su ogni argomento invochiamo il metodo accept
-				callProc.arguments.get(i).accept(this);
+				// Costruiamo un array contenente i tipi dei valori di ritorno dell'espressione presa come argomento
+				// della funzione chiamata
+				String[] returnTypesExpr = typeNode.split(", ");
 
-				// Prendo il tipo del nodo dell'i-esimo argomento
-				String typeNode = callProc.arguments.get(i).typeNode;
-				// Se l'argomento è una funzione questa potrebbe ritornare più valori, quindi ha bisogno di ulteriori controlli
-				if(callProc.arguments.get(i) instanceof CallProc)
-				{
-					// Costruiamo un array contenente i tipi dei valori di ritorno della funzione presa come argomento
-					// della funzione chiamata
-					String[] returnTypesProc = typeNode.split(", ");
 
-					// Salviamo il numero di parametri ancora da matchare
-					int oldNOPT = numOfParametersType;
+				// Sottraiamo al numero di parametri da matchare il numero dei valori di ritorno della funzione presa
+				// come argomento, e se tale valore diventa negativo vuol dire che sono stati dati troppi argomenti
+				// alla funzione e quindi lanciamo eccezione
+				numOfParametersType -= returnTypesExpr.length;
 
-					// Sottraiamo al numero di parametri da matchare il numero dei valori di ritorno della funzione presa
-					// come argomento, e se tale valore diventa negativo vuol dire che sono stati dati troppi argomenti
-					// alla funzione e quindi lanciamo eccezione
-					numOfParametersType -= returnTypesProc.length;
+				if(numOfParametersType < 0)
+					throw new Exception("Too many arguments given to the function " + callProc.id);
 
-					if(numOfParametersType < 0)
-						throw new Exception("Too much arguments given to the function " + callProc.id);
-
-					// Se il numero di parametri matchati è non negativo, per ogni valore di ritorno della funzione presa come
-					// argomento controlliamo se i tipi sono in corrispondenza con i parametri restanti
-					for(String returnTypeProc : returnTypesProc)
-						if(!returnTypeProc.equals(parametersTypes[parametersTypes.length - oldNOPT--]))
-							throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
-				}
-				else
-				{
+				// Se il numero di parametri matchati è non negativo, per ogni valore di ritorno dell'espressione presa come
+				// argomento controlliamo se i tipi sono in corrispondenza con i parametri restanti
+				for(String returnType : returnTypesExpr)
 					try
 					{
-						String[] typeNodeSplitted = typeNode.split(", ");
-
-						// Controlliamo se il numero di valori di ritorno dell'espressione è maggiore di 1 poiché se lo è
-						// dobbiamo controllare che i tipi dei valori dell'espressione siano corretti rispetto a quelli definiti
-						// nel ritorno della funzione
-						if(typeNodeSplitted.length > 1)
-						{
-							for(String s : typeNodeSplitted)
-							{
-								if(!s.equals(parametersTypes[i++]))
-									throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + (i - 1));
-								numOfParametersType--;
-							}
-							// Devo ripristinare l'indice i perché itero sul numero di argomenti
-							i -= typeNodeSplitted.length;
-						}
-						else
-						{
-							// Se l'argomento non è una funzione e il suo tipo non corrisponde a quello richiesto dal parametro
-							// lanciamo un'eccezione
-							if(!typeNode.equals(parametersTypes[i]))
-								throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
-							// In questo caso abbiamo matchato un solo parametro
-							numOfParametersType--;
-						}
+						// Creo le temporanee che mi servono per settare il type node ed utilizzare il metodo checkAssignmentCompatibility.
+						Temp temp1 = new Temp("");
+						Temp temp2 = new Temp("");
+						temp1.typeNode = parametersTypes[parametersTypes.length - oldNOPT--];
+						temp2.typeNode = returnType;
+						checkAssignmentCompatibility(temp1, temp2);
 					}
-					catch(IndexOutOfBoundsException indexOutOfBoundsException)
+					catch(Exception e)
 					{
-						// Se il numero di parametri formali è minore di quelli attuali lanciamo eccezione
-						throw new Exception("Too much arguments given to the function " + callProc.id);
+						throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
 					}
-
-
-				}
-
-				// Se il numero di parametri è negativo vuol dire che sono stati dati troppi argomenti alla funzione
-				// rispetto a quelli che si aspettava, quindi lanciamo eccezione
-				if(numOfParametersType < 0)
-					throw new Exception("Too much arguments given to the function " + callProc.id);
 			}
-
-			// Se il numero di parametri è almeno 1 vuol dire che non tutti i parametri sono stati matchati e che quindi
-			// sono stati dati pochi argomenti alla funzione rispetto a quelli che si aspettava, quindi lanciamo eccezione
-			if(numOfParametersType > 0)
-				throw new Exception("Too few arguments given to the function " + callProc.id);
+			else
+			{
+				// Se l'argomento è un espressione che torna un solo valore e il suo tipo non corrisponde a quello richiesto dal parametro
+				try
+				{
+					// Creo le temporanee che mi servono per settare il type node ed utilizzare il metodo checkAssignmentCompatibility.
+					Temp temp1 = new Temp("");
+					Temp temp2 = new Temp("");
+					temp1.typeNode = parametersTypes[parametersTypes.length - oldNOPT];
+					temp2.typeNode = typeNode;
+					checkAssignmentCompatibility(temp1, temp2);
+				}
+				catch(Exception e)
+				{
+					throw new Exception("Type mismatch in function call " + callProc.id + " on parameter " + i);
+				}
+				numOfParametersType--;
+			}
 		}
+
+		// Se il numero di parametri è almeno 1 vuol dire che non tutti i parametri sono stati matchati e che quindi
+		// sono stati dati pochi argomenti alla funzione rispetto a quelli che si aspettava, quindi lanciamo eccezione
+		if(numOfParametersType > 0)
+			throw new Exception("Too few arguments given to the function " + callProc.id);
 
 		// Setto come tipo del nodo callProc i tipi di ritorno della procedura
 		callProc.typeNode = returnTypes;
@@ -307,46 +295,45 @@ public class SemanticAnalyzer implements Visitor
 
 		for(int i = 0; i < assignStat.exprList.size(); i++)
 		{
-			// L'id a cui assegnare l'expr
-			Id tempId;
-			// l'i-esima espressione
+
+			// Memorizziamo l'i-esima espressione
 			AbstractExpression tempExpr = assignStat.exprList.get(i);
 
-			// Se l'i-esimo id non è presente, a prescindere dalla natura dell'espressione, vuol dire che ci sono troppe
-			// espressioni da assegnare. Quindi abbiamo un numero minore di id rispetto a quello delle espressioni.
-			try
-			{
-				tempId = assignStat.idList.get(assignStat.idList.size() - numOfAssignment);
-			}
-			catch(IndexOutOfBoundsException indexOutOfBoundsException)
-			{
-				throw new Exception("Too many value to unpack");
-			}
-
-			// Chiamo l'accept su id per controllare che gli id siano effettivamente dichiarati
-			tempId.accept(this);
 			// Chiamo l'accept su expr per controllare la correttezza dell'expr
 			tempExpr.accept(this);
 			// Salviamo il numero di id che ci rimangono da leggere
 			int oldNOA = numOfAssignment;
 
-			if(tempExpr instanceof CallProc)
+			// Se il numero di id di cui controllare l'assegnamento è 0 e sono entrato nel ciclo vuol
+			// dire che ho più valori di ritorno di quanti ne dovrei avere
+			if(oldNOA == 0)
+				throw new Exception("Too many values to unpack");
+
+			// Se contiene la , vuol dire che l'espressione ha più valori di ritorno
+			if(tempExpr.typeNode.contains(","))
 			{
-				// Otteniamo i tipi di ritorno della funzione chiamata
-				String[] returnTypes = tempExpr.typeNode.split(", ");
-				numOfAssignment -= returnTypes.length;
-
-				if(numOfAssignment < 0)
-					throw new Exception("Too many value to unpack");
-
-				for(int j = 0; j < returnTypes.length; j++)
+				String[] tempReturnTypes = tempExpr.typeNode.split(", ");
+				for(int j = 0; j < tempReturnTypes.length; j++)
 				{
 					// Creo una nuova variabile temporanea soltanto per poter utilizzare il metodo di check che prende
 					// come input due oggetti di tipo sepcifico
-					Id tempVar = new Id("");
-					tempVar.typeNode = returnTypes[j];
+					Temp tempVar = new Temp("");
+					tempVar.typeNode = tempReturnTypes[j];
 
-					Id internalId = assignStat.idList.get(assignStat.idList.size() - oldNOA--);
+					numOfAssignment--;
+					// Internal id è l'id a cui assegnare il risultato dell'espressione
+					Id internalId;
+
+					try
+					{
+						internalId = assignStat.idList.get(assignStat.idList.size() - oldNOA--);
+					}
+					catch(IndexOutOfBoundsException indexOutOfBoundsException)
+					{
+						throw new Exception("Too many value to unpack");
+					}
+
+					// Controlliamo che l'id a cui assegnamo il valore sia dichiarato e settiamo il typeNode
 					internalId.accept(this);
 
 					// Controllo che l'assegnazione sia corretta
@@ -355,48 +342,16 @@ public class SemanticAnalyzer implements Visitor
 			}
 			else
 			{
-				// Se contiene la , vuol dire che l'espressione potrebbe essere un operazione tra funzioni con più tipi di ritorno
-				if(tempExpr.typeNode.contains(","))
-				{
-					String[] tempReturnTypes = tempExpr.typeNode.split(", ");
-					for(int j = 0; j < tempReturnTypes.length; j++)
-					{
-						// Creo una nuova variabile temporanea soltanto per poter utilizzare il metodo di check che prende
-						// come input due oggetti di tipo sepcifico
-						Id tempVar = new Id("");
-						tempVar.typeNode = tempReturnTypes[j];
+				// L'id a cui assegnare l'expr
+				Id tempId = assignStat.idList.get(assignStat.idList.size() - oldNOA);
+				// Invoco l'accept per contrllare che l'id sia dichiarato e per settare il type node.
+				tempId.accept(this);
+				// Controlliamo che i tipi siano compatibili per l'assegnazione
+				checkAssignmentCompatibility(tempId, tempExpr);
 
-						numOfAssignment--;
-						Id internalId;
-
-						try
-						{
-							internalId = assignStat.idList.get(assignStat.idList.size() - oldNOA--);
-						}
-						catch(IndexOutOfBoundsException indexOutOfBoundsException)
-						{
-							throw new Exception("Too many value to unpack");
-						}
-
-						internalId.accept(this);
-
-						// Controllo che l'assegnazione sia corretta
-						checkAssignmentCompatibility(internalId, tempVar);
-					}
-				}
-				else
-				{
-					// Controlliamo che i tipi siano compatibili per l'assegnazione
-					checkAssignmentCompatibility(tempId, tempExpr);
-
-					// Decrementiamo il numero di assegnamenti da effettuare perché uno è stato controllato
-					numOfAssignment--;
-				}
+				// Decrementiamo il numero di assegnamenti da effettuare perché uno è stato controllato
+				numOfAssignment--;
 			}
-
-			// Se il numero di assegnamenti da effettuare diventa negativo vuol dire che ci sono più
-			if(numOfAssignment < 0)
-				throw new Exception("Too many value to unpack");
 		}
 
 		if(numOfAssignment > 0)
@@ -458,7 +413,7 @@ public class SemanticAnalyzer implements Visitor
 		// Controlliamo che l'expr sia corretta e che sia di tipo booleano
 		elif.expr.accept(this);
 		if(!elif.expr.typeNode.equals("BOOL"))
-			throw new Exception("Type mismatch, expression is not an if condition");
+			throw new Exception("Type mismatch: expression in elif condition is not of type BOOL but " + elif.expr.typeNode);
 
 		// Controllo che gli statament del elif siano corretti
 		for(Statement stat : elif.statements)
@@ -504,11 +459,17 @@ public class SemanticAnalyzer implements Visitor
 	}
 
 	@Override
-	public Object visit(ParDecl parDecl)
+	public Object visit(ParDecl parDecl) throws Exception
 	{
 		// ParDecl è usato solo per dichiarare i parametri della funzione
 		for(Id id : parDecl.idList)
-			currentSymbolTable.symbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, parDecl.type, "parameter"));
+		{
+			// Poiché i parametri sono la prima cosa che inseriamo nella tabella dei simboli di una procedura
+			if(!currentSymbolTable.symbolTable.containsKey(id.value))
+				currentSymbolTable.symbolTable.put(id.value, new SymbolTableRecord(Kind.VARIABLE, parDecl.type, "parameter"));
+			else
+				throw new Exception("Parameter " + id.value + " is already declared");
+		}
 		return null;
 	}
 
@@ -578,6 +539,7 @@ public class SemanticAnalyzer implements Visitor
 	@Override
 	public Object visit(Proc proc) throws Exception
 	{
+		// Memorizza tipo dei parametri -> tipi di ritorno
 		StringBuilder type = new StringBuilder();
 
 		// Per ogni lista di parametri prendiamo il tipo degli identificatori e lo inseriamo nel buffer type
@@ -649,73 +611,61 @@ public class SemanticAnalyzer implements Visitor
 			// Prendo il tipo del nodo dell'i-esima espressione
 			String typeNode = returnExpr.typeNode;
 
-			// Se l'argomento è una funzione questa potrebbe ritornare più valori, quindi ha bisogno di ulteriori controlli
-			if(returnExpr instanceof CallProc)
+			// Salviamo il numero di parametri ancora da matchare
+			int oldNRT = numResultType;
+
+			if(oldNRT == 0)
+				throw new Exception("Function " + proc.id + " returns too many values than those declared");
+
+			// Caso in cui abbiamo espressioni che ritornano più valori
+			if(typeNode.contains(", "))
 			{
-				// Costruiamo un array contenente i tipi dei valori di ritorno della funzione utilizzata come espressione
-				String[] returnTypesProc = typeNode.split(", ");
+				// Costruiamo un array contenente i tipi dei valori di ritorno dell'espressione utilizzata
+				String[] returnTypes = typeNode.split(", ");
 
-				// Salviamo il numero di parametri ancora da matchare
-				int oldNRT = numResultType;
-
-				// Sottraiamo al numero di valori di ritorno il numero dei valori di ritorno della funzione che
-				// compare come espressione, e se tale valore diventa negativo vuol dire che sono stati dati troppi valori
+				// Sottraiamo al numero di valori di ritorno il numero dei valori di ritorno dell'espressione che
+				// e se tale valore diventa negativo vuol dire che sono stati dati troppi valori
 				// di ritorno alla funzione e quindi lanciamo eccezione
-				numResultType -= returnTypesProc.length;
+				numResultType -= returnTypes.length;
 
 				if(numResultType < 0)
 					throw new Exception("Function " + proc.id + " returns too many values than those declared");
 
-				// Se il numero di valori di ritorno è non negativo, per ogni valore di ritorno della funzione presente come espressione
+				// Se il numero di valori di ritorno è non negativo, per ogni valore di ritorno dell'espressione
 				//controlliamo se i tipi sono in corrispondenza con i tipi di ritorno effettivi della funzione
-				for(String returnTypeProc : returnTypesProc)
-					if(!returnTypeProc.equals(proc.resultTypeList.get(proc.resultTypeList.size() - oldNRT--)))
+				for(String returnType : returnTypes)
+					try
+					{
+						// Creo le temporanee che mi servono per settare il type node ed utilizzare il metodo checkAssignmentCompatibility.
+						Temp temp1 = new Temp("");
+						Temp temp2 = new Temp("");
+						temp1.typeNode = proc.resultTypeList.get(proc.resultTypeList.size() - oldNRT--);
+						temp2.typeNode = returnType;
+						checkAssignmentCompatibility(temp1, temp2);
+					}
+					catch(Exception e)
+					{
 						throw new Exception("Type mismatch in return of function " + proc.id);
+					}
 			}
 			else
 			{
 				try
 				{
-					String[] typeNodeSplitted = typeNode.split(", ");
-
-					// Controlliamo se il numero di valori di ritorno dell'espressione è maggiore di 1 poiché se lo è
-					// dobbiamo controllare che i tipi dei valori dell'espressione siano corretti rispetto a quelli definiti
-					// nel ritorno della funzione
-					if(typeNodeSplitted.length > 1)
-					{
-						for(String s : typeNodeSplitted)
-						{
-							if(!s.equals(proc.resultTypeList.get(i++)))
-								throw new Exception("Type mismatch in return of function " + proc.id);
-							numResultType--;
-						}
-
-						// Devo ripristinare l'indice poichè itero su numero di espressioni di ritorno e non sul numero di tipi
-						i -= typeNodeSplitted.length;
-						numResultType++;
-					}
-					else
-					{
-						// Se l'espressione non è una funzione e il suo tipo non corrisponde a quello richiesto dal tipo di ritorno
-						// lanciamo un'eccezione
-						if(!typeNode.equals(proc.resultTypeList.get(i)))
-							throw new Exception("Type mismatch in return of function " + proc.id);
-					}
+					// Creo le temporanee che mi servono per settare il type node ed utilizzare il metodo checkAssignmentCompatibility.
+					Temp temp1 = new Temp("");
+					Temp temp2 = new Temp("");
+					temp1.typeNode = proc.resultTypeList.get(proc.resultTypeList.size() - oldNRT);
+					temp2.typeNode = typeNode;
+					checkAssignmentCompatibility(temp1, temp2);
 				}
-				catch(IndexOutOfBoundsException indexOutOfBoundsException)
+				catch(Exception e)
 				{
-					// Se il numero di valori di ritorno della funzione sono maggiori rispetto a quelli dichiarati è un errore
-					throw new Exception("Function " + proc.id + " returns too many values than those declared");
+					throw new Exception("Type mismatch in return of function " + proc.id);
 				}
-
 				// In questo caso abbiamo matchato una solo valore di ritorno
 				numResultType--;
 			}
-
-			// Se il numero di valori di ritorno è negativo vuol dire che sono stati dati troppi valori di ritorno alla funzione
-			// rispetto a quelli che si aspettava, quindi lanciamo eccezione
-			if(numResultType < 0)
-				throw new Exception("Function " + proc.id + " returns too many values than those declared");
 		}
 
 		if(!proc.resultTypeList.get(0).equals("VOID"))
@@ -799,9 +749,9 @@ public class SemanticAnalyzer implements Visitor
 		expression.rightExpr.accept(this);
 		String typeOp;
 
-		// Se entrambe le espressioni sono funzioni con più valori di ritorno facciamo dei controlli specifici per gestirle
+		// Se una delle due espressioni di ritorno ha più valori facciamo dei controlli specifici per gestirle
 		if(expression.leftExpr.typeNode.contains(",") || expression.rightExpr.typeNode.contains(","))
-			// Se le espressioni sono funzioni chiamiamo la funzione opTypeFunction per stabilire se i tipi sono corretti
+			// Se le espressioni tornano più valori chiamiamo la funzione opTypeFunction per stabilire se i tipi sono corretti
 			typeOp = opTypeFunction(nameOp, expression.leftExpr.typeNode, expression.rightExpr.typeNode);
 		else
 		{
@@ -877,6 +827,7 @@ public class SemanticAnalyzer implements Visitor
 				{"INT", "FLOAT", "ERR", "ERR", "ERR"},
 				{"FLOAT", "FLOAT", "ERR", "ERR", "ERR"},
 				{"ERR", "ERR", "STRING", "ERR", "ERR"},
+				{"ERR", "ERR", "ERR", "ERR", "ERR"},
 				{"ERR", "ERR", "ERR", "ERR", "ERR"}
 		};
 		// La minTable non la facciamo perché è uguale alla addTable in quanto è l'operazione inversa
