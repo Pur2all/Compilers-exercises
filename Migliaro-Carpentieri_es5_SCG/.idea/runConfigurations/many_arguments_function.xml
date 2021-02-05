@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="much_arguments_function" type="Application" factoryName="Application">
+  <configuration default="false" name="many_arguments_function" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="tester.Toy" />
     <module name="Migliaro-Carpentieri_es5_SCG" />
-    <option name="PROGRAM_PARAMETERS" value="test_files/much_arguments_function.toy" />
+    <option name="PROGRAM_PARAMETERS" value="test_files/many_arguments_function.toy" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

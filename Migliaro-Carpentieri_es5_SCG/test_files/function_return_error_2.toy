@@ -1,4 +1,4 @@
-/* Too much return value */
+/* Too many return value */
 
 proc g() int, int:
     -> 1, 2

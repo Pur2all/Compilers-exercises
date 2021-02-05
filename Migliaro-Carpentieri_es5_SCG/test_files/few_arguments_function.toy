@@ -1,3 +1,5 @@
+/* Too few arguments given to the function f */
+
 proc f(int x) void:
 corp;
 

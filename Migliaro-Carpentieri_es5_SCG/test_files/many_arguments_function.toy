@@ -1,4 +1,4 @@
-/* Too much arguments givent to the function */
+/* Too many arguments givent to the function */
 
 proc f() void:
 corp;

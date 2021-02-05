@@ -1,3 +1,11 @@
+/*
+Risultati:
+Somma: 3
+Sottrazione: -1
+Moltiplicazione: 2
+Divisione: 0;
+*/
+
 proc f() int:
     -> 1
 corp;

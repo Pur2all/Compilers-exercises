@@ -1,3 +1,17 @@
+/*
+Risultati:
+Valore di a: 13
+Valore di b: 6
+Valore di f()+g(): 13, 6
+Valore di h(): 8 6 5
+Valore di h() + f() + g(): 21 12 5
+Valore di h() + f() * g(): 48 12 5
+Valore di h() * f() + g(): 69 36 5
+Valore di a + h(): 21 6 5
+Valore di 3 - h(): -5 6 5
+
+*/
+
 proc g() int:
     -> 5
 corp;

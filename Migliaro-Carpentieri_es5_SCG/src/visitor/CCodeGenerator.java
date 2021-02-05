@@ -524,7 +524,6 @@ public class CCodeGenerator implements Visitor
 			if(idListInit.get(id) != null)
 				exprResult.add((String) idListInit.get(id).accept(this));
 
-		addServiceCode(idListCode);
 		// L'indice j serve per far avanzare l'array contenente i risultati delle espressioni
 		for(int i = 0, j = 0; i < setId.size(); i++)
 		{
@@ -556,6 +555,10 @@ public class CCodeGenerator implements Visitor
 	{
 		// Invoco l'accept su idListInit che si occuperà di generare a sua volta il codice.
 		String idListCode = (String) varDecl.idListInit.accept(this);
+		// Dopo aver fatto l'accept su idListInit in service code abbiamo il codice di servzio delle espressioni
+		// associate agli id. Appendiamo la stringa service code a generatedCode
+		addServiceCode(generatedCode);
+
 		// Generiamo il codice per la dichiarazione delle variabili
 		generatedCode.append(varDecl.type).append(" ").append(idListCode);
 
@@ -754,7 +757,15 @@ public class CCodeGenerator implements Visitor
 			AbstractExpression minExpr = firstExpr.length > secondExpr.length ? second : first;
 
 			if(firstExpr.length == 1 && secondExpr.length == 1)
-				exprCode.append(firstExpr[0]).append(" ").append(op).append(" ").append(secondExpr[0]);
+			{
+				// Poichè la divisione tra interi restituisce un float nel caso in cui ho intero diviso intero in C
+				// dovrò inserire dei cast altrimenti la divisione restituisce un intero.
+				String cast = "";
+				if(op.equals("/") && first.typeNode.equals("INT") && second.typeNode.equals("INT"))
+					cast = "(float)";
+
+				exprCode.append(cast).append(firstExpr[0]).append(" ").append(op).append(" ").append(cast).append(secondExpr[0]);
+			}
 			else
 			{
 				for(int i = 0; i < minExprResult.length; i++)
@@ -905,6 +916,9 @@ public class CCodeGenerator implements Visitor
 	// Il risultato di un'espressione può essere una funzione di servizio tipo concatString e dobbiamo gestirne il caso
 	// Nel caso in cui non sia una funzione di servizio restituiamo un array di stringhe contenente i risultati dell'
 	// espressione altrimenti la chiamata a funzione
+	// Nota se ho più valori di ritorno sicuramente  tra quei valori non ci sarà una funzione di servizio per questo
+	// l'unico caso in cui posso avere una funzione di servizio concatString() come stringa espression è quando l'epressione
+	// ritorna un solo valore.
 	private String[] splitOrNot(String expression)
 	{
 		if(expression.contains("("))

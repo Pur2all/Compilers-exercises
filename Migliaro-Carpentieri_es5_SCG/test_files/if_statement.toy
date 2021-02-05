@@ -76,6 +76,7 @@ proc main() void:
         write(x, " maggiore o uguale di 10");
     fi;
 
+    write("Controlla se i numeri sono in ordine crescente se non lo sono inserisci \n altri tre numeri e  si controlla se sono in ordine decrescente");
 
     /* test if con funzioni che prendono come parametri funzioni con più valori di ritorno */
     if !ascendingOrder(selezionaNumeri()) = false then
@@ -83,19 +84,19 @@ proc main() void:
     elif discendingOrder(selezionaNumeri()) <> false then
         write("I numeri sono in ordine decrescente");
     else
-        write("La prima sequenza non è in ordine crescente e la seconda non è in ordine decrescente");
+        write("La prima sequenza non e' in ordine crescente e la seconda non e' in ordine decrescente");
     fi;
 
    write("Inserire un intero: ");
    readln(u);
     if h(u) > 100 && h(u) <200 then
-        write("Il numero ", h(u) , "è compreso tra 100 e 200");
+        write("Il numero ", h(u) , "e' compreso tra 100 e 200");
     elif h(u) >= 200 && h(u)<300 then
-         write("Il numero ", h(u) , "è compreso tra 200 e 300");
+         write("Il numero ", h(u) , "e' compreso tra 200 e 300");
     elif h(u) >= 300 && h(u)<400 then
-         write("Il numero ", h(u) , "è compreso tra 300 e 400");
+         write("Il numero ", h(u) , "e' compreso tra 300 e 400");
     else
-        write("Il numero", h(u),"è minore di 100 o maggiore 400");
+        write("Il numero ", h(u),"e' minore di 100 o maggiore 400");
     fi;
 
 

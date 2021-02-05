@@ -1,3 +1,10 @@
+/*
+Risultato: 3
+Non è possibile dichiarare nello stesso scope una variabile con lo stesso nome di una proc ma
+in scope diversi è possibile dichiarare una varaibile con lo stesso nome di una proc e in questo
+caso la variabile sovrascrive la visibilità della proc.
+*/
+
 proc f() void:
 corp;
 

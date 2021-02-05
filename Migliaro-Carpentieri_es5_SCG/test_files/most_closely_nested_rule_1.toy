@@ -1,3 +1,10 @@
+/*
+Risultati:
+3
+2
+5
+*/
+
 int x := 2;
 
 proc f() int:

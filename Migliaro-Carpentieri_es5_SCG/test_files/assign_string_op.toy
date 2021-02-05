@@ -22,15 +22,15 @@ proc main() void:
     string str2;
 
     s, t, u := f() * g();
-    write("Il valore di s è: ", s, "\nIl valore di t è: ", t, "\nIl valore u è: ", u);
+    write("Il valore di s e': ", s, "\nIl valore di t e': ", t, "\nIl valore u e': ", u);
 
     s, t, u := "" , "", "";
     s, t, u := g() + h();
-    write("Il valore di s è: ", s, "\nIl valore di t è: ", t, "\nIl valore u è: ", u);
+    write("Il valore di s e': ", s, "\nIl valore di t e': ", t, "\nIl valore u e': ", u);
 
     s, t, u := "" , "", "";
     s, t, u := g() + g() - i();
-    write("Il valore di s è: ", s, "\nIl valore di t è: ", t, "\nIl valore u è: ", u);
+    write("Il valore di s e': ", s, "\nIl valore di t e': ", t, "\nIl valore u e': ", u);
 
     write("Inserire una parola: ");
     readln(str1);

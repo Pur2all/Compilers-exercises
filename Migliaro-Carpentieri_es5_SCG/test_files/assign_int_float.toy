@@ -49,15 +49,15 @@ corp;
 proc main() void:
     float x, y, z;
     x, y, z := f(input()) + g();
-    write("Il valore di x è: ", x, "\nIl valore di y è: ", y, "\nIl valore z è: ", z);
+    write("Il valore di x e': ", x, "\nIl valore di y e': ", y, "\nIl valore z e': ", z);
 
     /* Funzione con 3 valori più funzione con 2 due valori */
     x, y, z := f(input()) + h();
-    write("Il valore di x è: ", x, "\nIl valore di y è: ", y, "\nIl valore z è: ", z);
+    write("Il valore di x e': ", x, "\nIl valore di y e': ", y, "\nIl valore z e': ", z);
 
     /* Funzione con 2 valori più funzione con 3 due valori */
     x, y, z := f(input()) + h();
-    write("Il valore di x è: ", x, "\nIl valore di y è: ", y, "\nIl valore z è: ", z);
+    write("Il valore di x e': ", x, "\nIl valore di y e': ", y, "\nIl valore z e': ", z);
 
 
 corp;

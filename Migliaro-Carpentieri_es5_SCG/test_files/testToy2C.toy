@@ -69,7 +69,7 @@ proc menu() void:
     write("1. la somma di due numeri");
     write("2. la moltiplicazione di due numeri utilizzando la somma");
     write("3. la divisione intera fra due numeri positivi");
-    write("4. l’elevamento a potenza");
+    write("4. l'elevamento a potenza");
     write("5. la successione di Fibonacci");
 corp;
 
@@ -110,7 +110,7 @@ proc main() int:
         result := fib(fibn);
     fi;
 
-    write("Il risultato dell'operazione è: ", result);
+    write("Il risultato dell'operazione e': ", result);
 
     -> 0
 corp;
