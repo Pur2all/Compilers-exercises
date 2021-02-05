@@ -158,17 +158,16 @@ CommentContent = ( [^*] | \*+ [^/*] )*
                          return token(ParserSym.STRING_CONST, string.toString());}
     <<EOF>>             {throw new Error("Stringa costante non completata");}
     [^\n\r\"\\]+        {string.append(yytext());}
-    \\t                 {string.append('\t');}
+    \\t                 {string.append(yytext());}
     [\r\n]+             {string.append(yytext());}
-    \\\"                {string.append('\"');}
-    \\                  {string.append('\\');}
+    \\\"                {string.append(yytext());}
+    \\                  {string.append(yytext());}
 }
 
 <COMMENTS> {
     "*/"                {yybegin(YYINITIAL);}
     {CommentContent}    {/* ignore */}
     <<EOF>>             {throw new Error("Commento non chiuso");}
-
 }
 
 <<EOF>>                 {return new Symbol(ParserSym.EOF);}
