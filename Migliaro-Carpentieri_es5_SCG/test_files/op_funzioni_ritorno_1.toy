@@ -3,7 +3,7 @@ Risultati:
 Somma: 3
 Sottrazione: -1
 Moltiplicazione: 2
-Divisione: 0;
+Divisione: 0.5;
 */
 
 proc f() int:
