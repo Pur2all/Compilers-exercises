@@ -16,8 +16,8 @@ public class Toy
 		Parser parser = new Parser(new Lexer(new FileReader(args[0])));
 		Program root = (Program) parser.parse().value;
 		SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
-		SymbolTableNode rootSymbolTableTree = semanticAnalyzer.visitAST(root);
-		CCodeGenerator codeGenerator = new CCodeGenerator(rootSymbolTableTree);
+		semanticAnalyzer.visitAST(root);
+		CCodeGenerator codeGenerator = new CCodeGenerator();
 		PrintWriter printWriter = new PrintWriter(args[0].replace(".toy", ".c"));
 		printWriter.print(codeGenerator.generateCCode(root));
 		printWriter.close();

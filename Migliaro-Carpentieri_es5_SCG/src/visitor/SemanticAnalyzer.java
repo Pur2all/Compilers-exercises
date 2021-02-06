@@ -818,7 +818,7 @@ public class SemanticAnalyzer implements Visitor
 		return returnTypeExpr.toString();
 	}
 
-	private String opType(String op, String type1, String type2)
+	static String opType(String op, String type1, String type2)
 	{
 		// Definiamo delle tabelle di compatibilità in cui le righe e le colonne sono i tipi (INT, FLOAT, STRING, BOOL)
 		// e le celle indicano il tipo del risultato dell'operazione tra quei due tipi specifici
@@ -913,7 +913,7 @@ public class SemanticAnalyzer implements Visitor
 				};
 	}
 
-	private int getCoord(String type)
+	private static int getCoord(String type)
 	{
 		final int INT = 0, FLOAT = 1, STRING = 2, BOOL = 3, NULL = 4;
 
