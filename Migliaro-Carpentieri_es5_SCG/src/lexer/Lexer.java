@@ -76,8 +76,8 @@ public class Lexer implements java_cup.runtime.Scanner {
     "\1\4\1\5\3\0\1\6\1\0\1\7\1\10\1\11"+
     "\1\12\1\13\1\14\1\15\1\16\1\17\11\20\1\21"+
     "\1\22\1\23\1\24\1\25\2\0\32\26\1\0\1\27"+
-    "\2\0\1\26\1\0\23\26\1\30\6\26\1\0\1\31"+
-    "\u0183\0";
+    "\2\0\1\26\1\0\15\26\1\30\3\26\1\30\1\26"+
+    "\1\30\6\26\1\0\1\31\u0183\0";
 
   private static int [] zzUnpackcmap_blocks() {
     int [] result = new int[512];
@@ -104,14 +104,14 @@ public class Lexer implements java_cup.runtime.Scanner {
   private static final int [] ZZ_ACTION = zzUnpackAction();
 
   private static final String ZZ_ACTION_PACKED_0 =
-    "\2\0\1\1\1\2\2\1\1\3\1\4\1\2\1\5"+
-    "\1\6\1\7\1\10\1\11\1\12\1\13\2\14\1\15"+
-    "\1\16\1\17\1\20\1\21\1\22\1\2\2\23\1\24"+
-    "\1\25\1\1\1\0\1\26\1\27\1\30\1\0\1\31"+
-    "\1\32\1\33\1\34\1\35\1\23\1\0\1\36\1\37";
+    "\3\0\1\1\2\2\1\3\1\4\1\1\1\5\1\6"+
+    "\1\7\1\10\1\11\1\12\1\13\2\14\1\15\1\16"+
+    "\1\17\1\20\1\21\1\22\1\1\1\23\1\24\1\25"+
+    "\1\24\1\2\1\26\1\27\1\30\1\0\1\31\1\32"+
+    "\1\33\1\34\1\35\1\23\1\36\1\37";
 
   private static int [] zzUnpackAction() {
-    int [] result = new int[44];
+    int [] result = new int[42];
     int offset = 0;
     offset = zzUnpackAction(ZZ_ACTION_PACKED_0, offset, result);
     return result;
@@ -139,12 +139,12 @@ public class Lexer implements java_cup.runtime.Scanner {
     "\0\0\0\32\0\64\0\116\0\116\0\150\0\116\0\116"+
     "\0\202\0\116\0\116\0\116\0\116\0\116\0\234\0\266"+
     "\0\320\0\352\0\u0104\0\116\0\u011e\0\116\0\u0138\0\u0152"+
-    "\0\u016c\0\u0186\0\u01a0\0\116\0\u01ba\0\u01d4\0\u01ee\0\116"+
-    "\0\116\0\116\0\u0208\0\116\0\116\0\116\0\116\0\116"+
-    "\0\116\0\u0222\0\116\0\u0208";
+    "\0\u016c\0\u0186\0\116\0\116\0\u01a0\0\u01ba\0\116\0\116"+
+    "\0\116\0\u01d4\0\116\0\116\0\116\0\116\0\116\0\116"+
+    "\0\116\0\u01d4";
 
   private static int [] zzUnpackRowMap() {
-    int [] result = new int[44];
+    int [] result = new int[42];
     int offset = 0;
     offset = zzUnpackRowMap(ZZ_ROWMAP_PACKED_0, offset, result);
     return result;
@@ -171,17 +171,15 @@ public class Lexer implements java_cup.runtime.Scanner {
     "\1\14\1\15\1\16\1\17\1\4\1\20\1\21\1\22"+
     "\1\23\1\24\1\25\1\26\1\27\1\30\1\4\1\30"+
     "\1\31\2\32\2\33\1\32\1\34\21\32\1\35\2\32"+
-    "\11\36\1\37\20\36\34\0\1\5\35\0\1\40\50\0"+
-    "\1\41\15\0\1\42\35\0\1\43\31\0\1\43\1\0"+
-    "\2\22\35\0\1\44\31\0\1\45\1\46\30\0\1\47"+
-    "\24\0\2\30\5\0\1\30\1\0\1\30\32\0\1\50"+
-    "\2\32\2\0\1\32\1\0\21\32\1\0\2\32\2\0"+
-    "\2\33\33\0\1\51\22\0\1\51\1\0\11\36\1\52"+
-    "\31\36\1\52\4\36\1\53\13\36\17\0\2\54\11\0"+
-    "\11\36\1\52\4\36\1\0\13\36";
+    "\11\5\1\36\20\5\34\0\1\5\35\0\1\37\50\0"+
+    "\1\40\15\0\1\41\35\0\1\42\31\0\1\42\1\0"+
+    "\2\22\35\0\1\43\31\0\1\44\1\45\30\0\1\46"+
+    "\24\0\2\30\5\0\1\30\1\0\1\30\32\0\1\47"+
+    "\2\32\2\0\1\32\1\0\21\32\1\0\2\32\5\0"+
+    "\1\50\21\0\2\50\17\0\1\51\32\0\2\52\11\0";
 
   private static int [] zzUnpackTrans() {
-    int [] result = new int[572];
+    int [] result = new int[494];
     int offset = 0;
     offset = zzUnpackTrans(ZZ_TRANS_PACKED_0, offset, result);
     return result;
@@ -224,12 +222,12 @@ public class Lexer implements java_cup.runtime.Scanner {
   private static final int [] ZZ_ATTRIBUTE = zzUnpackAttribute();
 
   private static final String ZZ_ATTRIBUTE_PACKED_0 =
-    "\2\0\1\1\2\11\1\1\2\11\1\1\5\11\5\1"+
-    "\1\11\1\1\1\11\5\1\1\11\2\1\1\0\3\11"+
-    "\1\0\6\11\1\0\1\11\1\1";
+    "\3\0\2\11\1\1\2\11\1\1\5\11\5\1\1\11"+
+    "\1\1\1\11\4\1\2\11\2\1\3\11\1\0\7\11"+
+    "\1\1";
 
   private static int [] zzUnpackAttribute() {
-    int [] result = new int[44];
+    int [] result = new int[42];
     int offset = 0;
     offset = zzUnpackAttribute(ZZ_ATTRIBUTE_PACKED_0, offset, result);
     return result;
@@ -711,11 +709,11 @@ private Symbol installID(String lexeme)
             case STRING: {
               throw new Error("Stringa costante non completata");
             }  // fall though
-            case 45: break;
+            case 43: break;
             case COMMENTS: {
               throw new Error("Commento non chiuso");
             }  // fall though
-            case 46: break;
+            case 44: break;
             default:
               {
                 return new Symbol(ParserSym.EOF);
@@ -725,12 +723,12 @@ private Symbol installID(String lexeme)
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
           case 1:
-            { /* ignore */
+            { throw new Error("Carattere non riconosciuto: " + yytext());
             }
             // fall through
           case 32: break;
           case 2:
-            { throw new Error("Carattere non riconosciuto: " + yytext());
+            { /* ignore */
             }
             // fall through
           case 33: break;
@@ -821,13 +819,13 @@ private Symbol installID(String lexeme)
             // fall through
           case 50: break;
           case 20:
-            { yybegin(YYINITIAL);
-                         return token(ParserSym.STRING_CONST, string.toString());
+            { throw new Error("Stringa costante non corretta");
             }
             // fall through
           case 51: break;
           case 21:
-            { string.append('\\');
+            { yybegin(YYINITIAL);
+                         return token(ParserSym.STRING_CONST, string.toString());
             }
             // fall through
           case 52: break;

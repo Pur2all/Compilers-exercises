@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Program>
+    <VarDeclOp>
+        <Type>
+            STRING
+            <IdListInitOp>
+                <IdListOp/>
+                <AssignStatOp>
+                    <IdListOp>(ID, nome)</IdListOp>
+                    <ExprListOp>Michele</ExprListOp>
+                </AssignStatOp>
+            </IdListInitOp>
+        </Type>
+    </VarDeclOp>
+    <ProcOp>
+        (ID, multAddDiff)
+        <ParamDeclListOp/>
+        <ResultTypeListOp>INT, INT, INT</ResultTypeListOp>
+        <VarDeclListOp>
+            <VarDeclOp>
+                <Type>
+                    INT
+                    <IdListInitOp>
+                        <IdListOp>(ID, diff), (ID, add), (ID, mul), (ID, primo), (ID, secondo)</IdListOp>
+                    </IdListInitOp>
+                </Type>
+            </VarDeclOp>
+        </VarDeclListOp>
+        <StatListOp>
+            <WriteOp>Inserire il primo argomento:\n</WriteOp>
+            <ReadOp>
+                <IdListOp>(ID, primo)</IdListOp>
+            </ReadOp>
+            <WriteOp>Inserire il secondo argomento:\n</WriteOp>
+            <ReadOp>
+                <IdListOp>(ID, secondo)</IdListOp>
+            </ReadOp>
+            <AssignStatOp>
+                <IdListOp>(ID, mul), (ID, add), (ID, diff)</IdListOp>
+                <ExprListOp>
+                    <TimeOp>(ID, primo), (ID, secondo)</TimeOp>
+                    , 
+                    <AddOp>(ID, primo), (ID, secondo)</AddOp>
+                    , 
+                    <MinOp>(ID, primo), (ID, secondo)</MinOp>
+                </ExprListOp>
+            </AssignStatOp>
+        </StatListOp>
+        <ReturnExprsOp>(ID, mul), (ID, add), (ID, diff)</ReturnExprsOp>
+    </ProcOp>
+    <ProcOp>
+        (ID, writeNewLines)
+        <ParamDeclListOp>
+            <ParDeclOp>
+                INT
+                <IdListOp>(ID, n)</IdListOp>
+            </ParDeclOp>
+        </ParamDeclListOp>
+        <ResultTypeListOp>VOID</ResultTypeListOp>
+        <VarDeclListOp/>
+        <StatListOp>
+            <WhileOp>
+                <ConditionStat/>
+                <GtOp>(ID, n), 0</GtOp>
+                <WhileBody>
+                    <WriteOp>\n</WriteOp>
+                    <AssignStatOp>
+                        <IdListOp>(ID, n)</IdListOp>
+                        <ExprListOp>
+                            <MinOp>(ID, n), 1</MinOp>
+                        </ExprListOp>
+                    </AssignStatOp>
+                </WhileBody>
+            </WhileOp>
+        </StatListOp>
+        <ReturnExprsOp/>
+    </ProcOp>
+    <ProcOp>
+        (ID, main)
+        <ParamDeclListOp/>
+        <ResultTypeListOp>VOID</ResultTypeListOp>
+        <VarDeclListOp>
+            <VarDeclOp>
+                <Type>
+                    INT
+                    <IdListInitOp>
+                        <IdListOp>(ID, a), (ID, b)</IdListOp>
+                        <AssignStatOp>
+                            <IdListOp>(ID, c)</IdListOp>
+                            <ExprListOp>0</ExprListOp>
+                        </AssignStatOp>
+                    </IdListInitOp>
+                </Type>
+            </VarDeclOp>
+        </VarDeclListOp>
+        <StatListOp>
+            <AssignStatOp>
+                <IdListOp>(ID, a), (ID, b), (ID, c)</IdListOp>
+                <ExprListOp>
+                    <CallProcOp>
+                        (ID, multAddDiff)
+                        <ParamOp/>
+                    </CallProcOp>
+                </ExprListOp>
+            </AssignStatOp>
+            <WriteOp>Ciao (ID, nome)</WriteOp>
+            <CallProcOp>
+                (ID, writeNewLines)
+                <ParamOp>2</ParamOp>
+            </CallProcOp>
+            <WriteOp>I tuoi valori sono:\n(ID, a) per la moltiplicazione\n(ID, b) per la somma, e \n(ID, c) per la differenza</WriteOp>
+        </StatListOp>
+        <ReturnExprsOp/>
+    </ProcOp>
+</Program>

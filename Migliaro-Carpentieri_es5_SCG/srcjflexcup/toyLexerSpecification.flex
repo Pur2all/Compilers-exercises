@@ -97,9 +97,6 @@ LetterOrUnderscore = [a-zA-Z_]
 
 Identifiers = {LetterOrUnderscore}[{LetterOrUnderscore}{Digit}]*
 
-// COMMENT
-CommentContent = ( [^*] | \*+ [^/*] )*
-
 // STATES DECLARATION
 %state STRING
 %state COMMENTS
@@ -164,16 +161,18 @@ CommentContent = ( [^*] | \*+ [^/*] )*
     <<EOF>>             {throw new Error("Stringa costante non completata");}
     [^\n\r\"\\]+        {string.append(yytext());}
     \\t                 {string.append(yytext());}
-    [\r\n]+             {string.append(yytext());}
+    \\n                 {string.append(yytext());}
+    \\r                 {string.append(yytext());}
     \\\"                {string.append(yytext());}
-    \\                  {string.append('\\');}
+    \\\\                {string.append(yytext());}
+    // ERROR
+    [^]                 {throw new Error("Stringa costante non corretta");}
 }
 
 <COMMENTS> {
     "*/"                {yybegin(YYINITIAL);}
-    {CommentContent}    {/* ignore */}
+    [^]                 {/* ignore */}
     <<EOF>>             {throw new Error("Commento non chiuso");}
-
 }
 
 <<EOF>>                 {return new Symbol(ParserSym.EOF);}
